@@ -69,6 +69,8 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    characters: Character;
+    guilds: Guild;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,13 +80,15 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    characters: CharactersSelect<false> | CharactersSelect<true>;
+    guilds: GuildsSelect<false> | GuildsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
   fallbackLocale: null;
   globals: {};
@@ -122,7 +126,9 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: string;
+  id: number;
+  role: 'super_admin' | 'guild_master';
+  name?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -147,7 +153,7 @@ export interface User {
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
+  id: number;
   alt: string;
   updatedAt: string;
   createdAt: string;
@@ -162,11 +168,93 @@ export interface Media {
   focalY?: number | null;
 }
 /**
+ * Data karakter ROOC dari berbagai Guild
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "characters".
+ */
+export interface Character {
+  id: number;
+  name: string;
+  job:
+    | 'lord_knight'
+    | 'paladin'
+    | 'high_priest'
+    | 'champion'
+    | 'assassin_cross'
+    | 'stalker'
+    | 'high_wizard'
+    | 'professor'
+    | 'sniper'
+    | 'minstrell'
+    | 'gypsy'
+    | 'mastersmith'
+    | 'biochemist'
+    | 'summoner';
+  guild_id: number | Guild;
+  isVerified?: boolean | null;
+  stats_screenshot?: (number | null) | Media;
+  max_hp: number;
+  patk?: number | null;
+  matk?: number | null;
+  pdef?: number | null;
+  mdef?: number | null;
+  refine_patk?: number | null;
+  refine_matk?: number | null;
+  refine_pdef?: number | null;
+  refine_mdef?: number | null;
+  hit?: number | null;
+  flee?: number | null;
+  aspd?: number | null;
+  variable_cast?: number | null;
+  fixed_cast?: number | null;
+  healing_done?: number | null;
+  critical?: number | null;
+  critical_damage?: number | null;
+  critical_reduction?: number | null;
+  critical_damage_reduction?: number | null;
+  pdmg?: number | null;
+  mdmg?: number | null;
+  pdmg_reduction?: number | null;
+  mdmg_reduction?: number | null;
+  ignore_pdef?: number | null;
+  ignore_mdef?: number | null;
+  pdmg_bonus?: number | null;
+  mdmg_bonus?: number | null;
+  pvp_dmg_bonus?: number | null;
+  pvp_dmg_reduction?: number | null;
+  max_hp_percentage?: number | null;
+  equipment_patk_percentage?: number | null;
+  equipment_matk_percentage?: number | null;
+  equipment_pdef_percentage?: number | null;
+  equipment_mdef_percentage?: number | null;
+  dmg_vs_demi_human?: number | null;
+  dmg_reduction_demi_human?: number | null;
+  dmg_vs_medium?: number | null;
+  dmg_reduction_medium?: number | null;
+  neutral_dmg_bonus?: number | null;
+  neutral_dmg_reduction?: number | null;
+  pvp_score?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "guilds".
+ */
+export interface Guild {
+  id: number;
+  name: string;
+  guild_master: number | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -183,20 +271,28 @@ export interface PayloadKv {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
         relationTo: 'users';
-        value: string | User;
+        value: number | User;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'characters';
+        value: number | Character;
+      } | null)
+    | ({
+        relationTo: 'guilds';
+        value: number | Guild;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -206,10 +302,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -229,7 +325,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -240,6 +336,8 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  role?: T;
+  name?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -274,6 +372,70 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "characters_select".
+ */
+export interface CharactersSelect<T extends boolean = true> {
+  name?: T;
+  job?: T;
+  guild_id?: T;
+  isVerified?: T;
+  stats_screenshot?: T;
+  max_hp?: T;
+  patk?: T;
+  matk?: T;
+  pdef?: T;
+  mdef?: T;
+  refine_patk?: T;
+  refine_matk?: T;
+  refine_pdef?: T;
+  refine_mdef?: T;
+  hit?: T;
+  flee?: T;
+  aspd?: T;
+  variable_cast?: T;
+  fixed_cast?: T;
+  healing_done?: T;
+  critical?: T;
+  critical_damage?: T;
+  critical_reduction?: T;
+  critical_damage_reduction?: T;
+  pdmg?: T;
+  mdmg?: T;
+  pdmg_reduction?: T;
+  mdmg_reduction?: T;
+  ignore_pdef?: T;
+  ignore_mdef?: T;
+  pdmg_bonus?: T;
+  mdmg_bonus?: T;
+  pvp_dmg_bonus?: T;
+  pvp_dmg_reduction?: T;
+  max_hp_percentage?: T;
+  equipment_patk_percentage?: T;
+  equipment_matk_percentage?: T;
+  equipment_pdef_percentage?: T;
+  equipment_mdef_percentage?: T;
+  dmg_vs_demi_human?: T;
+  dmg_reduction_demi_human?: T;
+  dmg_vs_medium?: T;
+  dmg_reduction_medium?: T;
+  neutral_dmg_bonus?: T;
+  neutral_dmg_reduction?: T;
+  pvp_score?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "guilds_select".
+ */
+export interface GuildsSelect<T extends boolean = true> {
+  name?: T;
+  guild_master?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
