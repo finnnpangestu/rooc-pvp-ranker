@@ -347,11 +347,11 @@ export function LeaderboardClient({
                             gap: '8px',
                           }}
                         >
-                          <img
+                          {/* <img
                             src={getJobIcon(char.job)}
                             alt=""
                             style={{ width: '20px', height: '20px', objectFit: 'contain' }}
-                          />
+                          /> */}
                           {JOB_LABELS[char.job] || char.job}
                         </td>
                         <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600 }}>
