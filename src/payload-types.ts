@@ -76,7 +76,11 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    guilds: {
+      characters: 'characters';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -205,17 +209,55 @@ export interface Character {
   refine_mdef?: number | null;
   hit?: number | null;
   flee?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   aspd?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  mspd?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   variable_cast?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   fixed_cast?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   healing_done?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  healing_taken?: number | null;
   critical?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   critical_damage?: number | null;
   critical_reduction?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   critical_damage_reduction?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   pdmg?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   mdmg?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   pdmg_reduction?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   mdmg_reduction?: number | null;
   ignore_pdef?: number | null;
   ignore_mdef?: number | null;
@@ -223,16 +265,49 @@ export interface Character {
   mdmg_bonus?: number | null;
   pvp_dmg_bonus?: number | null;
   pvp_dmg_reduction?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   max_hp_percentage?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   equipment_patk_percentage?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   equipment_matk_percentage?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   equipment_pdef_percentage?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   equipment_mdef_percentage?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   dmg_vs_demi_human?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   dmg_reduction_demi_human?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   dmg_vs_medium?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   dmg_reduction_medium?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   neutral_dmg_bonus?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
   neutral_dmg_reduction?: number | null;
   pvp_score?: number | null;
   updatedAt: string;
@@ -246,6 +321,19 @@ export interface Guild {
   id: number;
   name: string;
   guild_master: number | User;
+  /**
+   * Jumlah karakter terverifikasi dalam guild
+   */
+  total_characters?: number | null;
+  /**
+   * Akumulasi PvP score semua karakter terverifikasi
+   */
+  total_pvp_score?: number | null;
+  characters?: {
+    docs?: (number | Character)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -395,9 +483,11 @@ export interface CharactersSelect<T extends boolean = true> {
   hit?: T;
   flee?: T;
   aspd?: T;
+  mspd?: T;
   variable_cast?: T;
   fixed_cast?: T;
   healing_done?: T;
+  healing_taken?: T;
   critical?: T;
   critical_damage?: T;
   critical_reduction?: T;
@@ -434,6 +524,9 @@ export interface CharactersSelect<T extends boolean = true> {
 export interface GuildsSelect<T extends boolean = true> {
   name?: T;
   guild_master?: T;
+  total_characters?: T;
+  total_pvp_score?: T;
+  characters?: T;
   updatedAt?: T;
   createdAt?: T;
 }
