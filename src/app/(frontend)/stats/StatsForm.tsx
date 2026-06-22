@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { GlobalDialog } from '../components/GlobalDialog'
 import styles from './stats.module.css'
+import Link from 'next/link'
 
 interface Guild {
   id: string
@@ -186,6 +187,21 @@ export function StatsForm({ guilds }: StatsFormProps) {
           <div className={styles.badge}>ROOC Ranker</div>
           <h1>Submit Stats</h1>
           <p>Masukkan data stat karaktermu untuk berpartisipasi dalam rank PvP.</p>
+
+          <p style={{ marginTop: '8px' }}>
+            <Link
+              href="/leaderboards"
+              style={{
+                color: '#818cf8',
+                textDecoration: 'none',
+                fontWeight: 600,
+                borderBottom: '1px solid rgba(99,102,241,0.3)',
+                padding: '4px 0',
+              }}
+            >
+              Lihat Leaderboard →
+            </Link>
+          </p>
         </div>
 
         <div className={styles.tabs}>
