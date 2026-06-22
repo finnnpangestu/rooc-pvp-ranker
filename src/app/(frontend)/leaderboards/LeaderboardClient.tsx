@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import styles from '../stats/stats.module.css'
@@ -28,6 +28,10 @@ const JOB_LABELS: Record<string, string> = {
   summoner: 'Summoner',
 }
 
+// Map Job ke Icon (Asumsi folder public/icons/jobs/job_name.png)
+// Jika folder berbeda, silakan sesuaikan path-nya
+const getJobIcon = (jobValue: string) => `/icons/jobs/${jobValue}.png`
+
 const getRankStyle = (rank: number) => {
   if (rank === 1) {
     return {
@@ -45,7 +49,6 @@ const getRankStyle = (rank: number) => {
         boxShadow: '0 4px 15px rgba(251, 191, 36, 0.5)',
         border: '2px solid #fcd34d',
       },
-      text: '#fbbf24',
     }
   }
   if (rank === 2) {
@@ -64,7 +67,6 @@ const getRankStyle = (rank: number) => {
         boxShadow: '0 4px 12px rgba(156, 163, 175, 0.4)',
         border: '2px solid #d1d5db',
       },
-      text: '#e5e7eb',
     }
   }
   if (rank === 3) {
@@ -83,7 +85,6 @@ const getRankStyle = (rank: number) => {
         boxShadow: '0 4px 10px rgba(249, 115, 22, 0.4)',
         border: '2px solid #fb923c',
       },
-      text: '#f97316',
     }
   }
   return {
@@ -100,7 +101,6 @@ const getRankStyle = (rank: number) => {
       fontSize: '14px',
       border: '1px solid rgba(255,255,255,0.1)',
     },
-    text: '#9ca3af',
   }
 }
 
@@ -111,20 +111,22 @@ export function LeaderboardClient({
 }: LeaderboardClientProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const scrollRef = useRef<HTMLDivElement>(null)
+
   const [localGuildId, setLocalGuildId] = useState(selectedGuildId || '')
   const [activeTab, setActiveTab] = useState('all')
+  const [selectedJob, setSelectedJob] = useState('')
 
   useEffect(() => {
     setLocalGuildId(selectedGuildId || '')
   }, [selectedGuildId])
 
-  const filteredGuilds = selectedGuildId
-    ? allGuilds.filter((g) => String(g.id) === String(selectedGuildId))
-    : allGuilds
-
-  const filteredCharacters = selectedGuildId
-    ? allCharacters.filter((c) => String(c.guild_id) === String(selectedGuildId))
-    : allCharacters
+  // Logika Filter Karakter (Guild + Job)
+  const filteredCharacters = allCharacters.filter((c) => {
+    const matchesGuild = selectedGuildId ? String(c.guild_id) === String(selectedGuildId) : true
+    const matchesJob = selectedJob ? c.job === selectedJob : true
+    return matchesGuild && matchesJob
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -132,6 +134,14 @@ export function LeaderboardClient({
       router.push(`${pathname}?guild=${localGuildId}`)
     } else {
       router.push(pathname)
+    }
+  }
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const { scrollLeft, clientWidth } = scrollRef.current
+      const scrollTo = direction === 'left' ? scrollLeft - 200 : scrollLeft + 200
+      scrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' })
     }
   }
 
@@ -158,7 +168,6 @@ export function LeaderboardClient({
         </p>
       </div>
 
-      {/* Tabs */}
       <div className={styles.tabs}>
         <button
           type="button"
@@ -176,22 +185,205 @@ export function LeaderboardClient({
         </button>
       </div>
 
-      {/* Konten: Semua Guild */}
+      {/* Konten: Per Guild */}
+      <div
+        className={`${styles.tabContent} ${activeTab === 'guild' ? styles.activeContent : ''}`}
+        style={{ padding: '16px 0' }}
+      >
+        <div className={styles.sectionDesc}>
+          Pilih guild dan job untuk melihat peringkat PvP karakter.
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ marginBottom: '24px' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <label
+                htmlFor="guildSelect"
+                style={{ color: '#e5e7eb', fontWeight: 500, display: 'block', marginBottom: '8px' }}
+              >
+                Pilih Guild
+              </label>
+              <div className={styles.selectWrapper}>
+                <select
+                  id="guildSelect"
+                  className={styles.select}
+                  value={localGuildId}
+                  onChange={(e) => setLocalGuildId(e.target.value)}
+                >
+                  <option value="">-- Pilih Guild --</option>
+                  {allGuilds.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <button type="submit" className={styles.submitBtnLeaderboard}>
+              Tampilkan
+            </button>
+          </div>
+        </form>
+
+        {/* Job Filter Carousel */}
+        <div style={{ position: 'relative', marginBottom: '32px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '12px',
+            }}
+          >
+            <span style={{ color: '#9ca3af', fontSize: '14px', fontWeight: 500 }}>
+              Filter berdasarkan Job:
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={() => scroll('left')} className={styles.scrollBtn}>
+                ❮
+              </button>
+              <button onClick={() => scroll('right')} className={styles.scrollBtn}>
+                ❯
+              </button>
+            </div>
+          </div>
+
+          <div ref={scrollRef} className={styles.jobCarousel}>
+            <button
+              onClick={() => setSelectedJob('')}
+              className={`${styles.jobCard} ${selectedJob === '' ? styles.jobCardActive : ''}`}
+            >
+              <div className={styles.jobIconWrapper}>
+                <span style={{ fontSize: '12px' }}>ALL</span>
+              </div>
+              <span>Semua</span>
+            </button>
+
+            {Object.entries(JOB_LABELS).map(([value, label]) => (
+              <button
+                key={value}
+                onClick={() => setSelectedJob(value)}
+                className={`${styles.jobCard} ${selectedJob === value ? styles.jobCardActive : ''}`}
+              >
+                <div className={styles.jobIconWrapper}>
+                  <img
+                    src={getJobIcon(value)}
+                    alt={label}
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                  />
+                </div>
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {selectedGuildId ? (
+          <div style={{ overflowX: 'auto' }}>
+            <div
+              style={{
+                marginBottom: '16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <div style={{ color: '#9ca3af', fontSize: '14px' }}>
+                Guild:{' '}
+                <span style={{ color: '#e5e7eb', fontWeight: 600 }}>
+                  {allGuilds.find((g) => String(g.id) === String(selectedGuildId))?.name}
+                </span>
+                {selectedJob && (
+                  <>
+                    {' '}
+                    | Job:{' '}
+                    <span style={{ color: '#818cf8', fontWeight: 600 }}>
+                      {JOB_LABELS[selectedJob]}
+                    </span>
+                  </>
+                )}
+              </div>
+              <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                Total: {filteredCharacters.length} karakter
+              </div>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '15px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
+                  <th style={{ padding: '12px 16px', textAlign: 'center', width: '80px' }}>Rank</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left' }}>Nama Karakter</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left' }}>Job</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'right' }}>PvP Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCharacters.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}
+                    >
+                      Tidak ada karakter {selectedJob && JOB_LABELS[selectedJob]} terverifikasi di
+                      guild ini.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredCharacters.map((char, index) => {
+                    const rank = index + 1
+                    const rankStyle = getRankStyle(rank)
+                    return (
+                      <tr key={char.id} className={styles.tableRow}>
+                        <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                          <span style={rankStyle.container}>{rank}</span>
+                        </td>
+                        <td style={{ padding: '12px 16px', fontWeight: 500 }}>{char.name}</td>
+                        <td
+                          style={{
+                            padding: '12px 16px',
+                            color: '#d1d5db',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}
+                        >
+                          <img
+                            src={getJobIcon(char.job)}
+                            alt=""
+                            style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+                          />
+                          {JOB_LABELS[char.job] || char.job}
+                        </td>
+                        <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600 }}>
+                          <span style={{ color: rank <= 3 ? '#fbbf24' : '#e5e7eb' }}>
+                            {Math.round(char.pvp_score ?? 0).toLocaleString()}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+            Pilih guild dari dropdown di atas, lalu klik "Tampilkan".
+          </div>
+        )}
+      </div>
+
+      {/* Konten: Semua Guild (Tetap Sama) */}
       <div
         className={`${styles.tabContent} ${activeTab === 'all' ? styles.activeContent : ''}`}
         style={{ padding: '16px 0' }}
       >
+        {/* ... (Konten Semua Guild Anda Sebelumnya) ... */}
         <div className={styles.sectionDesc}>
           Peringkat guild berdasarkan total PvP score dari semua karakter terverifikasi.
         </div>
         <div style={{ overflowX: 'auto' }}>
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              fontSize: '15px',
-            }}
-          >
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '15px' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
                 <th style={{ padding: '12px 16px', textAlign: 'center', width: '80px' }}>Rank</th>
@@ -205,17 +397,7 @@ export function LeaderboardClient({
                 const rank = index + 1
                 const rankStyle = getRankStyle(rank)
                 return (
-                  <tr
-                    key={guild.id}
-                    style={{
-                      borderBottom: '1px solid rgba(255,255,255,0.05)',
-                      transition: 'background 0.2s',
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                  >
+                  <tr key={guild.id} className={styles.tableRow}>
                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                       <span style={rankStyle.container}>{rank}</span>
                     </td>
@@ -234,141 +416,6 @@ export function LeaderboardClient({
             </tbody>
           </table>
         </div>
-      </div>
-
-      {/* Konten: Per Guild */}
-      <div
-        className={`${styles.tabContent} ${activeTab === 'guild' ? styles.activeContent : ''}`}
-        style={{ padding: '16px 0' }}
-      >
-        <div className={styles.sectionDesc}>
-          Pilih guild untuk melihat peringkat PvP karakter di dalamnya.
-        </div>
-
-        <form onSubmit={handleSubmit} style={{ marginBottom: '24px' }}>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '200px' }}>
-              <label
-                htmlFor="guildSelect"
-                style={{ color: '#e5e7eb', fontWeight: 500, display: 'block', marginBottom: '8px' }}
-              >
-                Pilih Guild
-              </label>
-              <div className={styles.selectWrapper}>
-                <select
-                  id="guildSelect"
-                  className={styles.select}
-                  value={localGuildId}
-                  onChange={(e) => setLocalGuildId(e.target.value)}
-                  style={{ maxWidth: '100%' }}
-                >
-                  <option value="">-- Pilih Guild --</option>
-                  {allGuilds.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <button
-              type="submit"
-              style={{
-                background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)',
-                border: 'none',
-                color: 'white',
-                padding: '12px 24px',
-                borderRadius: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 10px 25px -5px rgba(79,70,229,0.5)',
-                fontFamily: 'inherit',
-                fontSize: '15px',
-                whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
-            >
-              Tampilkan
-            </button>
-          </div>
-        </form>
-
-        {selectedGuildId ? (
-          <div style={{ overflowX: 'auto' }}>
-            <div style={{ marginBottom: '12px', color: '#9ca3af', fontSize: '14px' }}>
-              Menampilkan karakter untuk guild:{' '}
-              <span style={{ color: '#e5e7eb', fontWeight: 600 }}>
-                {allGuilds.find((g) => String(g.id) === String(selectedGuildId))?.name ||
-                  'Tidak ditemukan'}
-              </span>
-            </div>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                fontSize: '15px',
-              }}
-            >
-              <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
-                  <th style={{ padding: '12px 16px', textAlign: 'center', width: '80px' }}>Rank</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left' }}>Nama Karakter</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left' }}>Job</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'right' }}>PvP Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCharacters.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}
-                    >
-                      Belum ada karakter terverifikasi di guild ini.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredCharacters.map((char, index) => {
-                    const rank = index + 1
-                    const rankStyle = getRankStyle(rank)
-                    return (
-                      <tr
-                        key={char.id}
-                        style={{
-                          borderBottom: '1px solid rgba(255,255,255,0.05)',
-                          transition: 'background 0.2s',
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')
-                        }
-                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                      >
-                        <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                          <span style={rankStyle.container}>{rank}</span>
-                        </td>
-                        <td style={{ padding: '12px 16px', fontWeight: 500 }}>{char.name}</td>
-                        <td style={{ padding: '12px 16px', color: '#d1d5db' }}>
-                          {JOB_LABELS[char.job] || char.job}
-                        </td>
-                        <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600 }}>
-                          <span style={{ color: rank === 1 ? '#fbbf24' : '#e5e7eb' }}>
-                            {Math.round(char.pvp_score ?? 0).toLocaleString()}
-                          </span>
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
-            Pilih guild dari dropdown di atas, lalu klik "Tampilkan".
-          </div>
-        )}
       </div>
     </div>
   )
