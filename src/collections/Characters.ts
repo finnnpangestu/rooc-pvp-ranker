@@ -98,6 +98,8 @@ export const Characters: CollectionConfig = {
         { label: 'Mastersmith', value: 'mastersmith' },
         { label: 'Biochemist', value: 'biochemist' },
         { label: 'Summoner', value: 'summoner' },
+        { label: 'Adept Novice', value: 'adept_novice' },
+        { label: 'Rebellion', value: 'rebellion' },
       ],
     },
     {

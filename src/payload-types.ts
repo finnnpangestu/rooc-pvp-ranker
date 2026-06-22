@@ -194,7 +194,9 @@ export interface Character {
     | 'gypsy'
     | 'mastersmith'
     | 'biochemist'
-    | 'summoner';
+    | 'summoner'
+    | 'adept_novice'
+    | 'rebellion';
   guild_id: number | Guild;
   isVerified?: boolean | null;
   stats_screenshot?: (number | null) | Media;

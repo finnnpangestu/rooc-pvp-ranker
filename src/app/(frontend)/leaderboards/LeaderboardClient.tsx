@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import styles from '../stats/stats.module.css'
+import Image from 'next/image'
 
 interface LeaderboardClientProps {
   allGuilds: any[]
@@ -26,6 +27,8 @@ const JOB_LABELS: Record<string, string> = {
   mastersmith: 'Mastersmith',
   biochemist: 'Biochemist',
   summoner: 'Summoner',
+  adept_novice: 'Adept Novice',
+  rebellion: 'Rebellion',
 }
 
 // Map Job ke Icon (Asumsi folder public/icons/jobs/job_name.png)
@@ -266,10 +269,16 @@ export function LeaderboardClient({
                 className={`${styles.jobCard} ${selectedJob === value ? styles.jobCardActive : ''}`}
               >
                 <div className={styles.jobIconWrapper}>
-                  <img
+                  <Image
                     src={getJobIcon(value)}
                     alt={label}
                     onError={(e) => (e.currentTarget.style.display = 'none')}
+                    style={{ borderRadius: '8px', objectFit: 'cover' }}
+                    width={20}
+                    height={20}
+                    quality={100}
+                    unoptimized
+                    priority
                   />
                 </div>
                 <span>{label}</span>
@@ -347,11 +356,22 @@ export function LeaderboardClient({
                             gap: '8px',
                           }}
                         >
-                          {/* <img
+                          <Image
                             src={getJobIcon(char.job)}
-                            alt=""
-                            style={{ width: '20px', height: '20px', objectFit: 'contain' }}
-                          /> */}
+                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                            alt={JOB_LABELS[char.job] || char.job}
+                            width={20}
+                            height={20}
+                            quality={100}
+                            unoptimized
+                            priority
+                            objectFit="cover"
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '6px',
+                            }}
+                          />
                           {JOB_LABELS[char.job] || char.job}
                         </td>
                         <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600 }}>

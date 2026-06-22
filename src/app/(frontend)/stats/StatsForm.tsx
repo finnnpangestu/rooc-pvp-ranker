@@ -29,6 +29,8 @@ const JOBS = [
   { label: 'Mastersmith', value: 'mastersmith' },
   { label: 'Biochemist', value: 'biochemist' },
   { label: 'Summoner', value: 'summoner' },
+  { label: 'Adept Novice', value: 'adept_novice' },
+  { label: 'Rebellion', value: 'rebellion' },
 ]
 
 const GENERAL_STATS = [
