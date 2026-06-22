@@ -1,5 +1,3 @@
-import { Character } from '@/payload-types'
-
 type StatWeights = {
   hp_weight: number
   def_weight: number
@@ -12,7 +10,7 @@ type StatWeights = {
 
 const JOB_WEIGHTS: Record<string, StatWeights> = {
   paladin: {
-    hp_weight: 1.0,
+    hp_weight: 2.8,
     def_weight: 0.5,
     atk_weight: 0.1,
     pen_weight: 0.1,
@@ -22,7 +20,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
   },
 
   lord_knight: {
-    hp_weight: 0.9,
+    hp_weight: 2.5,
     def_weight: 0.8,
     atk_weight: 1.2,
     pen_weight: 0.8,
@@ -32,7 +30,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
   },
 
   high_priest: {
-    hp_weight: 0.9,
+    hp_weight: 2.5,
     def_weight: 0.5,
     atk_weight: 0.6,
     pen_weight: 0.2,
@@ -42,7 +40,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
   },
 
   minstrell: {
-    hp_weight: 0.8,
+    hp_weight: 2.2,
     def_weight: 0.5,
     atk_weight: 1.6,
     pen_weight: 1.0,
@@ -51,7 +49,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
     utility_weight: 2.2,
   },
   gypsy: {
-    hp_weight: 0.8,
+    hp_weight: 2.2,
     def_weight: 0.5,
     atk_weight: 1.6,
     pen_weight: 1.0,
@@ -61,7 +59,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
   },
 
   assassin_cross: {
-    hp_weight: 0.5,
+    hp_weight: 1.4,
     def_weight: 0.4,
     atk_weight: 2.4,
     pen_weight: 2.4,
@@ -71,7 +69,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
   },
 
   sniper: {
-    hp_weight: 0.5,
+    hp_weight: 1.4,
     def_weight: 0.4,
     atk_weight: 2.4,
     pen_weight: 2.4,
@@ -81,7 +79,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
   },
 
   champion: {
-    hp_weight: 0.6,
+    hp_weight: 1.7,
     def_weight: 0.5,
     atk_weight: 2.4,
     pen_weight: 2.2,
@@ -91,7 +89,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
   },
 
   mastersmith: {
-    hp_weight: 0.6,
+    hp_weight: 1.7,
     def_weight: 0.5,
     atk_weight: 2.2,
     pen_weight: 2.0,
@@ -101,7 +99,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
   },
 
   stalker: {
-    hp_weight: 0.6,
+    hp_weight: 1.7,
     def_weight: 0.5,
     atk_weight: 1.8,
     pen_weight: 1.8,
@@ -111,7 +109,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
   },
 
   high_wizard: {
-    hp_weight: 0.5,
+    hp_weight: 1.4,
     def_weight: 0.4,
     atk_weight: 2.5,
     pen_weight: 2.4,
@@ -121,7 +119,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
   },
 
   professor: {
-    hp_weight: 0.8,
+    hp_weight: 2.2,
     def_weight: 0.7,
     atk_weight: 1.4,
     pen_weight: 1.4,
@@ -131,7 +129,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
   },
 
   biochemist: {
-    hp_weight: 0.7,
+    hp_weight: 2.0,
     def_weight: 0.5,
     atk_weight: 2.2,
     pen_weight: 2.0,
@@ -141,7 +139,7 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
   },
 
   summoner: {
-    hp_weight: 0.7,
+    hp_weight: 2.0,
     def_weight: 0.6,
     atk_weight: 1.8,
     pen_weight: 1.6,
@@ -159,17 +157,16 @@ export const calculatePvPScore = (data: any): number => {
   const job = data.job || 'paladin'
   const weights = JOB_WEIGHTS[job] || JOB_WEIGHTS['paladin']
 
-  // 1. Basic Stat (HP Base / 1000, HP% / 100)
-  const hpBase = (data.max_hp || 0) / 1000
-  const hpBonus = (data.max_hp_percentage || 0) / 100 // Dibagi 100
-  const totalHPValue = hpBase * (1 + hpBonus)
+  // 1. HP stat
+  const totalHPValue = (data.max_hp || 0) / 1000
 
+  // 2. Base stats (ATK, MATK, DEF, MDEF)
   const patk = (data.patk || 0) / 100
   const matk = (data.matk || 0) / 100
   const pdef = (data.pdef || 0) / 100
   const mdef = (data.mdef || 0) / 100
 
-  // 2. Attack Stat
+  // 3. Attack Stat
   const isMagicDps = ['high_wizard', 'professor', 'high_priest', 'summoner'].includes(job)
   const baseMainAtk = isMagicDps ? matk : patk
   const refineAtk = isMagicDps ? data.refine_matk || 0 : data.refine_patk || 0
@@ -182,26 +179,22 @@ export const calculatePvPScore = (data: any): number => {
   const refineDef = ((data.refine_pdef || 0) + (data.refine_mdef || 0)) / GENERAL_FLAT_CONVERSION
   const totalDef = pdef + mdef + refineDef
 
-  // 3. Damage Reduction
-  // Input % langsung dibagi 100
+  // 4. Damage Reduction
   const pdmgRed = data.pdmg_reduction || 0
   const mdmgRed = data.mdmg_reduction || 0
   const dmgRedDemi = data.dmg_reduction_demi_human || 0
   const dmgRedMed = data.dmg_reduction_medium || 0
   const neutralRed = data.neutral_dmg_reduction || 0
   const critDmgRed = data.critical_damage_reduction || 0
-
-  // Flat PvP Reduction
   const flatPvPRed = (data.pvp_dmg_reduction || 0) / PVP_FLAT_CONVERSION
 
   const totalDmgReduction =
     pdmgRed + mdmgRed + dmgRedDemi + dmgRedMed + neutralRed + critDmgRed + flatPvPRed
 
-  // 4. Damage Bonus
+  // 5. Damage Bonus
   const pdmgBonus = (data.pdmg_bonus || 0) / GENERAL_FLAT_CONVERSION
   const mdmgBonus = (data.mdmg_bonus || 0) / GENERAL_FLAT_CONVERSION
   const flatPvPBonus = (data.pvp_dmg_bonus || 0) / PVP_FLAT_CONVERSION
-
   const dmgVsDemi = data.dmg_vs_demi_human || 0
   const dmgVsMed = data.dmg_vs_medium || 0
   const neutralBonus = data.neutral_dmg_bonus || 0
@@ -209,7 +202,7 @@ export const calculatePvPScore = (data: any): number => {
   const totalDmgBonus =
     (isMagicDps ? mdmgBonus : pdmgBonus) + flatPvPBonus + dmgVsDemi + dmgVsMed + neutralBonus
 
-  // 5. Utility Score
+  // 6. Utility Score
   const utilityScore =
     (data.healing_done || 0) +
     (data.healing_taken || 0) +
@@ -217,7 +210,7 @@ export const calculatePvPScore = (data: any): number => {
     (data.variable_cast || 0) * 0.5 +
     (data.aspd || 0) * 0.1
 
-  // 6. Final Score
+  // 7. Final Score
   const score =
     totalHPValue * weights.hp_weight +
     totalDef * weights.def_weight +
