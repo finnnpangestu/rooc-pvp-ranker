@@ -202,7 +202,10 @@ export function StatsForm({ guilds }: StatsFormProps) {
         <div className={styles.header}>
           <div className={styles.badge}>ROOC Ranker</div>
           <h1>Submit Stats</h1>
-          <p>Masukkan data stat karaktermu untuk berpartisipasi dalam rank PvP.</p>
+          <p>
+            Masukkan data stat karaktermu untuk berpartisipasi dalam rank PvP. Direkomendasikan
+            tanpa menggunakan Buffs, Consumables, dan Buff Skills.
+          </p>
 
           <p style={{ marginTop: '8px' }}>
             <Link
