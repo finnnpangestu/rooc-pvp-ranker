@@ -325,7 +325,12 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                         <img
                           src={getJobIcon(selectedRosterJob)}
                           alt=""
-                          style={{ width: '16px', height: '16px', objectFit: 'contain' }}
+                          style={{
+                            width: '18px',
+                            height: '18px',
+                            objectFit: 'cover',
+                            borderRadius: '20%',
+                          }}
                         />
                         <span>{JOB_LABELS[selectedRosterJob]}</span>
                       </>
@@ -361,7 +366,12 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                         <img
                           src={getJobIcon(value)}
                           alt=""
-                          style={{ width: '16px', height: '16px', objectFit: 'contain' }}
+                          style={{
+                            width: '18px',
+                            height: '18px',
+                            objectFit: 'cover',
+                            borderRadius: '20%',
+                          }}
                         />
                         <span>{label}</span>
                       </div>
@@ -426,7 +436,12 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                           <img
                             src={getJobIcon(char.job)}
                             alt=""
-                            style={{ width: '18px', height: '18px', objectFit: 'contain' }}
+                            style={{
+                              width: '18px',
+                              height: '18px',
+                              objectFit: 'cover',
+                              borderRadius: '20%',
+                            }}
                             onError={(e) => (e.currentTarget.style.display = 'none')}
                           />
                           {JOB_LABELS[char.job] || char.job}
@@ -517,7 +532,12 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                           <img
                             src={getJobIcon(selectedLeaderboardJob)}
                             alt=""
-                            style={{ width: '16px', height: '16px', objectFit: 'contain' }}
+                            style={{
+                              width: '18px',
+                              height: '18px',
+                              objectFit: 'cover',
+                              borderRadius: '20%',
+                            }}
                           />
                           <span>{JOB_LABELS[selectedLeaderboardJob]}</span>
                         </>
@@ -553,7 +573,12 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                           <img
                             src={getJobIcon(value)}
                             alt=""
-                            style={{ width: '16px', height: '16px', objectFit: 'contain' }}
+                            style={{
+                              width: '18px',
+                              height: '18px',
+                              objectFit: 'cover',
+                              borderRadius: '20%',
+                            }}
                           />
                           <span>{label}</span>
                         </div>
@@ -677,7 +702,12 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
               <img
                 src={getJobIcon(selectedMember.job)}
                 alt=""
-                style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  objectFit: 'cover',
+                  borderRadius: '20%',
+                }}
                 onError={(e) => (e.currentTarget.style.display = 'none')}
               />
               <div>
