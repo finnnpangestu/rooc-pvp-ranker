@@ -3,6 +3,7 @@ import configPromise from '@payload-config'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { DashboardClient } from './dashboard/DashboardClient'
+import { Analytics } from '@vercel/analytics/next'
 
 export const metadata = {
   title: 'Dashboard Guild Master | ROOC PvP Ranker',
@@ -42,5 +43,10 @@ export default async function DashboardPage() {
     guildMembers = charsRes.docs
   }
 
-  return <DashboardClient guild={currentGuild} members={guildMembers} />
+  return (
+    <>
+      <DashboardClient guild={currentGuild} members={guildMembers} />
+      <Analytics />
+    </>
+  )
 }
