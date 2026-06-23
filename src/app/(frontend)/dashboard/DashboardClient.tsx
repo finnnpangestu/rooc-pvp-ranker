@@ -570,15 +570,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
             </div>
 
             <div style={{ display: activeDetailTab === 'quasi' ? 'block' : 'none' }}>
-              <div
-                className={dStyles.detailGrid}
-                style={{
-                  marginBottom: '24px',
-                  maxHeight: '300px',
-                  overflowY: 'auto',
-                  paddingRight: '8px',
-                }}
-              >
+              <div className={`${dStyles.detailGrid} ${dStyles.customScroll}`}>
                 {renderStat('ASPD', selectedMember.aspd, true)}
                 {renderStat('Movement SPD', selectedMember.mspd, true)}
                 {renderStat('Variable CT', selectedMember.variable_cast, true)}
