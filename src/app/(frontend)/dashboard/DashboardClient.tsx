@@ -241,9 +241,9 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
             </p>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <button onClick={handleDeleteGuild} className={dStyles.dangerBtn} disabled={isPending}>
+            {/* <button onClick={handleDeleteGuild} className={dStyles.dangerBtn} disabled={isPending}>
               Hapus Guild
-            </button>
+            </button> */}
 
             <button onClick={handleLogout} className={dStyles.logoutBtn}>
               <svg
