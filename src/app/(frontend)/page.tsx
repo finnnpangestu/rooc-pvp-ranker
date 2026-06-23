@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { DashboardClient } from './dashboard/DashboardClient'
 import { Analytics } from '@vercel/analytics/next'
+import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
 
 export const metadata = {
   title: 'Dashboard Guild Master | ROOC PvP Ranker',
@@ -31,16 +32,7 @@ export default async function DashboardPage() {
   let guildMembers: any[] = []
 
   if (currentGuild) {
-    const charsRes = await payload.find({
-      collection: 'characters',
-      where: {
-        guild_id: { equals: currentGuild.id },
-      },
-      depth: 0,
-      limit: 1000,
-      sort: 'createdAt',
-    })
-    guildMembers = charsRes.docs
+    guildMembers = await getCharactersDashboard(currentGuild.id.toString())
   }
 
   return (

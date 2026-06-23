@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from '../auth/auth.module.css'
 import { GlobalDialog } from '../components/GlobalDialog'
+import { loginUser } from '@/actions/auth/loginUser'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -14,22 +15,18 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
     setError('')
 
+    const formData = new FormData(e.currentTarget)
+
     try {
-      const res = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
+      const res = await loginUser(formData)
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.errors?.[0]?.message || 'Email atau password salah')
+      if (!res.success) {
+        throw new Error(res.message)
       }
 
       setIsDialogOpen(true)
@@ -59,6 +56,7 @@ export default function LoginPage() {
             <label className={styles.label}>Email</label>
             <input
               type="email"
+              name="email"
               className={styles.input}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -69,6 +67,7 @@ export default function LoginPage() {
             <label className={styles.label}>Password</label>
             <input
               type="password"
+              name="password"
               className={styles.input}
               value={password}
               onChange={(e) => setPassword(e.target.value)}

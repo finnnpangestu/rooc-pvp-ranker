@@ -4,6 +4,8 @@ import React, { useState } from 'react'
 import { GlobalDialog } from '../components/GlobalDialog'
 import styles from './stats.module.css'
 import Link from 'next/link'
+import { JOBS } from '@/const/JobLabels'
+import { GENERAL_STATS, QUASI_STATS, SPECIAL_STATS } from '@/const/StatsLabels'
 
 interface Guild {
   id: string
@@ -13,90 +15,6 @@ interface Guild {
 interface StatsFormProps {
   guilds: Guild[]
 }
-
-const JOBS = [
-  { label: 'Lord Knight', value: 'lord_knight' },
-  { label: 'Paladin', value: 'paladin' },
-  { label: 'High Priest', value: 'high_priest' },
-  { label: 'Champion', value: 'champion' },
-  { label: 'Assassin Cross', value: 'assassin_cross' },
-  { label: 'Stalker', value: 'stalker' },
-  { label: 'High Wizard', value: 'high_wizard' },
-  { label: 'Professor', value: 'professor' },
-  { label: 'Sniper', value: 'sniper' },
-  { label: 'Minstrell', value: 'minstrell' },
-  { label: 'Gypsy', value: 'gypsy' },
-  { label: 'Mastersmith', value: 'mastersmith' },
-  { label: 'Biochemist', value: 'biochemist' },
-  { label: 'Summoner', value: 'summoner' },
-  { label: 'Adept Novice', value: 'adept_novice' },
-  { label: 'Rebellion', value: 'rebellion' },
-]
-
-const GENERAL_STATS = [
-  { name: 'max_hp', label: 'HP', required: true },
-  { name: 'patk', label: 'PATK' },
-  { name: 'matk', label: 'MATK' },
-  { name: 'pdef', label: 'PDEF' },
-  { name: 'mdef', label: 'MDEF' },
-  { name: 'refine_patk', label: 'Refine PATK' },
-  { name: 'refine_matk', label: 'Refine MATK' },
-  { name: 'refine_pdef', label: 'Refine PDEF' },
-  { name: 'refine_mdef', label: 'Refine MDEF' },
-  { name: 'hit', label: 'HIT' },
-  { name: 'flee', label: 'FLEE' },
-]
-
-const QUASI_STATS = [
-  { name: 'aspd', label: 'ASPD (%)' },
-  { name: 'mspd', label: 'Movement SPD (%)' },
-  { name: 'variable_cast', label: 'Variable CT (%)' },
-  { name: 'fixed_cast', label: 'Fixed CT (%)' },
-  { name: 'healing_done', label: 'Healing Done (%)' },
-  { name: 'healing_taken', label: 'Healing Taken (%)' },
-  { name: 'critical', label: 'CRIT' },
-  { name: 'critical_damage', label: 'CRIT DMG (%)' },
-  { name: 'critical_reduction', label: 'CRIT RES' },
-  { name: 'critical_damage_reduction', label: 'CRIT DMG RES (%)' },
-  { name: 'pdmg', label: 'PDMG (%)' },
-  { name: 'mdmg', label: 'MDMG (%)' },
-  { name: 'pdmg_reduction', label: 'PDMG.R (%)' },
-  { name: 'mdmg_reduction', label: 'MDMG.R (%)' },
-  { name: 'ignore_pdef', label: 'Ignore PDEF' },
-  { name: 'ignore_mdef', label: 'Ignore MDEF' },
-  { name: 'pdmg_bonus', label: 'PDMG Bonus' },
-  { name: 'mdmg_bonus', label: 'MDMG Bonus' },
-  { name: 'pvp_dmg_bonus', label: 'PvP DMG Bonus' },
-  { name: 'pvp_dmg_reduction', label: 'PvP DMG Reduction' },
-]
-
-const SPECIAL_STATS = [
-  { name: 'max_hp_percentage', label: 'Max HP Multiplier (%)' },
-  { name: 'equipment_patk_percentage', label: 'Equipment PATK (%)' },
-  { name: 'equipment_matk_percentage', label: 'Equipment MATK (%)' },
-  { name: 'equipment_pdef_percentage', label: 'Equipment PDEF (%)' },
-  { name: 'equipment_mdef_percentage', label: 'Equipment MDEF (%)' },
-  { name: 'dmg_vs_demi_human', label: 'DMG vs Demi-Human (%)' },
-  { name: 'dmg_reduction_demi_human', label: 'DMG Reduction vs Demi-Human (%)' },
-  { name: 'dmg_vs_medium', label: 'DMG vs Medium (%)' },
-  { name: 'dmg_reduction_medium', label: 'DMG Reduction vs Medium (%)' },
-  { name: 'neutral_dmg_bonus', label: 'DMG vs Neutral (%)' },
-  { name: 'neutral_dmg_reduction', label: 'DMG Reduction vs Neutral (%)' },
-  { name: 'fire_dmg_bonus', label: 'DMG vs Fire (%)' },
-  { name: 'fire_dmg_reduction', label: 'DMG Reduction vs Fire (%)' },
-  { name: 'water_dmg_bonus', label: 'DMG vs Water (%)' },
-  { name: 'water_dmg_reduction', label: 'DMG Reduction vs Water (%)' },
-  { name: 'wind_dmg_bonus', label: 'DMG vs Wind (%)' },
-  { name: 'wind_dmg_reduction', label: 'DMG Reduction vs Wind (%)' },
-  { name: 'earth_dmg_bonus', label: 'DMG vs Earth (%)' },
-  { name: 'earth_dmg_reduction', label: 'DMG Reduction vs Earth (%)' },
-  { name: 'ghost_dmg_bonus', label: 'DMG vs Ghost (%)' },
-  { name: 'ghost_dmg_reduction', label: 'DMG Reduction vs Ghost (%)' },
-  { name: 'holy_dmg_bonus', label: 'DMG vs Holy (%)' },
-  { name: 'holy_dmg_reduction', label: 'DMG Reduction vs Holy (%)' },
-  { name: 'poison_dmg_bonus', label: 'DMG vs Poison (%)' },
-  { name: 'poison_dmg_reduction', label: 'DMG Reduction vs Poison (%)' },
-]
 
 const DEFAULT_FORM = {
   name: '',

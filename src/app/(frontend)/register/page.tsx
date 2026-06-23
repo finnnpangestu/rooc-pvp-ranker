@@ -4,8 +4,8 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from '../auth/auth.module.css'
-import { registerUser } from '../auth/registerAction'
 import { GlobalDialog } from '../components/GlobalDialog'
+import { registerUser } from '@/actions/auth/registerUser'
 
 export default function RegisterPage() {
   const router = useRouter()

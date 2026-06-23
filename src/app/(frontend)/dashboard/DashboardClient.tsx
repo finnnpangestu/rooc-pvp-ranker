@@ -5,30 +5,17 @@ import styles from '../stats/stats.module.css'
 import dStyles from './dashboard.module.css'
 import { GlobalDialog } from '../components/GlobalDialog'
 import { Badge } from '../components/Badge'
-import { createGuild, deleteCharacter, deleteGuild, toggleVerifyMember } from './actions'
+import { JOB_LABELS } from '@/const/JobLabels'
+import { createGuild } from '@/actions/dashboard/createGuild'
+import { deleteGuild } from '@/actions/dashboard/deleteGuild'
+import { toggleVerifyMember } from '@/actions/dashboard/toggleVerifyMember'
+import { deleteCharacter } from '@/actions/dashboard/deleteCharacter'
+import { logoutUser } from '@/actions/auth/logoutUser'
+import { useRouter } from 'next/navigation'
 
 interface DashboardClientProps {
   guild: any | null
   members: any[]
-}
-
-const JOB_LABELS: Record<string, string> = {
-  lord_knight: 'Lord Knight',
-  paladin: 'Paladin',
-  high_priest: 'High Priest',
-  champion: 'Champion',
-  assassin_cross: 'Assassin Cross',
-  stalker: 'Stalker',
-  high_wizard: 'High Wizard',
-  professor: 'Professor',
-  sniper: 'Sniper',
-  minstrell: 'Minstrell',
-  gypsy: 'Gypsy',
-  mastersmith: 'Mastersmith',
-  biochemist: 'Biochemist',
-  summoner: 'Summoner',
-  adept_novice: 'Adept Novice',
-  rebellion: 'Rebellion',
 }
 
 const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
@@ -57,6 +44,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
   const [selectedMember, setSelectedMember] = useState<any | null>(null)
   const [activeDetailTab, setActiveDetailTab] = useState('general')
   const [error, setError] = useState('')
+  const router = useRouter()
 
   const [isLeaderboardMinimized, setIsLeaderboardMinimized] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -78,20 +66,6 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
       setActiveDetailTab('general')
     }
   }, [selectedMember])
-
-  const handleLogout = async () => {
-    if (confirm('Apakah Anda yakin ingin keluar?')) {
-      try {
-        await fetch('/api/users/logout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        })
-        window.location.href = '/login'
-      } catch (err) {
-        console.error('Gagal logout:', err)
-      }
-    }
-  }
 
   if (!guild) {
     const handleCreateGuild = async (e: React.FormEvent) => {
@@ -193,6 +167,12 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
     })
   }
 
+  const handleLogout = async () => {
+    if (confirm('Apakah Anda yakin ingin logout?')) {
+      await logoutUser()
+    }
+  }
+
   // Pengkondisian Filter Roster Komponen Kiri
   const filteredMembers = members.filter((m) =>
     selectedRosterJob ? m.job === selectedRosterJob : true,
@@ -241,6 +221,10 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
             </p>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button onClick={() => router.push('/stats')} className={dStyles.infoBtn}>
+              Add Stats Member
+            </button>
+
             {/* <button onClick={handleDeleteGuild} className={dStyles.dangerBtn} disabled={isPending}>
               Hapus Guild
             </button> */}
@@ -604,7 +588,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedLeaderboard.length === 0 ? (
+                    {paginatedLeaderboard.length === 0 ? (
                       <tr>
                         <td
                           colSpan={3}
@@ -614,7 +598,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                         </td>
                       </tr>
                     ) : (
-                      sortedLeaderboard.map((char, idx) => (
+                      paginatedLeaderboard.map((char, idx) => (
                         <tr
                           key={char.id}
                           style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}

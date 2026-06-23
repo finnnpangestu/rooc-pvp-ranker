@@ -4,30 +4,12 @@ import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import styles from '../stats/stats.module.css'
+import { JOB_LABELS } from '@/const/JobLabels'
 
 interface LeaderboardClientProps {
   allGuilds: any[]
   allCharacters: any[]
   selectedGuildId: string
-}
-
-const JOB_LABELS: Record<string, string> = {
-  lord_knight: 'Lord Knight',
-  paladin: 'Paladin',
-  high_priest: 'High Priest',
-  champion: 'Champion',
-  assassin_cross: 'Assassin Cross',
-  stalker: 'Stalker',
-  high_wizard: 'High Wizard',
-  professor: 'Professor',
-  sniper: 'Sniper',
-  minstrell: 'Minstrell',
-  gypsy: 'Gypsy',
-  mastersmith: 'Mastersmith',
-  biochemist: 'Biochemist',
-  summoner: 'Summoner',
-  adept_novice: 'Adept Novice',
-  rebellion: 'Rebellion',
 }
 
 const getJobIcon = (jobValue: string) => `/icons/jobs/${jobValue}.png`
@@ -121,7 +103,6 @@ export function LeaderboardClient({
     setLocalGuildId(selectedGuildId || '')
   }, [selectedGuildId])
 
-  // Logika Filter Karakter (Guild + Job)
   const filteredCharacters = allCharacters.filter((c) => {
     const matchesGuild = selectedGuildId ? String(c.guild_id) === String(selectedGuildId) : true
     const matchesJob = selectedJob ? c.job === selectedJob : true

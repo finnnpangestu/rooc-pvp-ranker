@@ -1,7 +1,6 @@
-import React from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
 import { LeaderboardClient } from './LeaderboardClient'
+import { getGuilds } from '@/actions/leaderboards/getGuilds'
+import { getCharacters } from '@/actions/leaderboards/getCharacters'
 
 export const metadata = {
   title: 'Leaderboard | ROOC PvP Ranker',
@@ -14,27 +13,10 @@ interface PageProps {
 
 export default async function LeaderboardPage({ searchParams }: PageProps) {
   const { guild: selectedGuildId } = await searchParams
-  const payload = await getPayload({ config: configPromise })
+  const guildsRes = await getGuilds()
+  const charactersRes = await getCharacters()
 
-  const guildsRes = await payload.find({
-    collection: 'guilds',
-    limit: 1000,
-    pagination: false,
-    sort: '-total_pvp_score',
-  })
-
-  const charsRes = await payload.find({
-    collection: 'characters',
-    limit: 1000,
-    pagination: false,
-    depth: 0,
-    where: {
-      isVerified: { equals: true },
-    },
-    sort: '-pvp_score',
-  })
-
-  const guildMap = guildsRes.docs.reduce(
+  const guildMap = guildsRes.reduce(
     (acc, g) => {
       acc[String(g.id)] = g.name
       return acc
@@ -42,7 +24,7 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
     {} as Record<string, string>,
   )
 
-  const charactersWithGuild = charsRes.docs.map((char) => {
+  const charactersWithGuild = charactersRes.map((char) => {
     const gId = typeof char.guild_id === 'object' ? (char.guild_id as any).id : char.guild_id
 
     return {
@@ -54,7 +36,7 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
 
   return (
     <LeaderboardClient
-      allGuilds={guildsRes.docs}
+      allGuilds={guildsRes}
       allCharacters={charactersWithGuild}
       selectedGuildId={selectedGuildId || ''}
     />
