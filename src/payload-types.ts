@@ -311,6 +311,62 @@ export interface Character {
    * Contoh: 99.99 untuk 99.99%
    */
   neutral_dmg_reduction?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  fire_dmg_bonus?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  water_dmg_bonus?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  wind_dmg_bonus?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  earth_dmg_bonus?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  ghost_dmg_bonus?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  holy_dmg_bonus?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  fire_dmg_reduction?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  water_dmg_reduction?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  wind_dmg_reduction?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  earth_dmg_reduction?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  ghost_dmg_reduction?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  holy_dmg_reduction?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  poison_dmg_bonus?: number | null;
+  /**
+   * Contoh: 99.99 untuk 99.99%
+   */
+  poison_dmg_reduction?: number | null;
   pvp_score?: number | null;
   updatedAt: string;
   createdAt: string;
@@ -515,6 +571,20 @@ export interface CharactersSelect<T extends boolean = true> {
   dmg_reduction_medium?: T;
   neutral_dmg_bonus?: T;
   neutral_dmg_reduction?: T;
+  fire_dmg_bonus?: T;
+  water_dmg_bonus?: T;
+  wind_dmg_bonus?: T;
+  earth_dmg_bonus?: T;
+  ghost_dmg_bonus?: T;
+  holy_dmg_bonus?: T;
+  fire_dmg_reduction?: T;
+  water_dmg_reduction?: T;
+  wind_dmg_reduction?: T;
+  earth_dmg_reduction?: T;
+  ghost_dmg_reduction?: T;
+  holy_dmg_reduction?: T;
+  poison_dmg_bonus?: T;
+  poison_dmg_reduction?: T;
   pvp_score?: T;
   updatedAt?: T;
   createdAt?: T;

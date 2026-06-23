@@ -188,19 +188,61 @@ export const calculatePvPScore = (data: any): number => {
   const critDmgRed = data.critical_damage_reduction || 0
   const flatPvPRed = (data.pvp_dmg_reduction || 0) / PVP_FLAT_CONVERSION
 
+  const fireRed = data.fire_dmg_reduction || 0
+  const waterRed = data.water_dmg_reduction || 0
+  const windRed = data.wind_dmg_reduction || 0
+  const earthRed = data.earth_dmg_reduction || 0
+  const ghostRed = data.ghost_dmg_reduction || 0
+  const holyRed = data.holy_dmg_reduction || 0
+  const poisonRed = data.poison_dmg_reduction || 0
+
+  const totalElementalRed =
+    (fireRed + waterRed + windRed + earthRed + ghostRed + holyRed + poisonRed) / 4
+
   const totalDmgReduction =
-    pdmgRed + mdmgRed + dmgRedDemi + dmgRedMed + neutralRed + critDmgRed + flatPvPRed
+    pdmgRed +
+    mdmgRed +
+    dmgRedDemi +
+    dmgRedMed +
+    neutralRed +
+    critDmgRed +
+    flatPvPRed +
+    totalElementalRed
 
   // 5. Damage Bonus
   const pdmgBonus = (data.pdmg_bonus || 0) / GENERAL_FLAT_CONVERSION
   const mdmgBonus = (data.mdmg_bonus || 0) / GENERAL_FLAT_CONVERSION
   const flatPvPBonus = (data.pvp_dmg_bonus || 0) / PVP_FLAT_CONVERSION
+
   const dmgVsDemi = data.dmg_vs_demi_human || 0
   const dmgVsMed = data.dmg_vs_medium || 0
   const neutralBonus = data.neutral_dmg_bonus || 0
 
+  const fireBonus = data.fire_dmg_bonus || 0
+  const waterBonus = data.water_dmg_bonus || 0
+  const windBonus = data.wind_dmg_bonus || 0
+  const earthBonus = data.earth_dmg_bonus || 0
+  const ghostBonus = data.ghost_dmg_bonus || 0
+  const holyBonus = data.holy_dmg_bonus || 0
+  const poisonBonus = data.poison_dmg_bonus || 0
+
+  const maxElementalBonus = Math.max(
+    fireBonus,
+    waterBonus,
+    windBonus,
+    earthBonus,
+    ghostBonus,
+    holyBonus,
+    poisonBonus,
+  )
+
   const totalDmgBonus =
-    (isMagicDps ? mdmgBonus : pdmgBonus) + flatPvPBonus + dmgVsDemi + dmgVsMed + neutralBonus
+    (isMagicDps ? mdmgBonus : pdmgBonus) +
+    flatPvPBonus +
+    dmgVsDemi +
+    dmgVsMed +
+    neutralBonus +
+    maxElementalBonus
 
   // 6. Utility Score
   const utilityScore =

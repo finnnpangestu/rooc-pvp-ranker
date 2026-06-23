@@ -103,6 +103,7 @@ export default function LoginPage() {
               padding: '12px',
               borderRadius: '8px',
               fontWeight: 600,
+              fontFamily: 'Outfit, sans-serif',
               cursor: 'pointer',
             }}
           >

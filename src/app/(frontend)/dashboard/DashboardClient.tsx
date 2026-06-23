@@ -5,7 +5,7 @@ import styles from '../stats/stats.module.css'
 import dStyles from './dashboard.module.css'
 import { GlobalDialog } from '../components/GlobalDialog'
 import { Badge } from '../components/Badge'
-import { createGuild, deleteGuild, toggleVerifyMember } from './actions'
+import { createGuild, deleteCharacter, deleteGuild, toggleVerifyMember } from './actions'
 
 interface DashboardClientProps {
   guild: any | null
@@ -48,8 +48,8 @@ const renderStat = (label: string, value: any, isPercent: boolean = false) => (
   </div>
 )
 
-const ITEMS_PER_PAGE = 10
-const LEADERBOARD_ITEMS_PER_PAGE = 5
+const ITEMS_LIMIT = 10
+const LEADERBOARD_LIMIT = 10
 
 export function DashboardClient({ guild, members }: DashboardClientProps) {
   const [isPending, startTransition] = useTransition()
@@ -57,9 +57,21 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
   const [selectedMember, setSelectedMember] = useState<any | null>(null)
   const [activeDetailTab, setActiveDetailTab] = useState('general')
   const [error, setError] = useState('')
+
   const [isLeaderboardMinimized, setIsLeaderboardMinimized] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [currentLeaderboardPage, setCurrentLeaderboardPage] = useState(1)
+  const [leaderboardPage, setLeaderboardPage] = useState(1)
+
+  const [selectedRosterJob, setSelectedRosterJob] = useState('')
+  const [isRosterDropdownOpen, setIsRosterDropdownOpen] = useState(false)
+
+  const [selectedLeaderboardJob, setSelectedLeaderboardJob] = useState('')
+  const [isLbdDropdownOpen, setIsLbdDropdownOpen] = useState(false)
+
+  useEffect(() => {
+    setCurrentPage(1)
+    setLeaderboardPage(1)
+  }, [selectedRosterJob, selectedLeaderboardJob])
 
   useEffect(() => {
     if (selectedMember) {
@@ -103,7 +115,6 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
         ></div>
 
         <div className={dStyles.setupCard}>
-          {/* Visual Dekoratif: Cyber Shield Emblem Placeholder */}
           <div className={dStyles.emblemContainer}>
             <div className={dStyles.emblemGlow}></div>
             <svg
@@ -182,20 +193,27 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
     })
   }
 
-  const sortedLeaderboard = [...members]
-    .filter((m) => m.isVerified)
-    .sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
-
-  const totalPages = Math.ceil(members.length / ITEMS_PER_PAGE)
-  const paginatedMembers = members.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
+  // Pengkondisian Filter Roster Komponen Kiri
+  const filteredMembers = members.filter((m) =>
+    selectedRosterJob ? m.job === selectedRosterJob : true,
   )
 
-  const totalLeaderboardPages = Math.ceil(sortedLeaderboard.length / LEADERBOARD_ITEMS_PER_PAGE)
+  // Pengkondisian Filter Leaderboard Komponen Kanan
+  const sortedLeaderboard = [...members]
+    .filter((m) => m.isVerified)
+    .filter((m) => (selectedLeaderboardJob ? m.job === selectedLeaderboardJob : true))
+    .sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
+
+  const totalPages = Math.ceil(filteredMembers.length / ITEMS_LIMIT)
+  const paginatedMembers = filteredMembers.slice(
+    (currentPage - 1) * ITEMS_LIMIT,
+    currentPage * ITEMS_LIMIT,
+  )
+
+  const totalLeaderboardPages = Math.ceil(sortedLeaderboard.length / LEADERBOARD_LIMIT)
   const paginatedLeaderboard = sortedLeaderboard.slice(
-    (currentLeaderboardPage - 1) * LEADERBOARD_ITEMS_PER_PAGE,
-    currentLeaderboardPage * LEADERBOARD_ITEMS_PER_PAGE,
+    (leaderboardPage - 1) * LEADERBOARD_LIMIT,
+    leaderboardPage * LEADERBOARD_LIMIT,
   )
 
   return (
@@ -203,7 +221,6 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
       <div className={styles.container} style={{ maxWidth: '1200px' }}>
         <div className={styles.glowBg}></div>
 
-        {/* Header Dashboard */}
         <div
           style={{
             display: 'flex',
@@ -223,7 +240,6 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
               Kelola aplikasi masuk, verifikasi status, dan pantau peringkat internal.
             </p>
           </div>
-
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <button onClick={handleDeleteGuild} className={dStyles.dangerBtn} disabled={isPending}>
               Hapus Guild
@@ -249,7 +265,6 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
           </div>
         </div>
 
-        {/* Ringkasan Statistik */}
         <div className={dStyles.statsGrid}>
           <div className={dStyles.statBox}>
             <div style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 500 }}>
@@ -275,16 +290,96 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
           </div>
         </div>
 
-        {/* Grid Konten Utamanya dengan dynamic class */}
         <div
           className={`${dStyles.dashboardGrid} ${isLeaderboardMinimized ? dStyles.gridWithMinimizedLeaderboard : ''}`}
         >
           {/* Kolom Kiri: Roster Management */}
           <div className={dStyles.card}>
-            <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '16px', color: '#fff' }}>
-              Manajemen Roster Guild
-            </h2>
-            <div style={{ overflowX: 'auto' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+                gap: '12px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', margin: 0 }}>
+                Manajemen Roster Guild
+              </h2>
+
+              {/* ✨ Custom Dropdown untuk Roster (Kiri) */}
+              <div className={dStyles.customSelectWrapper}>
+                <button
+                  type="button"
+                  className={dStyles.customSelectTrigger}
+                  onClick={() => {
+                    setIsRosterDropdownOpen(!isRosterDropdownOpen)
+                    setIsLbdDropdownOpen(false)
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {selectedRosterJob ? (
+                      <>
+                        <img
+                          src={getJobIcon(selectedRosterJob)}
+                          alt=""
+                          style={{ width: '16px', height: '16px', objectFit: 'contain' }}
+                        />
+                        <span>{JOB_LABELS[selectedRosterJob]}</span>
+                      </>
+                    ) : (
+                      <span>Semua Job</span>
+                    )}
+                  </div>
+                  <span style={{ fontSize: '10px', opacity: 0.6 }}>
+                    {isRosterDropdownOpen ? '▲' : '▼'}
+                  </span>
+                </button>
+
+                {isRosterDropdownOpen && (
+                  <div className={dStyles.customSelectOptions}>
+                    <div
+                      className={`${dStyles.customSelectOption} ${selectedRosterJob === '' ? dStyles.customSelectOptionActive : ''}`}
+                      onClick={() => {
+                        setSelectedRosterJob('')
+                        setIsRosterDropdownOpen(false)
+                      }}
+                    >
+                      Semua Job
+                    </div>
+                    {Object.entries(JOB_LABELS).map(([value, label]) => (
+                      <div
+                        key={value}
+                        className={`${dStyles.customSelectOption} ${selectedRosterJob === value ? dStyles.customSelectOptionActive : ''}`}
+                        onClick={() => {
+                          setSelectedRosterJob(value)
+                          setIsRosterDropdownOpen(false)
+                        }}
+                      >
+                        <img
+                          src={getJobIcon(value)}
+                          alt=""
+                          style={{ width: '16px', height: '16px', objectFit: 'contain' }}
+                        />
+                        <span>{label}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div
+              style={{
+                overflowX: 'auto',
+                minHeight: '400px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr
@@ -301,13 +396,13 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {members.length === 0 ? (
+                  {paginatedMembers.length === 0 ? (
                     <tr>
                       <td
                         colSpan={4}
                         style={{ padding: '32px', textAlign: 'center', color: '#6b7280' }}
                       >
-                        Belum ada data aplikasi stats masuk untuk guild ini.
+                        Tidak ada data karakter untuk kriteria job ini.
                       </td>
                     </tr>
                   ) : (
@@ -331,12 +426,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                           <img
                             src={getJobIcon(char.job)}
                             alt=""
-                            style={{
-                              width: '18px',
-                              height: '18px',
-                              objectFit: 'cover',
-                              borderRadius: '20%',
-                            }}
+                            style={{ width: '18px', height: '18px', objectFit: 'contain' }}
                             onError={(e) => (e.currentTarget.style.display = 'none')}
                           />
                           {JOB_LABELS[char.job] || char.job}
@@ -384,6 +474,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
             </div>
           </div>
 
+          {/* Kolom Kanan: Top Rank Internal */}
           <div
             className={`${dStyles.card} ${dStyles.leaderboardCard} ${isLeaderboardMinimized ? dStyles.leaderboardMinimized : ''}`}
           >
@@ -396,11 +487,82 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
             </button>
 
             <div className={dStyles.leaderboardContentWrapper}>
-              <h2
-                style={{ fontSize: '20px', fontWeight: 600, marginBottom: '16px', color: '#fff' }}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '16px',
+                  gap: '12px',
+                  flexWrap: 'wrap',
+                }}
               >
-                Top Rank Internal
-              </h2>
+                <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', margin: 0 }}>
+                  Top Rank Internal
+                </h2>
+
+                {/* ✨ Custom Dropdown untuk Leaderboard (Kanan) */}
+                <div className={dStyles.customSelectWrapper}>
+                  <button
+                    type="button"
+                    className={dStyles.customSelectTrigger}
+                    onClick={() => {
+                      setIsLbdDropdownOpen(!isLbdDropdownOpen)
+                      setIsRosterDropdownOpen(false)
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {selectedLeaderboardJob ? (
+                        <>
+                          <img
+                            src={getJobIcon(selectedLeaderboardJob)}
+                            alt=""
+                            style={{ width: '16px', height: '16px', objectFit: 'contain' }}
+                          />
+                          <span>{JOB_LABELS[selectedLeaderboardJob]}</span>
+                        </>
+                      ) : (
+                        <span>Semua Job</span>
+                      )}
+                    </div>
+                    <span style={{ fontSize: '10px', opacity: 0.6 }}>
+                      {isLbdDropdownOpen ? '▲' : '▼'}
+                    </span>
+                  </button>
+
+                  {isLbdDropdownOpen && (
+                    <div className={dStyles.customSelectOptions}>
+                      <div
+                        className={`${dStyles.customSelectOption} ${selectedLeaderboardJob === '' ? dStyles.customSelectOptionActive : ''}`}
+                        onClick={() => {
+                          setSelectedLeaderboardJob('')
+                          setIsLbdDropdownOpen(false)
+                        }}
+                      >
+                        Semua Job
+                      </div>
+                      {Object.entries(JOB_LABELS).map(([value, label]) => (
+                        <div
+                          key={value}
+                          className={`${dStyles.customSelectOption} ${selectedLeaderboardJob === value ? dStyles.customSelectOptionActive : ''}`}
+                          onClick={() => {
+                            setSelectedLeaderboardJob(value)
+                            setIsLbdDropdownOpen(false)
+                          }}
+                        >
+                          <img
+                            src={getJobIcon(value)}
+                            alt=""
+                            style={{ width: '16px', height: '16px', objectFit: 'contain' }}
+                          />
+                          <span>{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
@@ -427,7 +589,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                         </td>
                       </tr>
                     ) : (
-                      paginatedLeaderboard.map((char, idx) => (
+                      sortedLeaderboard.map((char, idx) => (
                         <tr
                           key={char.id}
                           style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}
@@ -440,7 +602,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                               fontWeight: 'bold',
                             }}
                           >
-                            {(currentLeaderboardPage - 1) * LEADERBOARD_ITEMS_PER_PAGE + idx + 1}
+                            {idx + 1}
                           </td>
                           <td style={{ padding: '12px', color: '#fff', fontWeight: 500 }}>
                             {char.name}
@@ -461,23 +623,21 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                   </tbody>
                 </table>
 
-                {totalLeaderboardPages > 1 && (
-                  <div className={dStyles.paginationWrapper}>
+                {/* Pagination */}
+                {sortedLeaderboard.length > LEADERBOARD_LIMIT && (
+                  <div className={dStyles.pagination}>
                     <button
-                      className={dStyles.pageBtn}
-                      disabled={currentLeaderboardPage === 1}
-                      onClick={() => setCurrentLeaderboardPage((p) => p - 1)}
+                      onClick={() => setLeaderboardPage(leaderboardPage - 1)}
+                      disabled={leaderboardPage === 1}
                     >
                       ❮ Prev
                     </button>
-                    <span className={dStyles.pageInfo}>
-                      Page <strong style={{ color: '#fff' }}>{currentLeaderboardPage}</strong> of{' '}
-                      {totalLeaderboardPages}
+                    <span>
+                      Page {leaderboardPage} of {totalLeaderboardPages}
                     </span>
                     <button
-                      className={dStyles.pageBtn}
-                      disabled={currentLeaderboardPage === totalLeaderboardPages}
-                      onClick={() => setCurrentLeaderboardPage((p) => p + 1)}
+                      onClick={() => setLeaderboardPage(leaderboardPage + 1)}
+                      disabled={leaderboardPage === totalLeaderboardPages}
                     >
                       Next ❯
                     </button>
@@ -494,6 +654,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
         </div>
       </div>
 
+      {/* Dialog Detail Karakter */}
       {selectedMember && (
         <GlobalDialog
           isOpen={!!selectedMember}
@@ -509,14 +670,14 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                 marginBottom: '16px',
                 background: 'rgba(255,255,255,0.02)',
                 padding: '12px',
-                borderRadius: '12px',
+                borderRadius: '8px',
                 border: '1px solid rgba(255,255,255,0.05)',
               }}
             >
               <img
                 src={getJobIcon(selectedMember.job)}
                 alt=""
-                style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '20%' }}
+                style={{ width: '40px', height: '40px', objectFit: 'contain' }}
                 onError={(e) => (e.currentTarget.style.display = 'none')}
               />
               <div>
@@ -524,7 +685,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                   {JOB_LABELS[selectedMember.job] || selectedMember.job}
                 </div>
                 <div style={{ fontSize: '14px', color: '#fbbf24', fontWeight: 600 }}>
-                  PvP Score: {Math.round(selectedMember.pvp_score || 0).toLocaleString('id-ID')}
+                  🛡️ PvP Score: {Math.round(selectedMember.pvp_score || 0).toLocaleString('id-ID')}
                 </div>
               </div>
             </div>
@@ -554,7 +715,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
             </div>
 
             <div style={{ display: activeDetailTab === 'general' ? 'block' : 'none' }}>
-              <div className={dStyles.detailGrid} style={{ marginBottom: '24px' }}>
+              <div className={`${dStyles.detailGrid} ${dStyles.customScroll}`}>
                 {renderStat('Max HP', selectedMember.max_hp)}
                 {renderStat('PATK', selectedMember.patk)}
                 {renderStat('MATK', selectedMember.matk)}
@@ -595,7 +756,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
             </div>
 
             <div style={{ display: activeDetailTab === 'special' ? 'block' : 'none' }}>
-              <div className={dStyles.detailGrid} style={{ marginBottom: '24px' }}>
+              <div className={`${dStyles.detailGrid} ${dStyles.customScroll}`}>
                 {renderStat('Max HP %', selectedMember.max_hp_percentage, true)}
                 {renderStat('Equip PATK %', selectedMember.equipment_patk_percentage, true)}
                 {renderStat('Equip MATK %', selectedMember.equipment_matk_percentage, true)}
@@ -607,6 +768,20 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                 {renderStat('DMG Red vs Medium', selectedMember.dmg_reduction_medium, true)}
                 {renderStat('Neutral Bonus', selectedMember.neutral_dmg_bonus, true)}
                 {renderStat('Neutral Red', selectedMember.neutral_dmg_reduction, true)}
+                {renderStat('DMG vs Fire', selectedMember.fire_dmg_bonus, true)}
+                {renderStat('DMG Red vs Fire', selectedMember.fire_dmg_reduction, true)}
+                {renderStat('DMG vs Water', selectedMember.water_dmg_bonus, true)}
+                {renderStat('DMG Red vs Water', selectedMember.water_dmg_reduction, true)}
+                {renderStat('DMG vs Wind', selectedMember.wind_dmg_bonus, true)}
+                {renderStat('DMG Red vs Wind', selectedMember.wind_dmg_reduction, true)}
+                {renderStat('DMG vs Earth', selectedMember.earth_dmg_bonus, true)}
+                {renderStat('DMG Red vs Earth', selectedMember.earth_dmg_reduction, true)}
+                {renderStat('DMG vs Ghost', selectedMember.ghost_dmg_bonus, true)}
+                {renderStat('DMG Red vs Ghost', selectedMember.ghost_dmg_reduction, true)}
+                {renderStat('DMG vs Holy', selectedMember.holy_dmg_bonus, true)}
+                {renderStat('DMG Red vs Holy', selectedMember.holy_dmg_reduction, true)}
+                {renderStat('DMG vs Poison', selectedMember.poison_dmg_bonus, true)}
+                {renderStat('DMG Red vs Poison', selectedMember.poison_dmg_reduction, true)}
               </div>
             </div>
 
@@ -620,6 +795,42 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
               }}
             >
               <button
+                onClick={() => {
+                  if (confirm('Yakin ingin menghapus karakter ini permanen?')) {
+                    startTransition(async () => {
+                      const res = await deleteCharacter(selectedMember.id)
+                      if (res.success) setSelectedMember(null)
+                    })
+                  }
+                }}
+                style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  color: '#fca5a5',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+
+              <button
                 onClick={() => handleToggleVerify(selectedMember)}
                 disabled={isPending}
                 style={{
@@ -630,15 +841,15 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                   color: selectedMember.isVerified ? '#f59e0b' : 'white',
                   border: selectedMember.isVerified ? '1px solid rgba(245, 158, 11, 0.3)' : 'none',
                   padding: '12px',
-                  borderRadius: '10px',
+                  borderRadius: '8px',
                   fontWeight: 600,
-                  fontFamily: 'Outfit',
                   cursor: 'pointer',
                   transition: 'transform 0.2s',
                 }}
               >
                 {selectedMember.isVerified ? 'Batalkan Verifikasi' : 'Approve & Verifikasi'}
               </button>
+
               <button
                 onClick={() => setSelectedMember(null)}
                 style={{
@@ -646,9 +857,8 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                   border: '1px solid rgba(255,255,255,0.1)',
                   color: '#fff',
                   padding: '12px 20px',
-                  borderRadius: '10px',
+                  borderRadius: '8px',
                   fontWeight: 600,
-                  fontFamily: 'Outfit',
                   cursor: 'pointer',
                 }}
               >
