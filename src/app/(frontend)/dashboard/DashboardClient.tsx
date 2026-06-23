@@ -48,6 +48,9 @@ const renderStat = (label: string, value: any, isPercent: boolean = false) => (
   </div>
 )
 
+const ITEMS_PER_PAGE = 10
+const LEADERBOARD_ITEMS_PER_PAGE = 5
+
 export function DashboardClient({ guild, members }: DashboardClientProps) {
   const [isPending, startTransition] = useTransition()
   const [guildName, setGuildName] = useState('')
@@ -55,12 +58,28 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
   const [activeDetailTab, setActiveDetailTab] = useState('general')
   const [error, setError] = useState('')
   const [isLeaderboardMinimized, setIsLeaderboardMinimized] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [currentLeaderboardPage, setCurrentLeaderboardPage] = useState(1)
 
   useEffect(() => {
     if (selectedMember) {
       setActiveDetailTab('general')
     }
   }, [selectedMember])
+
+  const handleLogout = async () => {
+    if (confirm('Apakah Anda yakin ingin keluar?')) {
+      try {
+        await fetch('/api/users/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        })
+        window.location.href = '/login'
+      } catch (err) {
+        console.error('Gagal logout:', err)
+      }
+    }
+  }
 
   if (!guild) {
     const handleCreateGuild = async (e: React.FormEvent) => {
@@ -167,6 +186,18 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
     .filter((m) => m.isVerified)
     .sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
 
+  const totalPages = Math.ceil(members.length / ITEMS_PER_PAGE)
+  const paginatedMembers = members.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  )
+
+  const totalLeaderboardPages = Math.ceil(sortedLeaderboard.length / LEADERBOARD_ITEMS_PER_PAGE)
+  const paginatedLeaderboard = sortedLeaderboard.slice(
+    (currentLeaderboardPage - 1) * LEADERBOARD_ITEMS_PER_PAGE,
+    currentLeaderboardPage * LEADERBOARD_ITEMS_PER_PAGE,
+  )
+
   return (
     <>
       <div className={styles.container} style={{ maxWidth: '1200px' }}>
@@ -192,9 +223,30 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
               Kelola aplikasi masuk, verifikasi status, dan pantau peringkat internal.
             </p>
           </div>
-          <button onClick={handleDeleteGuild} className={dStyles.dangerBtn} disabled={isPending}>
-            Hapus Guild
-          </button>
+
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button onClick={handleDeleteGuild} className={dStyles.dangerBtn} disabled={isPending}>
+              Hapus Guild
+            </button>
+
+            <button onClick={handleLogout} className={dStyles.logoutBtn}>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Ringkasan Statistik */}
@@ -259,7 +311,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                       </td>
                     </tr>
                   ) : (
-                    members.map((char) => (
+                    paginatedMembers.map((char) => (
                       <tr
                         key={char.id}
                         style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}
@@ -279,7 +331,12 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                           <img
                             src={getJobIcon(char.job)}
                             alt=""
-                            style={{ width: '18px', height: '18px', objectFit: 'contain' }}
+                            style={{
+                              width: '18px',
+                              height: '18px',
+                              objectFit: 'cover',
+                              borderRadius: '20%',
+                            }}
                             onError={(e) => (e.currentTarget.style.display = 'none')}
                           />
                           {JOB_LABELS[char.job] || char.job}
@@ -302,14 +359,34 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                   )}
                 </tbody>
               </table>
+
+              {totalPages > 1 && (
+                <div className={dStyles.paginationWrapper}>
+                  <button
+                    className={dStyles.pageBtn}
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                  >
+                    ❮ Prev
+                  </button>
+                  <span className={dStyles.pageInfo}>
+                    Page <strong style={{ color: '#fff' }}>{currentPage}</strong> of {totalPages}
+                  </span>
+                  <button
+                    className={dStyles.pageBtn}
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                  >
+                    Next ❯
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Kolom Kanan: Top Rank Internal (Bisa Di-minimize) */}
           <div
             className={`${dStyles.card} ${dStyles.leaderboardCard} ${isLeaderboardMinimized ? dStyles.leaderboardMinimized : ''}`}
           >
-            {/* Tombol Toggle Collapse */}
             <button
               onClick={() => setIsLeaderboardMinimized(!isLeaderboardMinimized)}
               className={dStyles.collapseToggleBtn}
@@ -318,7 +395,6 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
               {isLeaderboardMinimized ? '❮' : '❯'}
             </button>
 
-            {/* Konten Saat Keadaan Biasa */}
             <div className={dStyles.leaderboardContentWrapper}>
               <h2
                 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '16px', color: '#fff' }}
@@ -351,7 +427,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                         </td>
                       </tr>
                     ) : (
-                      sortedLeaderboard.map((char, idx) => (
+                      paginatedLeaderboard.map((char, idx) => (
                         <tr
                           key={char.id}
                           style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}
@@ -364,7 +440,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                               fontWeight: 'bold',
                             }}
                           >
-                            {idx + 1}
+                            {(currentLeaderboardPage - 1) * LEADERBOARD_ITEMS_PER_PAGE + idx + 1}
                           </td>
                           <td style={{ padding: '12px', color: '#fff', fontWeight: 500 }}>
                             {char.name}
@@ -384,10 +460,32 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                     )}
                   </tbody>
                 </table>
+
+                {totalLeaderboardPages > 1 && (
+                  <div className={dStyles.paginationWrapper}>
+                    <button
+                      className={dStyles.pageBtn}
+                      disabled={currentLeaderboardPage === 1}
+                      onClick={() => setCurrentLeaderboardPage((p) => p - 1)}
+                    >
+                      ❮ Prev
+                    </button>
+                    <span className={dStyles.pageInfo}>
+                      Page <strong style={{ color: '#fff' }}>{currentLeaderboardPage}</strong> of{' '}
+                      {totalLeaderboardPages}
+                    </span>
+                    <button
+                      className={dStyles.pageBtn}
+                      disabled={currentLeaderboardPage === totalLeaderboardPages}
+                      onClick={() => setCurrentLeaderboardPage((p) => p + 1)}
+                    >
+                      Next ❯
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Konten Pengganti Saat Menyusut (Vertical Label) */}
             <div className={dStyles.verticalLeaderboardLabel}>
               <div className={dStyles.verticalIcon}>🏆</div>
               <div className={dStyles.verticalText}>LEADERBOARD</div>
@@ -396,7 +494,6 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
         </div>
       </div>
 
-      {/* Dialog Detail & Aksi Approve */}
       {selectedMember && (
         <GlobalDialog
           isOpen={!!selectedMember}
@@ -419,7 +516,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
               <img
                 src={getJobIcon(selectedMember.job)}
                 alt=""
-                style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+                style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '20%' }}
                 onError={(e) => (e.currentTarget.style.display = 'none')}
               />
               <div>
@@ -427,7 +524,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                   {JOB_LABELS[selectedMember.job] || selectedMember.job}
                 </div>
                 <div style={{ fontSize: '14px', color: '#fbbf24', fontWeight: 600 }}>
-                  🛡️ PvP Score: {Math.round(selectedMember.pvp_score || 0).toLocaleString('id-ID')}
+                  PvP Score: {Math.round(selectedMember.pvp_score || 0).toLocaleString('id-ID')}
                 </div>
               </div>
             </div>
@@ -543,6 +640,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                   padding: '12px',
                   borderRadius: '10px',
                   fontWeight: 600,
+                  fontFamily: 'Outfit',
                   cursor: 'pointer',
                   transition: 'transform 0.2s',
                 }}
@@ -558,6 +656,7 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
                   padding: '12px 20px',
                   borderRadius: '10px',
                   fontWeight: 600,
+                  fontFamily: 'Outfit',
                   cursor: 'pointer',
                 }}
               >

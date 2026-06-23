@@ -405,3 +405,46 @@
   transform: none;
   box-shadow: none;
 }
+
+.paginationWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pageInfo {
+  font-size: 13px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.pageBtn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #d1d5db;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pageBtn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: #6366f1;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.pageBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: transparent;
+}
