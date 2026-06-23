@@ -31,6 +31,7 @@
   color: white;
   display: flex;
   flex-direction: column;
+  font-family: 'Outfit', sans-serif;
   gap: 16px;
 }
 
@@ -52,6 +53,7 @@
   margin: 0;
   font-size: 24px;
   font-weight: 600;
+  font-family: 'Outfit', sans-serif;
   background: linear-gradient(135deg, #fff, #a0a0a0);
   -webkit-background-clip: text;
   background-clip: text;
@@ -64,8 +66,18 @@
   color: #888;
   font-size: 28px;
   cursor: pointer;
+  font-family: 'Outfit', sans-serif;
   line-height: 1;
   transition: color 0.2s;
+}
+
+.button {
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .closeBtn:hover {
@@ -79,13 +91,21 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes slideIn {

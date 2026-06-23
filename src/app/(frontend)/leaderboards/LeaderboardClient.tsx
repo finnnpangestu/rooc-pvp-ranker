@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import styles from '../stats/stats.module.css'
-import Image from 'next/image'
 
 interface LeaderboardClientProps {
   allGuilds: any[]
@@ -31,8 +30,6 @@ const JOB_LABELS: Record<string, string> = {
   rebellion: 'Rebellion',
 }
 
-// Map Job ke Icon (Asumsi folder public/icons/jobs/job_name.png)
-// Jika folder berbeda, silakan sesuaikan path-nya
 const getJobIcon = (jobValue: string) => `/icons/jobs/${jobValue}.png`
 
 const getRankStyle = (rank: number) => {
@@ -269,16 +266,16 @@ export function LeaderboardClient({
                 className={`${styles.jobCard} ${selectedJob === value ? styles.jobCardActive : ''}`}
               >
                 <div className={styles.jobIconWrapper}>
-                  <Image
+                  <img
                     src={getJobIcon(value)}
-                    alt={label}
+                    alt=""
+                    style={{
+                      width: '30px',
+                      height: '30px',
+                      objectFit: 'cover',
+                      borderRadius: '20%',
+                    }}
                     onError={(e) => (e.currentTarget.style.display = 'none')}
-                    style={{ borderRadius: '8px', objectFit: 'cover' }}
-                    width={20}
-                    height={20}
-                    quality={100}
-                    unoptimized
-                    priority
                   />
                 </div>
                 <span>{label}</span>
@@ -356,21 +353,16 @@ export function LeaderboardClient({
                             gap: '8px',
                           }}
                         >
-                          <Image
+                          <img
                             src={getJobIcon(char.job)}
-                            onError={(e) => (e.currentTarget.style.display = 'none')}
-                            alt={JOB_LABELS[char.job] || char.job}
-                            width={20}
-                            height={20}
-                            quality={100}
-                            unoptimized
-                            priority
-                            objectFit="cover"
+                            alt=""
                             style={{
-                              width: '20px',
-                              height: '20px',
-                              borderRadius: '6px',
+                              width: '18px',
+                              height: '18px',
+                              objectFit: 'cover',
+                              borderRadius: '20%',
                             }}
+                            onError={(e) => (e.currentTarget.style.display = 'none')}
                           />
                           {JOB_LABELS[char.job] || char.job}
                         </td>
