@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation'
 interface DashboardClientProps {
   guild: any | null
   members: any[]
+  partySetup?: any | null
 }
 
 const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
@@ -38,7 +39,7 @@ const renderStat = (label: string, value: any, isPercent: boolean = false) => (
 const ITEMS_LIMIT = 10
 const LEADERBOARD_LIMIT = 10
 
-export function DashboardClient({ guild, members }: DashboardClientProps) {
+export function DashboardClient({ guild, members, partySetup }: DashboardClientProps) {
   const [isPending, startTransition] = useTransition()
   const [guildName, setGuildName] = useState('')
   const [selectedMember, setSelectedMember] = useState<any | null>(null)
@@ -246,6 +247,70 @@ export function DashboardClient({ guild, members }: DashboardClientProps) {
               </svg>
               Logout
             </button>
+          </div>
+        </div>
+
+        {/* === PINTU MASUK GUILD LEAGUE === */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '16px',
+            marginBottom: '32px',
+          }}
+        >
+          {/* Card 1: Generate Party */}
+          <div
+            onClick={() => router.push('/guild-league')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              background:
+                'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(0,0,0,0.4) 100%)',
+              border: '1px solid rgba(99,102,241,0.3)',
+              borderRadius: '12px',
+              padding: '20px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.borderColor = '#818cf8')}
+            onMouseOut={(e) => (e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)')}
+          >
+            <div>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '18px', fontWeight: 600 }}>
+                Guild League Setup
+              </h3>
+              <p style={{ margin: '4px 0 0 0', color: '#9ca3af', fontSize: '13px' }}>
+                Generate otomatis formasi Elite & Sub Party.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 2: Report GL */}
+          <div
+            onClick={() => router.push('/report-gl')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              background:
+                'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(0,0,0,0.4) 100%)',
+              border: '1px solid rgba(16,185,129,0.3)',
+              borderRadius: '12px',
+              padding: '20px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.borderColor = '#34d399')}
+            onMouseOut={(e) => (e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)')}
+          >
+            <div>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '18px', fontWeight: 600 }}>
+                Report GL
+              </h3>
+              <p style={{ margin: '4px 0 0 0', color: '#9ca3af', fontSize: '13px' }}>
+                Evaluasi skor & performa GvG (Coming Soon).
+              </p>
+            </div>
           </div>
         </div>
 

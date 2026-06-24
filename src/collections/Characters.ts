@@ -74,6 +74,13 @@ export const Characters: CollectionConfig = {
   },
   fields: [
     {
+      name: 'id',
+      type: 'text',
+      unique: true,
+      defaultValue: () => crypto.randomUUID(),
+      admin: { hidden: true },
+    },
+    {
       name: 'name',
       type: 'text',
       required: true,
@@ -117,12 +124,6 @@ export const Characters: CollectionConfig = {
       admin: {
         position: 'sidebar',
       },
-    },
-    {
-      name: 'stats_screenshot',
-      type: 'upload',
-      relationTo: 'media',
-      label: 'Screenshot Stats (Untuk Keperluan OCR)',
     },
     {
       type: 'tabs',

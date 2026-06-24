@@ -35,3 +35,23 @@ export const JOBS = [
   { label: 'Adept Novice', value: 'adept_novice' },
   { label: 'Rebellion', value: 'rebellion' },
 ]
+
+export const JOBS_OPTIONS = [
+  { label: 'Lord Knight', value: 'lord_knight' },
+  { label: 'Paladin', value: 'paladin' },
+  { label: 'High Priest', value: 'high_priest' },
+  { label: 'Champion', value: 'champion' },
+  { label: 'Assassin Cross', value: 'assassin_cross' },
+  { label: 'Stalker', value: 'stalker' },
+  { label: 'High Wizard', value: 'high_wizard' },
+  { label: 'Professor', value: 'professor' },
+  { label: 'Sniper', value: 'sniper' },
+  { label: 'Minstrell', value: 'minstrell' },
+  { label: 'Gypsy', value: 'gypsy' },
+  { label: 'Mastersmith', value: 'mastersmith' },
+  { label: 'Biochemist', value: 'biochemist' },
+  { label: 'Summoner', value: 'summoner' },
+  { label: 'Adept Novice', value: 'adept_novice' },
+  { label: 'Rebellion', value: 'rebellion' },
+  { label: 'Any / Bebas', value: 'any' },
+]

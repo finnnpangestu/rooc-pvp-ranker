@@ -30,14 +30,23 @@ export default async function DashboardPage() {
 
   const currentGuild = guildRes.docs[0] || null
   let guildMembers: any[] = []
+  let partySetup: any = null
 
   if (currentGuild) {
     guildMembers = await getCharactersDashboard(currentGuild.id.toString())
+
+    const setupRes = await payload.find({
+      collection: 'party_setups',
+      where: { guild_id: { equals: currentGuild.id } },
+      depth: 1,
+      limit: 1,
+    })
+    partySetup = setupRes.docs[0] || null
   }
 
   return (
     <>
-      <DashboardClient guild={currentGuild} members={guildMembers} />
+      <DashboardClient guild={currentGuild} members={guildMembers} partySetup={partySetup} />
       <Analytics />
     </>
   )

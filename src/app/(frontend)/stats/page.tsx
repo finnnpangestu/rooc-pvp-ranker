@@ -20,7 +20,13 @@ export default async function StatsPage() {
     },
   })
 
-  // Format data
+  const charsRes = await payload.find({
+    collection: 'characters',
+    limit: 5000,
+    pagination: false,
+    depth: 0,
+  })
+
   const guilds = guildsRes.docs.map((g) => ({
     id: String(g.id),
     name: g.name,
@@ -28,7 +34,7 @@ export default async function StatsPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: '#09090b', padding: '1px 0' }}>
-      <StatsForm guilds={guilds} />
+      <StatsForm guilds={guilds} characters={charsRes.docs} />
     </main>
   )
 }

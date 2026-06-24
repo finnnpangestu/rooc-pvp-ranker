@@ -14,6 +14,13 @@ export const Users: CollectionConfig = {
   },
   fields: [
     {
+      name: 'id',
+      type: 'text',
+      unique: true,
+      defaultValue: () => crypto.randomUUID(),
+      admin: { hidden: true },
+    },
+    {
       name: 'role',
       type: 'select',
       required: true,

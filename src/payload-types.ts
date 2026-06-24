@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     characters: Character;
     guilds: Guild;
+    party_setups: PartySetup;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -86,6 +87,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     characters: CharactersSelect<false> | CharactersSelect<true>;
     guilds: GuildsSelect<false> | GuildsSelect<true>;
+    party_setups: PartySetupsSelect<false> | PartySetupsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -130,7 +132,7 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: number;
+  id: string;
   role: 'super_admin' | 'guild_master';
   name?: string | null;
   updatedAt: string;
@@ -157,7 +159,7 @@ export interface User {
  * via the `definition` "media".
  */
 export interface Media {
-  id: number;
+  id: string;
   alt: string;
   updatedAt: string;
   createdAt: string;
@@ -178,7 +180,7 @@ export interface Media {
  * via the `definition` "characters".
  */
 export interface Character {
-  id: number;
+  id: string;
   name: string;
   job:
     | 'lord_knight'
@@ -197,9 +199,8 @@ export interface Character {
     | 'summoner'
     | 'adept_novice'
     | 'rebellion';
-  guild_id: number | Guild;
+  guild_id: string | Guild;
   isVerified?: boolean | null;
-  stats_screenshot?: (number | null) | Media;
   max_hp: number;
   patk?: number | null;
   matk?: number | null;
@@ -376,9 +377,9 @@ export interface Character {
  * via the `definition` "guilds".
  */
 export interface Guild {
-  id: number;
+  id: string;
   name: string;
-  guild_master: number | User;
+  guild_master: string | User;
   /**
    * Jumlah karakter terverifikasi dalam guild
    */
@@ -388,10 +389,83 @@ export interface Guild {
    */
   total_pvp_score?: number | null;
   characters?: {
-    docs?: (number | Character)[];
+    docs?: (string | Character)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "party_setups".
+ */
+export interface PartySetup {
+  id: string;
+  guild_id: string | Guild;
+  elite_parties?:
+    | {
+        party_name: string;
+        slots?:
+          | {
+              required_job:
+                | 'lord_knight'
+                | 'paladin'
+                | 'high_priest'
+                | 'champion'
+                | 'assassin_cross'
+                | 'stalker'
+                | 'high_wizard'
+                | 'professor'
+                | 'sniper'
+                | 'minstrell'
+                | 'gypsy'
+                | 'mastersmith'
+                | 'biochemist'
+                | 'summoner'
+                | 'adept_novice'
+                | 'rebellion'
+                | 'any';
+              /**
+               * Karakter yang terpilih otomatis atau di-assign manual
+               */
+              assigned_character?: (string | null) | Character;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  sub_parties?:
+    | {
+        party_name: string;
+        slots?:
+          | {
+              required_job:
+                | 'lord_knight'
+                | 'paladin'
+                | 'high_priest'
+                | 'champion'
+                | 'assassin_cross'
+                | 'stalker'
+                | 'high_wizard'
+                | 'professor'
+                | 'sniper'
+                | 'minstrell'
+                | 'gypsy'
+                | 'mastersmith'
+                | 'biochemist'
+                | 'summoner'
+                | 'adept_novice'
+                | 'rebellion'
+                | 'any';
+              assigned_character?: (string | null) | Character;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -421,24 +495,28 @@ export interface PayloadLockedDocument {
   document?:
     | ({
         relationTo: 'users';
-        value: number | User;
+        value: string | User;
       } | null)
     | ({
         relationTo: 'media';
-        value: number | Media;
+        value: string | Media;
       } | null)
     | ({
         relationTo: 'characters';
-        value: number | Character;
+        value: string | Character;
       } | null)
     | ({
         relationTo: 'guilds';
-        value: number | Guild;
+        value: string | Guild;
+      } | null)
+    | ({
+        relationTo: 'party_setups';
+        value: string | PartySetup;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: number | User;
+    value: string | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -451,7 +529,7 @@ export interface PayloadPreference {
   id: number;
   user: {
     relationTo: 'users';
-    value: number | User;
+    value: string | User;
   };
   key?: string | null;
   value?:
@@ -482,6 +560,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  id?: T;
   role?: T;
   name?: T;
   updatedAt?: T;
@@ -506,6 +585,7 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
+  id?: T;
   alt?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -524,11 +604,11 @@ export interface MediaSelect<T extends boolean = true> {
  * via the `definition` "characters_select".
  */
 export interface CharactersSelect<T extends boolean = true> {
+  id?: T;
   name?: T;
   job?: T;
   guild_id?: T;
   isVerified?: T;
-  stats_screenshot?: T;
   max_hp?: T;
   patk?: T;
   matk?: T;
@@ -594,11 +674,48 @@ export interface CharactersSelect<T extends boolean = true> {
  * via the `definition` "guilds_select".
  */
 export interface GuildsSelect<T extends boolean = true> {
+  id?: T;
   name?: T;
   guild_master?: T;
   total_characters?: T;
   total_pvp_score?: T;
   characters?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "party_setups_select".
+ */
+export interface PartySetupsSelect<T extends boolean = true> {
+  id?: T;
+  guild_id?: T;
+  elite_parties?:
+    | T
+    | {
+        party_name?: T;
+        slots?:
+          | T
+          | {
+              required_job?: T;
+              assigned_character?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  sub_parties?:
+    | T
+    | {
+        party_name?: T;
+        slots?:
+          | T
+          | {
+              required_job?: T;
+              assigned_character?: T;
+              id?: T;
+            };
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

@@ -6,6 +6,7 @@ import styles from './stats.module.css'
 import Link from 'next/link'
 import { JOBS } from '@/const/JobLabels'
 import { GENERAL_STATS, QUASI_STATS, SPECIAL_STATS } from '@/const/StatsLabels'
+import { updateCharacterStats } from '@/actions/stats/updateCharacter'
 
 interface Guild {
   id: string
@@ -14,6 +15,7 @@ interface Guild {
 
 interface StatsFormProps {
   guilds: Guild[]
+  characters: any[]
 }
 
 const DEFAULT_FORM = {
@@ -22,13 +24,37 @@ const DEFAULT_FORM = {
   guild_id: '',
 }
 
-export function StatsForm({ guilds }: StatsFormProps) {
+export function StatsForm({ guilds, characters }: StatsFormProps) {
   const [formData, setFormData] = useState<any>({ ...DEFAULT_FORM })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [dialogResult, setDialogResult] = useState<{ isOpen: boolean; score: number | null }>({
     isOpen: false,
     score: null,
   })
+  const [activeTab, setActiveTab] = useState('info')
+  const [formMode, setFormMode] = useState<'add' | 'update'>('add')
+  const [selectedUpdateId, setSelectedUpdateId] = useState('')
+
+  const handleModeChange = (mode: 'add' | 'update') => {
+    setFormMode(mode)
+    setFormData({ ...DEFAULT_FORM })
+    setSelectedUpdateId('')
+    setActiveTab('info')
+  }
+
+  const handleSelectCharacter = (charId: string) => {
+    const char = characters.find((c) => String(c.id) === charId)
+    if (char) {
+      setSelectedUpdateId(charId)
+      setFormData({
+        ...char,
+        guild_id: String(char.guild_id),
+      })
+    } else {
+      setSelectedUpdateId('')
+      setFormData({ ...DEFAULT_FORM, guild_id: formData.guild_id })
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -45,42 +71,50 @@ export function StatsForm({ guilds }: StatsFormProps) {
     try {
       const payloadData = { ...formData }
       if (payloadData.guild_id) {
-        payloadData.guild_id = Number(payloadData.guild_id)
+        payloadData.guild_id = String(payloadData.guild_id)
       }
 
-      const res = await fetch('/api/characters', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payloadData),
-      })
+      let resDoc = null
 
-      const json = await res.json()
-
-      if (res.ok && json.doc) {
-        setDialogResult({
-          isOpen: true,
-          score: json.doc.pvp_score,
+      if (formMode === 'add') {
+        const res = await fetch('/api/characters', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payloadData),
         })
-        setFormData({ ...DEFAULT_FORM })
-        setActiveTab('info')
+        const json = await res.json()
+        if (!res.ok)
+          throw new Error(
+            json.errors
+              ? json.errors.map((err: any) => err.message).join(', ')
+              : 'Gagal mengirim data baru',
+          )
+        resDoc = json.doc
       } else {
-        const errorMsg = json.errors
-          ? json.errors.map((err: any) => err.message).join(', ')
-          : 'Unknown error'
-        alert(`Gagal mengirim data: ${errorMsg}`)
-        console.error('Payload Validation Error:', json)
+        if (!selectedUpdateId) throw new Error('Harap pilih karakter yang ingin diupdate!')
+        const res = await updateCharacterStats(selectedUpdateId, payloadData)
+        if (!res.success) throw new Error(res.message)
+        resDoc = res.doc
       }
-    } catch (err) {
+
+      setDialogResult({
+        isOpen: true,
+        score: resDoc.pvp_score,
+      })
+      setFormData({ ...DEFAULT_FORM })
+      setSelectedUpdateId('')
+      setActiveTab('info')
+    } catch (err: any) {
       console.error(err)
-      alert('Terjadi kesalahan jaringan.')
+      alert(err.message || 'Terjadi kesalahan jaringan.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const [activeTab, setActiveTab] = useState('info')
+  const filteredCharactersForUpdate = characters.filter(
+    (c) => String(c.guild_id) === String(formData.guild_id),
+  )
 
   const TABS = [
     { id: 'info', label: 'Informasi' },
@@ -120,9 +154,45 @@ export function StatsForm({ guilds }: StatsFormProps) {
         <div className={styles.header}>
           <div className={styles.badge}>ROOC Ranker</div>
           <h1>Submit Stats</h1>
+
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '8px',
+              margin: '20px 0 16px 0',
+            }}
+          >
+            <div
+              style={{
+                display: 'inline-flex',
+                background: 'rgba(0,0,0,0.4)',
+                borderRadius: '10px',
+                padding: '4px',
+                border: '1px solid rgba(255,255,255,0.05)',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => handleModeChange('add')}
+                className={`${styles.tabBtn} ${formMode === 'add' ? styles.activeTab : ''}`}
+              >
+                Tambah Char
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeChange('update')}
+                className={`${styles.tabBtn} ${formMode === 'update' ? styles.activeTab : ''}`}
+              >
+                Update Char
+              </button>
+            </div>
+          </div>
+
           <p>
-            Masukkan data stat karaktermu untuk berpartisipasi dalam rank PvP. Direkomendasikan
-            tanpa menggunakan Buffs, Consumables, dan Buff Skills.
+            {formMode === 'add'
+              ? 'Masukkan data stat karaktermu untuk berpartisipasi dalam rank PvP.'
+              : 'Pilih karaktermu untuk memperbarui data stats terbaru (Mereset Verifikasi).'}
           </p>
 
           <p style={{ marginTop: '8px' }}>
@@ -159,71 +229,158 @@ export function StatsForm({ guilds }: StatsFormProps) {
             className={`${styles.tabContent} ${activeTab === 'info' ? styles.activeContent : ''}`}
           >
             <div className={styles.grid}>
-              <div className={styles.field}>
-                <label htmlFor="name">
-                  IGN (In-Game Name) <span className={styles.asterisk}>*</span>
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  className={styles.input}
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  placeholder="Nama Karakter"
-                />
-              </div>
+              {/* === MODE: TAMBAH CHAR === */}
+              {formMode === 'add' ? (
+                <>
+                  <div className={styles.field}>
+                    <label htmlFor="name">
+                      IGN (In-Game Name) <span className={styles.asterisk}>*</span>
+                    </label>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      className={styles.input}
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      placeholder="Nama Karakter"
+                    />
+                  </div>
 
-              <div className={styles.field}>
-                <label htmlFor="job">
-                  Job <span className={styles.asterisk}>*</span>
-                </label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    id="job"
-                    name="job"
-                    className={styles.select}
-                    value={formData.job}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="" disabled>
-                      -- Pilih Job --
-                    </option>
-                    {JOBS.map((j) => (
-                      <option key={j.value} value={j.value}>
-                        {j.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                  <div className={styles.field}>
+                    <label htmlFor="job">
+                      Job <span className={styles.asterisk}>*</span>
+                    </label>
+                    <div className={styles.selectWrapper}>
+                      <select
+                        id="job"
+                        name="job"
+                        className={styles.select}
+                        value={formData.job}
+                        onChange={handleChange}
+                        required
+                      >
+                        <option value="" disabled>
+                          -- Pilih Job --
+                        </option>
+                        {JOBS.map((j) => (
+                          <option key={j.value} value={j.value}>
+                            {j.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
 
-              <div className={styles.field}>
-                <label htmlFor="guild_id">
-                  Pilih Guild <span className={styles.asterisk}>*</span>
-                </label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    id="guild_id"
-                    name="guild_id"
-                    className={styles.select}
-                    value={formData.guild_id}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="" disabled>
-                      -- Pilih Guild --
-                    </option>
-                    {guilds.map((g) => (
-                      <option key={g.id} value={g.id}>
-                        {g.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                  <div className={styles.field}>
+                    <label htmlFor="guild_id">
+                      Pilih Guild <span className={styles.asterisk}>*</span>
+                    </label>
+                    <div className={styles.selectWrapper}>
+                      <select
+                        id="guild_id"
+                        name="guild_id"
+                        className={styles.select}
+                        value={formData.guild_id}
+                        onChange={handleChange}
+                        required
+                      >
+                        <option value="" disabled>
+                          -- Pilih Guild --
+                        </option>
+                        {guilds.map((g) => (
+                          <option key={g.id} value={g.id}>
+                            {g.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* === MODE: UPDATE CHAR === */
+                <>
+                  <div className={styles.field}>
+                    <label htmlFor="guild_id">
+                      Pilih Guild Asal <span className={styles.asterisk}>*</span>
+                    </label>
+                    <div className={styles.selectWrapper}>
+                      <select
+                        id="guild_id"
+                        name="guild_id"
+                        className={styles.select}
+                        value={formData.guild_id}
+                        onChange={(e) => {
+                          handleChange(e)
+                          setSelectedUpdateId('') // Reset pilihan karakter ketika ganti guild
+                        }}
+                        required
+                      >
+                        <option value="" disabled>
+                          -- Pilih Guild --
+                        </option>
+                        {guilds.map((g) => (
+                          <option key={g.id} value={g.id}>
+                            {g.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className={styles.field}>
+                    <label htmlFor="update_ign">
+                      Pilih Karakter (IGN) <span className={styles.asterisk}>*</span>
+                    </label>
+                    <div className={styles.selectWrapper}>
+                      <select
+                        id="update_ign"
+                        className={styles.select}
+                        value={selectedUpdateId}
+                        onChange={(e) => handleSelectCharacter(e.target.value)}
+                        required
+                        disabled={!formData.guild_id}
+                      >
+                        <option value="" disabled>
+                          -- Pilih Karakter --
+                        </option>
+                        {filteredCharactersForUpdate.map((c) => (
+                          <option key={c.id} value={String(c.id)}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className={styles.field}>
+                    <label htmlFor="job">
+                      Edit Job (Jika Pindah Job) <span className={styles.asterisk}>*</span>
+                    </label>
+                    <div className={styles.selectWrapper}>
+                      <select
+                        id="job"
+                        name="job"
+                        className={styles.select}
+                        value={formData.job}
+                        onChange={handleChange}
+                        required
+                        disabled={!selectedUpdateId}
+                      >
+                        <option value="" disabled>
+                          -- Pilih Job --
+                        </option>
+                        {JOBS.map((j) => (
+                          <option key={j.value} value={j.value}>
+                            {j.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -256,7 +413,11 @@ export function StatsForm({ guilds }: StatsFormProps) {
           <div className={styles.footer}>
             <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
               <span className={styles.btnText}>
-                {isSubmitting ? 'Mengirim...' : 'Kirim Data Stats'}
+                {isSubmitting
+                  ? 'Mengirim...'
+                  : formMode === 'add'
+                    ? 'Kirim Data Stats'
+                    : 'Update Data Stats'}
               </span>
               <span className={styles.btnGlow}></span>
             </button>
@@ -267,10 +428,12 @@ export function StatsForm({ guilds }: StatsFormProps) {
       <GlobalDialog
         isOpen={dialogResult.isOpen}
         onClose={() => setDialogResult({ isOpen: false, score: null })}
-        title="Submission Berhasil!"
+        title={formMode === 'add' ? 'Submission Berhasil!' : 'Update Berhasil!'}
       >
         <div className={styles.scoreDesc}>
-          Data karaktermu telah disimpan dan menunggu verifikasi dari Guild Master.
+          {formMode === 'add'
+            ? 'Data karaktermu telah disimpan dan menunggu verifikasi dari Guild Master.'
+            : 'Data karaktermu berhasil diubah dan dikembalikan ke status Pending untuk diverifikasi ulang.'}
         </div>
         <div className={styles.scoreText}>
           Score:{' '}

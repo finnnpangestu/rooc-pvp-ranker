@@ -52,6 +52,15 @@ export const Guilds: CollectionConfig = {
   },
   fields: [
     {
+      name: 'id',
+      type: 'text',
+      unique: true,
+      defaultValue: () => crypto.randomUUID(),
+      admin: {
+        hidden: true,
+      },
+    },
+    {
       name: 'name',
       type: 'text',
       required: true,
