@@ -246,7 +246,8 @@
 .jobIcon {
   width: 24px;
   height: 24px;
-  object-fit: contain;
+  object-fit: cover;
+  border-radius: 20%;
 }
 
 .charName {
