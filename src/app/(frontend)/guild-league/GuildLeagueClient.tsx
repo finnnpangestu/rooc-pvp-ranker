@@ -229,7 +229,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                       <>
                         <div className={styles.jobIcon} />
                         <span className={styles.emptySlotText}>
-                          Kosong - {JOB_LABELS[slot.required_job] || 'Any'}
+                          {JOB_LABELS[slot.required_job] || 'Any'}
                         </span>
                         <button
                           onClick={() => {
