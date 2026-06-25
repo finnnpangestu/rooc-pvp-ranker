@@ -26,12 +26,14 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     return null
   })
 
-  // dialog flags
+  // state
   const [isEliteDialogOpen, setIsEliteDialogOpen] = useState(false)
   const [isSubDialogOpen, setIsSubDialogOpen] = useState(false)
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false)
   const [selectedPartyIndex, setSelectedPartyIndex] = useState<number | null>(null)
   const [selectedPartyType, setSelectedPartyType] = useState<'elite' | 'sub' | null>(null)
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null)
+  const [isSaveLoading, setIsSaveLoading] = useState(false)
 
   // blueprint generate
   const [eliteBlueprint, setEliteBlueprint] = useState<string[][]>(
@@ -108,16 +110,21 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   const handleSave = async () => {
     if (!localSetup) return
 
+    setIsSaveLoading(true)
+
     const payload = {
       ...localSetup,
       guild_id: guild.id,
     }
     const res = await savePartySetup(payload)
+
     if (res.success) {
       alert('Setup berhasil disimpan!')
     } else {
       alert('Gagal menyimpan: ' + res.message)
     }
+
+    setIsSaveLoading(false)
   }
 
   // clear local
@@ -140,36 +147,78 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     setLocalSetup(newSetup)
   }
 
-  // edit: add member
+  // edit: position member
   const addMemberToParty = (memberId: string) => {
-    if (selectedPartyIndex === null || !selectedPartyType || !localSetup) return
-    const newSetup = clone(localSetup)
-    const parties = selectedPartyType === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
-    const party = parties[selectedPartyIndex]
-    if (!party) return
+    // check state
+    if (selectedPartyType === null || selectedPartyIndex === null || selectedSlotIndex === null)
+      return
 
-    const emptySlotIdx = party.slots.findIndex((s: any) => !s.assigned_character)
-    if (emptySlotIdx === -1) {
-      alert('Party sudah penuh (max 5 member)')
-      return
-    }
-    if (getAssignedMemberIds().includes(memberId)) {
-      alert('Member sudah terassign di party lain')
-      return
-    }
     const member = members.find((m) => m.id === memberId)
     if (!member) return
 
-    party.slots[emptySlotIdx].assigned_character = member
+    const newSetup = clone(localSetup)
+
+    // place member in specific slot
+    if (selectedPartyType === 'elite') {
+      newSetup.elite_parties[selectedPartyIndex].slots[selectedSlotIndex].assigned_character =
+        member
+    } else {
+      newSetup.sub_parties[selectedPartyIndex].slots[selectedSlotIndex].assigned_character = member
+    }
+
+    // update state
     setLocalSetup(newSetup)
     setIsAddMemberDialogOpen(false)
+
+    // reset state
+    setSelectedPartyIndex(null)
+    setSelectedPartyType(null)
+    setSelectedSlotIndex(null)
   }
 
   const isEliteGenerated = localSetup?.elite_parties && localSetup.elite_parties.length > 0
   const isSubGenerated = localSetup?.sub_parties && localSetup.sub_parties.length > 0
 
+  let requiredJobForSlot = 'any'
+  if (
+    localSetup &&
+    selectedPartyType &&
+    selectedPartyIndex !== null &&
+    selectedSlotIndex !== null
+  ) {
+    if (selectedPartyType === 'elite') {
+      requiredJobForSlot =
+        localSetup.elite_parties[selectedPartyIndex].slots[selectedSlotIndex].required_job
+    } else {
+      requiredJobForSlot =
+        localSetup.sub_parties[selectedPartyIndex].slots[selectedSlotIndex].required_job
+    }
+  }
+
   // available members for adding
-  const availableMembers = members.filter((m) => !getAssignedMemberIds().includes(m.id))
+  // const availableMembers = members.filter((m) => !getAssignedMemberIds().includes(m.id))
+  const availableMembers = members
+    .filter((m) => {
+      // Check if member is already in Elite or Sub party
+      const isAssignedToElite = localSetup?.elite_parties?.some((p: any) =>
+        p.slots.some((s: any) => s.assigned_character?.id === m.id),
+      )
+      const isAssignedToSub = localSetup?.sub_parties?.some((p: any) =>
+        p.slots.some((s: any) => s.assigned_character?.id === m.id),
+      )
+
+      // If already in party, hide from list
+      if (isAssignedToElite || isAssignedToSub) return false
+
+      // LOGIC BY JOB SLOT
+      // If blueprint requires a specific job, only display that job
+      if (requiredJobForSlot !== 'any') {
+        return m.job === requiredJobForSlot
+      }
+
+      return true // return all if 'any'
+    })
+    .sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
 
   // helper renderer party cards
   const renderPartyCards = (parties: any[], titleColor: string, type: 'elite' | 'sub') => (
@@ -229,8 +278,9 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                       <>
                         <button
                           onClick={() => {
-                            setSelectedPartyIndex(idx)
                             setSelectedPartyType(type)
+                            setSelectedPartyIndex(idx)
+                            setSelectedSlotIndex(sIdx)
                             setIsAddMemberDialogOpen(true)
                           }}
                           className={styles.addSlotBtn}
@@ -361,15 +411,15 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
           style={{ padding: '14px', flex: 1, textAlign: 'center', justifyContent: 'center' }}
           disabled={!localSetup || (!isEliteGenerated && !isSubGenerated)}
         >
-          Clear All Formations
+          Clear Formations
         </button>
         <button
           onClick={handleSave}
           className={`${styles.btnBase} ${styles.btnElite}`}
           style={{ padding: '14px', flex: 2, justifyContent: 'center' }}
-          disabled={!localSetup || (!isEliteGenerated && !isSubGenerated)}
+          disabled={!localSetup || isSaveLoading || (!isEliteGenerated && !isSubGenerated)}
         >
-          Simpan Setup ke Database
+          {isSaveLoading ? 'Menyimpan...' : 'Simpan Setup'}
         </button>
       </div>
 
