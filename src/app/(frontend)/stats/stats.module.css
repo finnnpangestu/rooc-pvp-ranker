@@ -330,12 +330,12 @@
   gap: 12px;
   overflow-x: auto;
   padding: 8px 4px;
-  scrollbar-width: none; /* Hide scrollbar Firefox */
-  -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .jobCarousel::-webkit-scrollbar {
-  display: none; /* Hide scrollbar Chrome/Safari */
+  display: none;
 }
 
 .jobCard {
@@ -374,6 +374,7 @@
   width: 32px;
   height: 32px;
   display: flex;
+  font-family: 'Outfit', sans-serif;
   align-items: center;
   justify-content: center;
 }
@@ -402,7 +403,6 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Reusable row hover for tables */
 .tableRow {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: background 0.2s;
@@ -416,9 +416,10 @@
   background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
   border: none;
   color: white;
-  padding: 12px 24px;
+  padding: 14px 24px;
   border-radius: 12px;
   font-weight: 600;
+  font-family: 'Outfit', sans-serif;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.5);
