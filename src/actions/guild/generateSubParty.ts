@@ -15,7 +15,6 @@ export async function generateSubParty(blueprint: string[][], benchMembers: any[
       })
     }
 
-    // Round-Robin for Sub Party
     for (let slotIdx = 0; slotIdx < 5; slotIdx++) {
       for (let partyIdx = 0; partyIdx < totalSubParties; partyIdx++) {
         if (availableMembers.length === 0) break
@@ -23,16 +22,13 @@ export async function generateSubParty(blueprint: string[][], benchMembers: any[
         const requestedJob = blueprint[partyIdx][slotIdx]
         let selectedIndex = -1
 
-        if (requestedJob !== 'any') {
+        if (requestedJob === 'any') {
+          selectedIndex = 0
+        } else {
           selectedIndex = availableMembers.findIndex((m) => m.job === requestedJob)
         }
 
-        if (selectedIndex === -1) {
-          selectedIndex = 0
-        }
-
         if (selectedIndex !== -1) {
-          // Store the full member object so the UI can display name/job/score
           subParties[partyIdx].slots[slotIdx].assigned_character = availableMembers[selectedIndex]
           availableMembers.splice(selectedIndex, 1)
         }

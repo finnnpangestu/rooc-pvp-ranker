@@ -227,10 +227,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                       </>
                     ) : (
                       <>
-                        <div className={styles.jobIcon} />
-                        <span className={styles.emptySlotText}>
-                          {JOB_LABELS[slot.required_job] || 'Any'}
-                        </span>
                         <button
                           onClick={() => {
                             setSelectedPartyIndex(idx)
@@ -239,7 +235,9 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                           }}
                           className={styles.addSlotBtn}
                         >
-                          + Pilih
+                          <span className={styles.emptySlotText}>
+                            {JOB_LABELS[slot.required_job] || 'Any'}
+                          </span>
                         </button>
                       </>
                     )}
