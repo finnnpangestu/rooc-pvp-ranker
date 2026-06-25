@@ -93,7 +93,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
   const handleGenerateSub = async () => {
     if (!localSetup) return
-    const res = await generateSubParty(subBlueprint, benchMembers)
+    const res = await generateSubParty(guild.id, subBlueprint, benchMembers)
     if (res.success) {
       const newSetup = clone(localSetup)
       newSetup.sub_parties = res.parties

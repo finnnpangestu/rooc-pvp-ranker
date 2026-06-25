@@ -2,7 +2,11 @@
 
 export async function generateEliteParty(guildId: string, blueprint: string[][], members: any[]) {
   try {
-    const availableMembers = [...members].sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
+    const guildMembers = members.filter((m) => String(m.guild_id) === String(guildId))
+
+    const availableMembers = [...guildMembers].sort(
+      (a, b) => (b.pvp_score || 0) - (a.pvp_score || 0),
+    )
 
     const eliteParties: any[] = []
 

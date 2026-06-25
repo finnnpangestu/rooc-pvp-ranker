@@ -1,8 +1,14 @@
 'use server'
 
-export async function generateSubParty(blueprint: string[][], benchMembers: any[]) {
+export async function generateSubParty(
+  guildId: string,
+  blueprint: string[][],
+  benchMembers: any[],
+) {
   try {
-    const availableMembers = [...benchMembers].sort(
+    const guildMembers = benchMembers.filter((m) => String(m.guild_id) === String(guildId))
+
+    const availableMembers = [...guildMembers].sort(
       (a, b) => (b.pvp_score || 0) - (a.pvp_score || 0),
     )
     const subParties: any[] = []
