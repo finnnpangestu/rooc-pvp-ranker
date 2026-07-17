@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { DashboardClient } from './dashboard/DashboardClient'
 import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
 
 export const metadata = {
@@ -48,6 +49,7 @@ export default async function DashboardPage() {
     <>
       <DashboardClient guild={currentGuild} members={guildMembers} partySetup={partySetup} />
       <Analytics />
+      <SpeedInsights />
     </>
   )
 }
