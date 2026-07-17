@@ -3,8 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import styles from '../stats/stats.module.css'
+
 import { JOB_LABELS } from '@/const/JobLabels'
+import { TabBar, TabButton } from '../components/TabBar' // Sesuaikan path ini
+import clsx from 'clsx'
 
 interface LeaderboardClientProps {
   allGuilds: any[]
@@ -127,51 +129,86 @@ export function LeaderboardClient({
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.glowBg}></div>
+    <div className="max-w-[1200px] my-10 mx-auto p-10 bg-[#0f0f14]/70 backdrop-blur-md border border-white/5 rounded-[32px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)] text-white font-sans relative overflow-hidden">
+      {/* ... dekorasi dan header (sama) */}
 
-      <div className={styles.header}>
-        <div className={styles.badge}>ROOC Ranker</div>
-        <h1>Leaderboard</h1>
-        <p style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          <span>🏆 Peringkat guild & karakter</span>
-          <Link
-            href="/stats"
-            style={{
-              color: '#818cf8',
-              textDecoration: 'none',
-              fontWeight: 600,
-              borderBottom: '1px solid rgba(99,102,241,0.3)',
-            }}
-          >
-            ← Kembali ke Submit Stats
-          </Link>
-        </p>
-      </div>
-
-      <div className={styles.tabs}>
+      {/* TAB NAVIGASI - disamakan dengan StatsForm */}
+      <div className="flex gap-2 bg-black/30 p-2 rounded-2xl mb-8 relative z-10 border border-white/5 overflow-x-auto scrollbar-none">
         <button
           type="button"
-          className={`${styles.tabBtn} ${activeTab === 'all' ? styles.activeTab : ''}`}
+          className={clsx(
+            'flex-1 bg-transparent border-none text-gray-400 py-3 px-5 text-[15px] font-semibold font-sans rounded-[10px] cursor-pointer transition-all duration-300 whitespace-nowrap hover:text-gray-200 hover:bg-white/5',
+            {
+              'bg-indigo-500/20 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] border border-indigo-500/30 hover:bg-indigo-500/25':
+                activeTab === 'all',
+            },
+          )}
           onClick={() => setActiveTab('all')}
         >
           Semua Guild
         </button>
         <button
           type="button"
-          className={`${styles.tabBtn} ${activeTab === 'guild' ? styles.activeTab : ''}`}
+          className={clsx(
+            'flex-1 bg-transparent border-none text-gray-400 py-3 px-5 text-[15px] font-semibold font-sans rounded-[10px] cursor-pointer transition-all duration-300 whitespace-nowrap hover:text-gray-200 hover:bg-white/5',
+            {
+              'bg-indigo-500/20 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] border border-indigo-500/30 hover:bg-indigo-500/25':
+                activeTab === 'guild',
+            },
+          )}
           onClick={() => setActiveTab('guild')}
         >
           Per Guild
         </button>
       </div>
 
-      {/* Konten: Per Guild */}
-      <div
-        className={`${styles.tabContent} ${activeTab === 'guild' ? styles.activeContent : ''}`}
-        style={{ padding: '16px 0' }}
-      >
-        <div className={styles.sectionDesc}>
+      {/* PANEL: Semua Guild */}
+      <div className={clsx('hidden animate-fadeUp', { '!block': activeTab === 'all' })}>
+        <div className="text-gray-400 mb-6 text-[15px] font-light p-4 bg-white/5 rounded-xl border-l-[3px] border-indigo-500">
+          Peringkat guild berdasarkan total PvP score dari semua karakter terverifikasi.
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '15px' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
+                <th style={{ padding: '12px 16px', textAlign: 'center', width: '80px' }}>Rank</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left' }}>Nama Guild</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center' }}>Jumlah Karakter</th>
+                <th style={{ padding: '12px 16px', textAlign: 'right' }}>Total PvP Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allGuilds.map((guild, index) => {
+                const rank = index + 1
+                const rankStyle = getRankStyle(rank)
+                return (
+                  <tr
+                    key={guild.id}
+                    className="border-b border-white/5 transition-colors duration-200 hover:bg-white/5"
+                  >
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      <span style={rankStyle.container}>{rank}</span>
+                    </td>
+                    <td style={{ padding: '12px 16px', fontWeight: 500 }}>{guild.name}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', color: '#d1d5db' }}>
+                      {guild.total_characters ?? 0}
+                    </td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600 }}>
+                      <span style={{ color: rank === 1 ? '#fbbf24' : '#e5e7eb' }}>
+                        {Math.round(guild.total_pvp_score ?? 0).toLocaleString()}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* PANEL: Per Guild */}
+      <div className={clsx('hidden animate-fadeUp', { '!block': activeTab === 'guild' })}>
+        <div className="text-gray-400 mb-6 text-[15px] font-light p-4 bg-white/5 rounded-xl border-l-[3px] border-indigo-500">
           Pilih guild dan job untuk melihat peringkat PvP karakter.
         </div>
 
@@ -184,10 +221,10 @@ export function LeaderboardClient({
               >
                 Pilih Guild
               </label>
-              <div className={styles.selectWrapper}>
+              <div className="relative after:content-[''] after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2 after:w-[10px] after:h-[6px] after:bg-[url('data:image/svg+xml;utf8,<svg_fill=%22%239ca3af%22_viewBox=%220_0_24_24%22_xmlns=%22http://www.w3.org/2000/svg%22><path_d=%22M7_10l5_5_5-5z%22/></svg>')] after:bg-no-repeat after:bg-center after:pointer-events-none">
                 <select
                   id="guildSelect"
-                  className={styles.select}
+                  className="w-full appearance-none bg-black/40 border border-white/10 rounded-xl py-3.5 px-4 text-white text-[15px] font-sans transition-all duration-200 outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] hover:bg-black/60 hover:border-white/15 focus:border-indigo-400 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.25),inset_0_2px_4px_rgba(0,0,0,0.2)] focus:bg-black/70 focus:-translate-y-[1px]"
                   value={localGuildId}
                   onChange={(e) => setLocalGuildId(e.target.value)}
                 >
@@ -200,13 +237,16 @@ export function LeaderboardClient({
                 </select>
               </div>
             </div>
-            <button type="submit" className={styles.submitBtnLeaderboard}>
+            <button
+              type="submit"
+              className="bg-gradient-to-br from-indigo-600 to-indigo-800 border-none text-white py-3.5 px-6 rounded-lg font-semibold font-sans cursor-pointer transition-all duration-300 shadow-[0_10px_25px_-5px_rgba(79,70,229,0.5)] text-[15px] whitespace-nowrap"
+            >
               Tampilkan
             </button>
           </div>
         </form>
 
-        {/* Job Filter Carousel */}
+        {/* Job Filter Carousel (sama seperti sebelumnya) */}
         <div style={{ position: 'relative', marginBottom: '32px' }}>
           <div
             style={{
@@ -220,21 +260,33 @@ export function LeaderboardClient({
               Filter berdasarkan Job:
             </span>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => scroll('left')} className={styles.scrollBtn}>
+              <button
+                onClick={() => scroll('left')}
+                className="bg-white/5 border border-white/10 text-white w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer text-xs hover:bg-white/10"
+              >
                 ❮
               </button>
-              <button onClick={() => scroll('right')} className={styles.scrollBtn}>
+              <button
+                onClick={() => scroll('right')}
+                className="bg-white/5 border border-white/10 text-white w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer text-xs hover:bg-white/10"
+              >
                 ❯
               </button>
             </div>
           </div>
 
-          <div ref={scrollRef} className={styles.jobCarousel}>
+          <div ref={scrollRef} className="flex gap-3 overflow-x-auto py-2 px-1 scrollbar-none">
             <button
               onClick={() => setSelectedJob('')}
-              className={`${styles.jobCard} ${selectedJob === '' ? styles.jobCardActive : ''}`}
+              className={clsx(
+                'flex-none flex flex-col items-center justify-center w-[100px] h-[90px] bg-white/5 border border-white/10 rounded-xl cursor-pointer transition-all duration-200 text-gray-400 text-[11px] font-medium gap-2 hover:bg-white/10 hover:border-indigo-400/40 hover:-translate-y-[2px]',
+                {
+                  '!bg-indigo-600/15 !border-indigo-600 !text-indigo-400 shadow-[0_0_15px_rgba(79,70,229,0.2)]':
+                    selectedJob === '',
+                },
+              )}
             >
-              <div className={styles.jobIconWrapper}>
+              <div className="w-8 h-8 flex items-center justify-center font-sans">
                 <span style={{ fontSize: '12px' }}>ALL</span>
               </div>
               <span>Semua</span>
@@ -244,9 +296,15 @@ export function LeaderboardClient({
               <button
                 key={value}
                 onClick={() => setSelectedJob(value)}
-                className={`${styles.jobCard} ${selectedJob === value ? styles.jobCardActive : ''}`}
+                className={clsx(
+                  'flex-none flex flex-col items-center justify-center w-[100px] h-[90px] bg-white/5 border border-white/10 rounded-xl cursor-pointer transition-all duration-200 text-gray-400 text-[11px] font-medium gap-2 hover:bg-white/10 hover:border-indigo-400/40 hover:-translate-y-[2px]',
+                  {
+                    '!bg-indigo-600/15 !border-indigo-600 !text-indigo-400 shadow-[0_0_15px_rgba(79,70,229,0.2)]':
+                      selectedJob === value,
+                  },
+                )}
               >
-                <div className={styles.jobIconWrapper}>
+                <div className="w-8 h-8 flex items-center justify-center font-sans">
                   <img
                     src={getJobIcon(value)}
                     alt=""
@@ -320,7 +378,10 @@ export function LeaderboardClient({
                     const rank = index + 1
                     const rankStyle = getRankStyle(rank)
                     return (
-                      <tr key={char.id} className={styles.tableRow}>
+                      <tr
+                        key={char.id}
+                        className="border-b border-white/5 transition-colors duration-200 hover:bg-white/5"
+                      >
                         <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                           <span style={rankStyle.container}>{rank}</span>
                         </td>
@@ -364,51 +425,6 @@ export function LeaderboardClient({
             Pilih guild dari dropdown di atas, lalu klik "Tampilkan".
           </div>
         )}
-      </div>
-
-      {/* Konten: Semua Guild (Tetap Sama) */}
-      <div
-        className={`${styles.tabContent} ${activeTab === 'all' ? styles.activeContent : ''}`}
-        style={{ padding: '16px 0' }}
-      >
-        {/* ... (Konten Semua Guild Anda Sebelumnya) ... */}
-        <div className={styles.sectionDesc}>
-          Peringkat guild berdasarkan total PvP score dari semua karakter terverifikasi.
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '15px' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
-                <th style={{ padding: '12px 16px', textAlign: 'center', width: '80px' }}>Rank</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left' }}>Nama Guild</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center' }}>Jumlah Karakter</th>
-                <th style={{ padding: '12px 16px', textAlign: 'right' }}>Total PvP Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allGuilds.map((guild, index) => {
-                const rank = index + 1
-                const rankStyle = getRankStyle(rank)
-                return (
-                  <tr key={guild.id} className={styles.tableRow}>
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                      <span style={rankStyle.container}>{rank}</span>
-                    </td>
-                    <td style={{ padding: '12px 16px', fontWeight: 500 }}>{guild.name}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', color: '#d1d5db' }}>
-                      {guild.total_characters ?? 0}
-                    </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600 }}>
-                      <span style={{ color: rank === 1 ? '#fbbf24' : '#e5e7eb' }}>
-                        {Math.round(guild.total_pvp_score ?? 0).toLocaleString()}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   )

@@ -4,7 +4,6 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { GuildLeagueClient } from './GuildLeagueClient'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
-import styles from './guild.module.css'
 
 export const metadata = {
   title: 'League Management | ROOC PvP Ranker',
@@ -36,8 +35,8 @@ export default async function GuildLeaguePage() {
   })
 
   return (
-    <main className={styles.pageMain}>
-      <div className={styles.pageContainer}>
+    <main className="min-h-screen bg-[#0f0f14] py-10 font-sans">
+      <div className="container mx-auto px-4 max-w-[1200px]">
         <GuildLeagueClient
           guild={currentGuild}
           members={charsRes}
