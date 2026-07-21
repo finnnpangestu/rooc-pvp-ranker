@@ -147,6 +147,26 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
     dmg_reduction_weight: 1.0,
     utility_weight: 1.2,
   },
+
+  adept_novice: {
+    hp_weight: 1.6,
+    def_weight: 0.5,
+    atk_weight: 2.2,
+    pen_weight: 2.0,
+    dmg_bonus_weight: 1.8,
+    dmg_reduction_weight: 0.9,
+    utility_weight: 1.8,
+  },
+
+  rebellion: {
+    hp_weight: 1.4,
+    def_weight: 0.4,
+    atk_weight: 2.5,
+    pen_weight: 2.4,
+    dmg_bonus_weight: 2.3,
+    dmg_reduction_weight: 0.8,
+    utility_weight: 1.2,
+  },
 }
 
 // --- KONSTANTA ENGINE ROOC ---
