@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { GlobalDialog } from '../components/GlobalDialog'
 import { loginUser } from '@/actions/auth/loginUser'
+import { useTheme } from '../components/ThemeProvider'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { theme } = useTheme()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -43,37 +45,79 @@ export default function LoginPage() {
   }
 
   return (
-    <>
-      <div className="max-w-[400px] my-20 mx-auto p-10 bg-[#0f0f14]/70 backdrop-blur-md border border-white/5 rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)] text-white font-sans text-center">
-        <h1 className="mb-2 text-[28px] font-bold bg-gradient-to-br from-white to-[#a0a0a0] text-transparent bg-clip-text">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: 'var(--bg-primary)' }}
+    >
+      <div
+        className="w-full max-w-[400px] p-10 rounded-3xl text-center transition-colors"
+        style={{
+          background: 'var(--bg-card)',
+          boxShadow: 'var(--shadow-neumorph)',
+          color: 'var(--text-primary)',
+        }}
+      >
+        <h1 className="mb-2 text-[28px] font-bold" style={{ color: 'var(--text-primary)' }}>
           Login Guild Master
         </h1>
-        <p className="text-gray-400 text-sm mb-6">Masuk untuk mengelola guild dan roster</p>
+        <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+          Masuk untuk mengelola guild dan roster
+        </p>
 
         {error && (
-          <div className="text-red-300 bg-red-500/10 p-3 rounded-lg text-[13px] mb-4 border border-red-500/20">
+          <div
+            className="p-3 rounded-lg text-[13px] mb-4 border"
+            style={{
+              background: 'var(--bg-primary)',
+              borderColor: '#ef4444',
+              color: '#ef4444',
+              boxShadow: 'var(--shadow-neumorph-inset)',
+            }}
+          >
             {error}
           </div>
         )}
 
         <form onSubmit={handleLogin}>
           <div className="mb-4 text-left">
-            <label className="block text-[13px] text-gray-400 mb-2 font-medium">Email</label>
+            <label
+              className="block text-[13px] mb-2 font-medium"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              Email
+            </label>
             <input
               type="email"
               name="email"
-              className="w-full bg-black/30 border border-white/10 rounded-lg py-3 px-4 text-white font-sans transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:bg-black/50 focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full rounded-lg py-3 px-4 font-sans transition-all duration-200 outline-none"
+              style={{
+                background: 'var(--bg-primary)',
+                boxShadow: 'var(--shadow-neumorph-inset)',
+                color: 'var(--text-primary)',
+                border: 'none',
+              }}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
           <div className="mb-4 text-left">
-            <label className="block text-[13px] text-gray-400 mb-2 font-medium">Password</label>
+            <label
+              className="block text-[13px] mb-2 font-medium"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              Password
+            </label>
             <input
               type="password"
               name="password"
-              className="w-full bg-black/30 border border-white/10 rounded-lg py-3 px-4 text-white font-sans transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:bg-black/50 focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full rounded-lg py-3 px-4 font-sans transition-all duration-200 outline-none"
+              style={{
+                background: 'var(--bg-primary)',
+                boxShadow: 'var(--shadow-neumorph-inset)',
+                color: 'var(--text-primary)',
+                border: 'none',
+              }}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -81,18 +125,25 @@ export default function LoginPage() {
           </div>
           <button
             type="submit"
-            className="w-full bg-gradient-to-br from-indigo-600 to-indigo-800 text-white border-none p-[14px] rounded-lg font-semibold font-sans cursor-pointer mt-4 transition-all duration-300 hover:-translate-y-[2px] hover:shadow-[0_10px_20px_-5px_rgba(79,70,229,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="w-full rounded-lg p-[14px] font-semibold font-sans cursor-pointer mt-4 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            style={{
+              background: 'var(--bg-primary)',
+              boxShadow: 'var(--shadow-neumorph-sm)',
+              color: 'var(--text-primary)',
+              border: 'none',
+            }}
             disabled={isLoading}
           >
             {isLoading ? 'Memproses...' : 'Login'}
           </button>
         </form>
 
-        <p className="mt-6 text-sm text-gray-400">
+        <p className="mt-6 text-sm" style={{ color: 'var(--text-muted)' }}>
           Belum punya akun?{' '}
           <Link
             href="/register"
-            className="text-indigo-400 no-underline font-medium hover:underline"
+            className="font-medium no-underline hover:underline"
+            style={{ color: 'var(--text-primary)' }}
           >
             Daftar di sini
           </Link>
@@ -100,28 +151,23 @@ export default function LoginPage() {
       </div>
 
       <GlobalDialog isOpen={isDialogOpen} onClose={handleCloseDialog} title="Login Berhasil!">
-        <div style={{ color: '#d1d5db', lineHeight: '1.6' }}>
+        <div style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
           Selamat datang kembali! Autentikasi berhasil.
           <br />
           <br />
           <button
             onClick={handleCloseDialog}
+            className="w-full rounded-lg p-3 font-semibold font-sans cursor-pointer transition-colors border-none"
             style={{
-              width: '100%',
-              background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)',
-              color: 'white',
-              border: 'none',
-              padding: '12px',
-              borderRadius: '8px',
-              fontWeight: 600,
-              fontFamily: 'Outfit, sans-serif',
-              cursor: 'pointer',
+              background: 'var(--bg-primary)',
+              boxShadow: 'var(--shadow-neumorph-sm)',
+              color: 'var(--text-primary)',
             }}
           >
             Lanjut ke Dashboard
           </button>
         </div>
       </GlobalDialog>
-    </>
+    </div>
   )
 }

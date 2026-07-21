@@ -35,14 +35,10 @@ export default async function GuildLeaguePage() {
   })
 
   return (
-    <main className="min-h-screen bg-[#0f0f14] py-10 font-sans">
-      <div className="container mx-auto px-4 max-w-[1200px]">
-        <GuildLeagueClient
-          guild={currentGuild}
-          members={charsRes}
-          initialSetup={setupRes.docs[0] || null}
-        />
-      </div>
-    </main>
+    <GuildLeagueClient
+      guild={currentGuild}
+      members={charsRes}
+      initialSetup={setupRes.docs[0] || null}
+    />
   )
 }

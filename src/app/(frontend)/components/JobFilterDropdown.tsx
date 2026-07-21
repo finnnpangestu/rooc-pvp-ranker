@@ -26,7 +26,6 @@ export function JobFilterDropdown({
 }: JobFilterDropdownProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -41,7 +40,12 @@ export function JobFilterDropdown({
     <div ref={containerRef} className={`relative min-w-[160px] ${className}`}>
       <button
         type="button"
-        className="w-full bg-black/40 border border-white/10 rounded-lg py-2 px-3 text-gray-300 text-[13px] font-semibold font-sans cursor-pointer flex items-center justify-between transition-all duration-200 hover:bg-white/5 hover:border-indigo-400/40"
+        className="w-full rounded-lg py-2 px-3 text-[13px] font-semibold font-sans cursor-pointer flex items-center justify-between transition-all duration-200"
+        style={{
+          background: 'var(--bg-primary)',
+          boxShadow: 'var(--shadow-neumorph-sm)',
+          color: 'var(--text-secondary)',
+        }}
         onClick={onToggle}
       >
         <div className="flex items-center gap-1.5">
@@ -62,12 +66,21 @@ export function JobFilterDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute top-[calc(100%+6px)] right-0 w-[200px] max-h-[260px] overflow-y-auto bg-[#0f0f16]/95 backdrop-blur-md border border-white/10 rounded-lg shadow-[0_10px_25px_-5px_rgba(0,0,0,0.7)] z-50 p-1 scrollbar-thin scrollbar-thumb-white/10">
-          {/* All option */}
+        <div
+          className="absolute top-[calc(100%+6px)] right-0 w-[200px] max-h-[260px] overflow-y-auto rounded-lg shadow-lg p-1 z-50"
+          style={{
+            background: 'var(--bg-secondary)',
+            boxShadow: 'var(--shadow-neumorph)',
+          }}
+        >
           <div
-            className={`py-2 px-3 text-[13px] font-medium cursor-pointer flex items-center gap-2 rounded-md transition-all duration-150 hover:bg-white/5 hover:text-white ${
-              value === '' ? '!bg-indigo-600/15 !text-indigo-400 font-semibold' : 'text-gray-400'
+            className={`py-2 px-3 text-[13px] font-medium cursor-pointer flex items-center gap-2 rounded-md transition-all duration-150 ${
+              value === '' ? 'shadow-neumorph-inset' : 'hover:shadow-neumorph-sm'
             }`}
+            style={{
+              background: value === '' ? 'var(--bg-primary)' : 'transparent',
+              color: value === '' ? 'var(--text-primary)' : 'var(--text-muted)',
+            }}
             onClick={() => {
               onChange('')
               onClose()
@@ -76,15 +89,16 @@ export function JobFilterDropdown({
             {allLabel}
           </div>
 
-          {/* Job options */}
           {Object.entries(JOB_LABELS).map(([jobValue, label]) => (
             <div
               key={jobValue}
-              className={`py-2 px-3 text-[13px] font-medium cursor-pointer flex items-center gap-2 rounded-md transition-all duration-150 hover:bg-white/5 hover:text-white ${
-                value === jobValue
-                  ? '!bg-indigo-600/15 !text-indigo-400 font-semibold'
-                  : 'text-gray-400'
+              className={`py-2 px-3 text-[13px] font-medium cursor-pointer flex items-center gap-2 rounded-md transition-all duration-150 ${
+                value === jobValue ? 'shadow-neumorph-inset' : 'hover:shadow-neumorph-sm'
               }`}
+              style={{
+                background: value === jobValue ? 'var(--bg-primary)' : 'transparent',
+                color: value === jobValue ? 'var(--text-primary)' : 'var(--text-muted)',
+              }}
               onClick={() => {
                 onChange(jobValue)
                 onClose()

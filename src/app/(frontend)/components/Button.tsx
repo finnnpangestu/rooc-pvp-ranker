@@ -12,17 +12,17 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'bg-gradient-to-br from-indigo-600 to-indigo-800 text-white border-none shadow-[0_4px_15px_rgba(99,102,241,0.3)] hover:not-disabled:-translate-y-[2px] hover:not-disabled:shadow-[0_8px_20px_rgba(99,102,241,0.4)]',
+    'border-none shadow-neumorph-sm hover:shadow-neumorph hover:-translate-y-[1px] active:shadow-neumorph-inset active:translate-y-0',
   amber:
-    'bg-gradient-to-br from-amber-400 to-amber-600 text-black border-none shadow-[0_4px_15px_rgba(251,191,36,0.3)] hover:not-disabled:-translate-y-[2px] hover:not-disabled:shadow-[0_8px_20px_rgba(251,191,36,0.4)]',
+    'border-none shadow-neumorph-sm hover:shadow-neumorph hover:-translate-y-[1px] active:shadow-neumorph-inset active:translate-y-0',
   success:
-    'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-none shadow-[0_4px_15px_rgba(16,185,129,0.3)] hover:not-disabled:-translate-y-[2px]',
+    'border-none shadow-neumorph-sm hover:shadow-neumorph hover:-translate-y-[1px] active:shadow-neumorph-inset active:translate-y-0',
   danger:
-    'bg-red-500/10 border border-red-500/20 text-red-400 hover:not-disabled:bg-red-500/20 hover:not-disabled:border-red-500/40',
+    'border shadow-neumorph-sm hover:shadow-neumorph hover:-translate-y-[1px] active:shadow-neumorph-inset active:translate-y-0',
   destructive:
-    'bg-red-500/10 border border-red-500/30 text-red-300 hover:not-disabled:bg-red-500 hover:not-disabled:text-white hover:not-disabled:shadow-[0_0_15px_rgba(239,68,68,0.4)]',
+    'border shadow-neumorph-sm hover:shadow-neumorph hover:-translate-y-[1px] active:shadow-neumorph-inset active:translate-y-0',
   ghost:
-    'bg-white/5 border border-white/10 text-gray-300 hover:not-disabled:bg-white/10 hover:not-disabled:text-white',
+    'border shadow-neumorph-sm hover:shadow-neumorph hover:-translate-y-[1px] active:shadow-neumorph-inset active:translate-y-0',
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -41,12 +41,52 @@ export function Button({
   ...props
 }: ButtonProps) {
   const base =
-    'rounded-lg font-semibold font-sans cursor-pointer transition-all duration-200 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
+    'rounded-lg font-semibold font-sans cursor-pointer transition-all duration-200 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none'
+
+  const variantClass = variantStyles[variant] || variantStyles.ghost
+
+  // Dynamic styling based on variant and theme (handled via CSS variables)
+  let style: React.CSSProperties = {}
+  if (variant === 'primary') {
+    style = {
+      background: 'var(--bg-primary)',
+      color: 'var(--text-primary)',
+      boxShadow: 'var(--shadow-neumorph-sm)',
+    }
+  } else if (variant === 'amber') {
+    style = {
+      background: 'var(--bg-primary)',
+      color: '#f59e0b',
+      boxShadow: 'var(--shadow-neumorph-sm)',
+    }
+  } else if (variant === 'success') {
+    style = {
+      background: 'var(--bg-primary)',
+      color: '#10b981',
+      boxShadow: 'var(--shadow-neumorph-sm)',
+    }
+  } else if (variant === 'danger' || variant === 'destructive') {
+    style = {
+      background: 'var(--bg-primary)',
+      color: '#ef4444',
+      boxShadow: 'var(--shadow-neumorph-sm)',
+      borderColor: 'var(--border-color)',
+    }
+  } else {
+    // ghost
+    style = {
+      background: 'var(--bg-primary)',
+      color: 'var(--text-secondary)',
+      boxShadow: 'var(--shadow-neumorph-sm)',
+      borderColor: 'var(--border-color)',
+    }
+  }
 
   return (
     <button
-      className={`${base} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`${base} ${variantClass} ${sizeStyles[size]} ${className}`}
       disabled={disabled || loading}
+      style={style}
       {...props}
     >
       {loading ? (

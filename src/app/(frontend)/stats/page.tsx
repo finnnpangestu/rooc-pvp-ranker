@@ -33,7 +33,7 @@ export default async function StatsPage() {
   }))
 
   return (
-    <main style={{ minHeight: '100vh', background: '#09090b', padding: '1px 0' }}>
+    <main className="min-h-screen py-4 px-4" style={{ background: 'var(--bg-primary)' }}>
       <StatsForm guilds={guilds} characters={charsRes.docs} />
     </main>
   )

@@ -1,10 +1,49 @@
 @import 'tailwindcss';
 
-@layer base {
-  :root {
-    --font-mono: 'Roboto Mono', monospace;
-  }
+@theme {
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+}
 
+:root {
+  --bg-primary: #e8e8ec;
+  --bg-secondary: #d1d1d6;
+  --bg-card: #e8e8ec;
+  --text-primary: #1c1c1e;
+  --text-secondary: #3a3a3c;
+  --text-muted: #6e6e72;
+  --shadow-light: #ffffff;
+  --shadow-dark: #b8b8be;
+  --shadow-neumorph: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+  --shadow-neumorph-inset:
+    inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+  --shadow-neumorph-sm: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+  --border-color: rgba(0, 0, 0, 0.06);
+  --badge-bg: #d1d1d6;
+  --badge-text: #1c1c1e;
+  --card-bg: #e8e8ec;
+}
+
+[data-theme='dark'] {
+  --bg-primary: #1c1c1e;
+  --bg-secondary: #2a2a2e;
+  --bg-card: #1c1c1e;
+  --text-primary: #f0f0f2;
+  --text-secondary: #a0a0a6;
+  --text-muted: #6e6e72;
+  --shadow-light: #2a2a2e;
+  --shadow-dark: #0e0e10;
+  --shadow-neumorph: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+  --shadow-neumorph-inset:
+    inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+  --shadow-neumorph-sm: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+  --border-color: rgba(255, 255, 255, 0.06);
+  --badge-bg: #2a2a2e;
+  --badge-text: #f0f0f2;
+  --card-bg: #1c1c1e;
+}
+
+@layer base {
   ::selection {
     @apply bg-indigo-500/30 text-indigo-100;
   }
@@ -23,10 +62,7 @@
   html,
   body {
     @apply h-full m-0 bg-gradient-to-br from-[#0f0f14] to-[#050508] text-slate-200 antialiased;
-    font-family:
-      system-ui,
-      -apple-system,
-      sans-serif;
+    font-family: var(--font-outfit), sans-serif;
     font-size: 18px;
     line-height: 32px;
     background-attachment: fixed;
@@ -63,4 +99,60 @@
   svg {
     @apply align-middle;
   }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease forwards;
+}
+
+.animate-slideOut {
+  animation: slideOut 0.3s ease forwards;
 }

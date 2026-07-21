@@ -3,12 +3,10 @@ import configPromise from '@payload-config'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { DashboardClient } from './dashboard/DashboardClient'
-import { Analytics } from '@vercel/analytics/next'
-import { SpeedInsights } from '@vercel/speed-insights/next'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
 
 export const metadata = {
-  title: 'Dashboard Guild Master | ROOC PvP Ranker',
+  title: 'Dashboard Guild Master',
 }
 
 export default async function DashboardPage() {
@@ -45,11 +43,5 @@ export default async function DashboardPage() {
     partySetup = setupRes.docs[0] || null
   }
 
-  return (
-    <>
-      <DashboardClient guild={currentGuild} members={guildMembers} partySetup={partySetup} />
-      <Analytics />
-      <SpeedInsights />
-    </>
-  )
+  return <DashboardClient guild={currentGuild} members={guildMembers} partySetup={partySetup} />
 }

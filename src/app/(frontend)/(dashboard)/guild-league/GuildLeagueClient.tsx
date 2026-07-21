@@ -1,13 +1,14 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { GlobalDialog } from '../components/GlobalDialog'
-import { Button } from '../components/Button'
-import { EmptyState } from '../components/EmptyState'
+import { GlobalDialog } from '../../components/GlobalDialog'
+import { Button } from '../../components/Button'
+import { EmptyState } from '../../components/EmptyState'
 import { JOBS, JOB_LABELS } from '@/const/JobLabels'
 import { generateEliteParty } from '@/actions/guild/generateEliteParty'
 import { generateSubParty } from '@/actions/guild/generateSubParty'
 import { savePartySetup } from '@/actions/guild/savePartySetup'
+import { useTheme } from '../../components/ThemeProvider'
 
 interface GuildLeagueClientProps {
   guild: any
@@ -19,6 +20,9 @@ const getJobIcon = (jobValue: string) => `/icons/jobs/${jobValue}.png`
 const clone = (obj: any) => JSON.parse(JSON.stringify(obj))
 
 export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueClientProps) {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+
   // local setup state
   const [localSetup, setLocalSetup] = useState<any | null>(() => {
     if (initialSetup) {
@@ -27,7 +31,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     return null
   })
 
-  // state
   const [isEliteDialogOpen, setIsEliteDialogOpen] = useState(false)
   const [isSubDialogOpen, setIsSubDialogOpen] = useState(false)
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false)
@@ -36,7 +39,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null)
   const [isSaveLoading, setIsSaveLoading] = useState(false)
 
-  // blueprint generate
   const [eliteBlueprint, setEliteBlueprint] = useState<string[][]>(
     Array(8)
       .fill(null)
@@ -48,7 +50,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
       .map(() => Array(5).fill('any')),
   )
 
-  // assigned member ids
   const getAssignedMemberIds = () => {
     if (!localSetup) return []
     const eliteIds =
@@ -66,7 +67,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   const benchMembers = members.filter((m) => !assignedIds.includes(m.id))
   const maxSubParties = Math.floor(benchMembers.length / 5)
 
-  // update blueprint sub if bench count changes
   useEffect(() => {
     const needed = Math.max(1, maxSubParties)
     if (subBlueprint.length !== needed) {
@@ -78,7 +78,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     }
   }, [maxSubParties])
 
-  // generate preview (local state only)
   const handleGenerateElite = async () => {
     const res = await generateEliteParty(guild.id, eliteBlueprint, members)
     if (res.success) {
@@ -107,7 +106,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     }
   }
 
-  // save to db
   const handleSave = async () => {
     if (!localSetup) return
     setIsSaveLoading(true)
@@ -121,7 +119,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     setIsSaveLoading(false)
   }
 
-  // clear local
   const handleClear = (mode: 'all' | 'elite' | 'sub') => {
     if (!localSetup) return
     if (!confirm(`Hapus formasi ${mode}?`)) return
@@ -131,7 +128,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     setLocalSetup(newSetup)
   }
 
-  // edit: remove member
   const removeMemberFromParty = (partyType: 'elite' | 'sub', partyIdx: number, slotIdx: number) => {
     if (!localSetup) return
     const newSetup = clone(localSetup)
@@ -141,7 +137,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     setLocalSetup(newSetup)
   }
 
-  // edit: position member
   const addMemberToParty = (memberId: string) => {
     if (selectedPartyType === null || selectedPartyIndex === null || selectedSlotIndex === null)
       return
@@ -180,7 +175,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     }
   }
 
-  // available members for adding
   const availableMembers = members
     .filter((m) => {
       const isAssignedToElite = localSetup?.elite_parties?.some((p: any) =>
@@ -195,7 +189,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     })
     .sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
 
-  // helper renderer party cards
   const renderPartyCards = (parties: any[], titleColor: string, type: 'elite' | 'sub') => (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4 mb-6 auto-rows-fr">
       {parties.map((party: any, idx: number) => {
@@ -208,18 +201,33 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
         return (
           <div
             key={idx}
-            className="bg-[#141419]/60 backdrop-blur-[20px] border border-white/5 rounded-2xl p-4 flex flex-col h-full"
+            className="rounded-2xl p-4 flex flex-col h-full transition-colors"
+            style={{
+              background: 'var(--bg-card)',
+              boxShadow: 'var(--shadow-neumorph)',
+            }}
           >
             <div className="flex justify-between items-start mb-3">
               <h3 className="text-[18px] font-semibold m-0" style={{ color: titleColor }}>
                 {party.party_name}
-                <span className="text-[13px] text-gray-400 ml-2 font-normal">
+                <span
+                  className="text-[13px] ml-2 font-normal"
+                  style={{ color: 'var(--text-muted)' }}
+                >
                   ({filledSlots}/5)
                 </span>
               </h3>
               <div className="flex-shrink-0">
-                <div className="text-[11px] text-gray-400 text-right mb-0.5">Total Score</div>
-                <div className="text-white font-bold text-[14px] text-right">
+                <div
+                  className="text-[11px] text-right mb-0.5"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  Total Score
+                </div>
+                <div
+                  className="font-bold text-[14px] text-right"
+                  style={{ color: 'var(--text-primary)' }}
+                >
                   {Math.round(totalScore).toLocaleString()}
                 </div>
               </div>
@@ -231,7 +239,12 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                 return (
                   <div
                     key={sIdx}
-                    className="flex items-center gap-2 bg-white/5 p-2 rounded-lg border border-transparent transition-all duration-200 hover:bg-white/10 hover:border-white/10 min-h-[48px]"
+                    className="flex items-center gap-2 p-2 rounded-lg border transition-all duration-200 min-h-[48px]"
+                    style={{
+                      background: 'var(--bg-primary)',
+                      borderColor: 'var(--border-color)',
+                      boxShadow: 'var(--shadow-neumorph-inset)',
+                    }}
                   >
                     {char ? (
                       <>
@@ -240,7 +253,10 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                           alt=""
                           className="w-6 h-6 object-cover rounded-[20%] flex-shrink-0"
                         />
-                        <span className="text-[15px] font-semibold text-white flex-1 min-w-0 truncate">
+                        <span
+                          className="text-[15px] font-semibold flex-1 min-w-0 truncate"
+                          style={{ color: 'var(--text-primary)' }}
+                        >
                           {char.name}
                         </span>
                         <span className="text-[14px] text-amber-400 font-bold flex-shrink-0">
@@ -264,9 +280,13 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                           setSelectedSlotIndex(sIdx)
                           setIsAddMemberDialogOpen(true)
                         }}
-                        className="w-full flex items-center justify-center text-gray-400 font-sans text-[13px] cursor-pointer transition-all duration-200 hover:bg-white/5 hover:text-white hover:border-white/40 min-h-[48px] bg-transparent border border-dashed border-white/20 rounded-lg"
+                        className="w-full flex items-center justify-center font-sans text-[13px] cursor-pointer transition-all duration-200 min-h-[48px] bg-transparent border border-dashed rounded-lg"
+                        style={{
+                          color: 'var(--text-muted)',
+                          borderColor: 'var(--border-color)',
+                        }}
                       >
-                        <span className="text-gray-500 text-[14px] italic truncate">
+                        <span className="text-[14px] italic" style={{ color: 'var(--text-muted)' }}>
                           {JOB_LABELS[slot.required_job] || 'Any'}
                         </span>
                       </button>
@@ -283,21 +303,32 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
   return (
     <div
-      className="max-w-[800px] my-10 mx-auto p-10 bg-[#0f0f14]/70 backdrop-blur-md border border-white/5 rounded-[32px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)] text-white font-sans relative overflow-hidden"
-      style={{ maxWidth: '1200px' }}
+      className="rounded-3xl p-10 w-full transition-colors"
+      style={{
+        background: 'var(--bg-card)',
+        boxShadow: 'var(--shadow-neumorph)',
+        maxWidth: '1200px',
+        margin: '0 auto',
+      }}
     >
-      <div className="mb-10 border-b border-white/10 pb-5">
-        <h1 className="text-[28px] mb-2 font-bold text-white">League Management</h1>
-        <p className="text-gray-400 text-[15px]">
+      <div className="mb-10 border-b pb-5" style={{ borderColor: 'var(--border-color)' }}>
+        <h1 className="text-[28px] mb-2 font-bold" style={{ color: 'var(--text-primary)' }}>
+          League Management
+        </h1>
+        <p className="text-[15px]" style={{ color: 'var(--text-secondary)' }}>
           Atur formasi Guild League (Round-Robin Auto Assign). Total Verified Member:{' '}
-          <strong className="text-white font-semibold">{members.length}</strong>
+          <strong className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {members.length}
+          </strong>
         </p>
       </div>
 
       {/* ELITE SECTION */}
       <section className="mb-[60px]">
         <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
-          <h2 className="text-amber-400 text-2xl font-bold m-0">Elite Parties (Top 40)</h2>
+          <h2 className="text-2xl font-bold m-0" style={{ color: '#fbbf24' }}>
+            Elite Parties (Top 40)
+          </h2>
           <div className="flex gap-3">
             <Button
               variant="danger"
@@ -323,7 +354,9 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
       {/* SUB SECTION */}
       <section className="mb-[60px]">
         <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
-          <h2 className="text-indigo-400 text-2xl font-bold m-0">Sub Parties</h2>
+          <h2 className="text-2xl font-bold m-0" style={{ color: '#818cf8' }}>
+            Sub Parties
+          </h2>
           <div className="flex gap-3">
             <Button
               variant="danger"
@@ -345,7 +378,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
         </div>
 
         {!isEliteGenerated && (
-          <p className="text-red-500 text-[13px] -mt-4 mb-6">
+          <p className="text-[13px] -mt-4 mb-6" style={{ color: '#ef4444' }}>
             * Anda harus melakukan Generate Elite Party terlebih dahulu.
           </p>
         )}
@@ -355,10 +388,27 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
           : renderPartyCards(localSetup.sub_parties, '#818cf8', 'sub')}
 
         {/* BENCH PLAYERS */}
-        <div className="bg-[#141419]/60 backdrop-blur-[20px] rounded-2xl p-6 border border-white/5">
-          <h3 className="text-gray-400 text-[16px] m-0 mb-4 flex items-center gap-2 font-semibold">
+        <div
+          className="rounded-2xl p-6 border transition-colors"
+          style={{
+            background: 'var(--bg-card)',
+            borderColor: 'var(--border-color)',
+            boxShadow: 'var(--shadow-neumorph)',
+          }}
+        >
+          <h3
+            className="text-[16px] m-0 mb-4 flex items-center gap-2 font-semibold"
+            style={{ color: 'var(--text-muted)' }}
+          >
             Bench Players (Unassigned)
-            <span className="bg-white/10 py-0.5 px-2 rounded-xl text-[12px] text-white">
+            <span
+              className="py-0.5 px-2 rounded-xl text-[12px]"
+              style={{
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)',
+                boxShadow: 'var(--shadow-neumorph-inset)',
+              }}
+            >
               {benchMembers.length} Orang
             </span>
           </h3>
@@ -367,21 +417,29 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
               benchMembers.map((member) => (
                 <div
                   key={member.id}
-                  className="bg-white/5 py-2.5 px-4 rounded-xl border border-white/10 text-[14px] flex items-center gap-2.5 text-gray-200 transition-all duration-200 hover:bg-indigo-500/10 hover:border-indigo-500/40"
+                  className="py-2.5 px-4 rounded-xl border text-[14px] flex items-center gap-2.5 transition-all duration-200"
+                  style={{
+                    background: 'var(--bg-primary)',
+                    borderColor: 'var(--border-color)',
+                    color: 'var(--text-secondary)',
+                    boxShadow: 'var(--shadow-neumorph-sm)',
+                  }}
                 >
                   <img
                     src={getJobIcon(member.job)}
                     alt={member.job}
                     className="w-6 h-6 object-cover rounded-[20%] flex-shrink-0"
                   />
-                  <span className="truncate max-w-[120px]">{member.name}</span>
+                  <span className="truncate max-w-[120px]" style={{ color: 'var(--text-primary)' }}>
+                    {member.name}
+                  </span>
                   <span className="text-[14px] text-amber-400 font-bold flex-shrink-0">
                     {Math.round(member.pvp_score).toLocaleString()}
                   </span>
                 </div>
               ))
             ) : (
-              <div className="text-gray-500 text-[14px] italic">
+              <div className="text-[14px] italic" style={{ color: 'var(--text-muted)' }}>
                 Semua member sudah masuk ke dalam party.
               </div>
             )}
@@ -390,7 +448,10 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
       </section>
 
       {/* SAVE & CLEAR ALL ACTIONS */}
-      <div className="flex gap-3 mt-5 border-t border-white/5 pt-5 mb-5">
+      <div
+        className="flex gap-3 mt-5 border-t pt-5 mb-5"
+        style={{ borderColor: 'var(--border-color)' }}
+      >
         <Button
           variant="danger"
           size="lg"
@@ -419,13 +480,21 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
         title="Blueprint Elite Party"
         maxWidth={1200}
       >
-        <div className="text-gray-300 text-[14px] mb-5">
+        <div className="text-[14px] mb-5" style={{ color: 'var(--text-secondary)' }}>
           Tentukan kebutuhan Job untuk 8 Elite Party.
         </div>
         <div className="flex flex-col gap-5 max-h-[50vh] overflow-y-auto pr-2">
           {eliteBlueprint.map((party, pIdx) => (
-            <div key={pIdx} className="bg-black/30 p-4 rounded-xl border border-white/5">
-              <h3 className="text-amber-400 text-[16px] m-0 mb-3 font-semibold">
+            <div
+              key={pIdx}
+              className="p-4 rounded-xl border"
+              style={{
+                background: 'var(--bg-primary)',
+                borderColor: 'var(--border-color)',
+                boxShadow: 'var(--shadow-neumorph-inset)',
+              }}
+            >
+              <h3 className="text-[16px] m-0 mb-3 font-semibold" style={{ color: '#fbbf24' }}>
                 Elite Party {pIdx + 1}
               </h3>
               <div className="grid grid-cols-5 gap-2.5">
@@ -438,7 +507,13 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                       newBp[pIdx][sIdx] = e.target.value
                       setEliteBlueprint(newBp)
                     }}
-                    className="w-full appearance-none bg-black/40 border border-white/10 rounded-xl py-3.5 px-4 text-white text-[15px] font-sans transition-all duration-200 outline-none hover:bg-black/60 hover:border-white/15 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/25"
+                    className="w-full appearance-none rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
+                    style={{
+                      background: 'var(--bg-secondary)',
+                      boxShadow: 'var(--shadow-neumorph-inset)',
+                      color: 'var(--text-primary)',
+                      border: 'none',
+                    }}
                   >
                     <option value="any">Any (Bebas)</option>
                     {JOBS.map((j) => (
@@ -464,20 +539,38 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
         title="Blueprint Sub Party"
         maxWidth={1200}
       >
-        <div className="bg-indigo-500/10 border border-indigo-500/30 p-3 rounded-lg mb-5 text-indigo-200 text-[14px] leading-relaxed">
-          Sisa Member di Bench: <strong>{benchMembers.length}</strong> orang
+        <div
+          className="p-3 rounded-lg mb-5 text-[14px] leading-relaxed"
+          style={{
+            background: 'var(--bg-primary)',
+            borderColor: 'var(--border-color)',
+            boxShadow: 'var(--shadow-neumorph-inset)',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          Sisa Member di Bench:{' '}
+          <strong style={{ color: 'var(--text-primary)' }}>{benchMembers.length}</strong> orang
           <br />
-          Maksimal Sub Party: <strong>{maxSubParties}</strong>
+          Maksimal Sub Party:{' '}
+          <strong style={{ color: 'var(--text-primary)' }}>{maxSubParties}</strong>
         </div>
         {maxSubParties === 0 ? (
-          <p className="text-red-500 text-center py-5 text-[14px]">
+          <p className="text-center py-5 text-[14px]" style={{ color: '#ef4444' }}>
             Tidak ada cukup sisa member di bench (Minimal 5 orang).
           </p>
         ) : (
           <div className="flex flex-col gap-5 max-h-[50vh] overflow-y-auto pr-2">
             {subBlueprint.map((party, pIdx) => (
-              <div key={pIdx} className="bg-black/30 p-4 rounded-xl border border-white/5">
-                <h3 className="text-indigo-400 text-[16px] m-0 mb-3 font-semibold">
+              <div
+                key={pIdx}
+                className="p-4 rounded-xl border"
+                style={{
+                  background: 'var(--bg-primary)',
+                  borderColor: 'var(--border-color)',
+                  boxShadow: 'var(--shadow-neumorph-inset)',
+                }}
+              >
+                <h3 className="text-[16px] m-0 mb-3 font-semibold" style={{ color: '#818cf8' }}>
                   Sub Party {pIdx + 1}
                 </h3>
                 <div className="grid grid-cols-5 gap-2.5">
@@ -490,7 +583,13 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                         newBp[pIdx][sIdx] = e.target.value
                         setSubBlueprint(newBp)
                       }}
-                      className="w-full appearance-none bg-black/40 border border-white/10 rounded-xl py-3.5 px-4 text-white text-[15px] font-sans transition-all duration-200 outline-none hover:bg-black/60 hover:border-white/15 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/25"
+                      className="w-full appearance-none rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
+                      style={{
+                        background: 'var(--bg-secondary)',
+                        boxShadow: 'var(--shadow-neumorph-inset)',
+                        color: 'var(--text-primary)',
+                        border: 'none',
+                      }}
                     >
                       <option value="any">Any (Bebas)</option>
                       {JOBS.map((j) => (
@@ -522,16 +621,26 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
         onClose={() => setIsAddMemberDialogOpen(false)}
         title="Tambah Member ke Party"
       >
-        <div className="text-gray-300 text-[14px] mb-5">Pilih member yang belum terassign.</div>
+        <div className="text-[14px] mb-5" style={{ color: 'var(--text-secondary)' }}>
+          Pilih member yang belum terassign.
+        </div>
         {availableMembers.length === 0 ? (
-          <p className="text-red-500 text-center py-5 text-[14px]">Tidak ada member tersisa.</p>
+          <p className="text-center py-5 text-[14px]" style={{ color: '#ef4444' }}>
+            Tidak ada member tersisa.
+          </p>
         ) : (
           <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto pr-2">
             {availableMembers.map((member) => (
               <button
                 key={member.id}
                 onClick={() => addMemberToParty(member.id)}
-                className="flex items-center gap-3 p-3 bg-white/5 border border-white/5 rounded-xl text-white cursor-pointer w-full text-left transition-all duration-200 font-sans text-[14px] hover:bg-indigo-500/10 hover:border-indigo-500/40"
+                className="flex items-center gap-3 p-3 rounded-xl border w-full text-left transition-all duration-200 font-sans text-[14px]"
+                style={{
+                  background: 'var(--bg-primary)',
+                  borderColor: 'var(--border-color)',
+                  boxShadow: 'var(--shadow-neumorph-sm)',
+                  color: 'var(--text-primary)',
+                }}
               >
                 <img
                   src={getJobIcon(member.job)}

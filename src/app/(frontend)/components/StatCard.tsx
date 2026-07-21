@@ -16,9 +16,19 @@ export function StatCard({ label, value, isPercent = false }: StatCardProps) {
       : '0'
 
   return (
-    <div className="bg-black/20 p-2.5 rounded-lg border border-white/5 flex flex-col justify-center">
-      <span className="text-gray-400 text-xs mb-1">{label}</span>
-      <strong className="text-white text-[15px]">{formatted}</strong>
+    <div
+      className="p-2.5 rounded-lg flex flex-col justify-center transition-colors"
+      style={{
+        background: 'var(--bg-primary)',
+        boxShadow: 'var(--shadow-neumorph-inset)',
+      }}
+    >
+      <span className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>
+        {label}
+      </span>
+      <strong className="text-[15px]" style={{ color: 'var(--text-primary)' }}>
+        {formatted}
+      </strong>
     </div>
   )
 }
