@@ -534,7 +534,7 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
               }}
             >
               Statistik lanjutan (Quasi). Isi dalam bentuk angka murni tanpa persen (Contoh: 99.5
-              untuk 99.5%).
+              untuk 99.5%). Untuk stats Minus (-), Jangan pakai tanda minus (Contoh: 5 Untuk -5)
             </div>
             {renderSection(QUASI_STATS)}
           </div>
