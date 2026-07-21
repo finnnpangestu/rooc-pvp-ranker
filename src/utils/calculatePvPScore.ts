@@ -10,19 +10,19 @@ type StatWeights = {
 
 const JOB_WEIGHTS: Record<string, StatWeights> = {
   paladin: {
-    hp_weight: 2.8,
-    def_weight: 0.5,
-    atk_weight: 0.1,
+    hp_weight: 2.4,
+    def_weight: 0.8,
+    atk_weight: 0.2,
     pen_weight: 0.1,
-    dmg_bonus_weight: 0.2,
-    dmg_reduction_weight: 1.4,
-    utility_weight: 0.3,
+    dmg_bonus_weight: 1.5,
+    dmg_reduction_weight: 2.2,
+    utility_weight: 1.0,
   },
 
   lord_knight: {
-    hp_weight: 2.5,
-    def_weight: 0.8,
-    atk_weight: 1.2,
+    hp_weight: 2.1,
+    def_weight: 1.2,
+    atk_weight: 1.8,
     pen_weight: 0.8,
     dmg_bonus_weight: 1.0,
     dmg_reduction_weight: 1.2,
