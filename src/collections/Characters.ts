@@ -404,5 +404,59 @@ export const Characters: CollectionConfig = {
         readOnly: true,
       },
     },
+    {
+      name: 'gl_reports',
+      type: 'array',
+      label: 'Riwayat Report GL',
+      admin: {
+        readOnly: true,
+      },
+      fields: [
+        {
+          name: 'report_id',
+          type: 'text',
+          label: 'ID Report',
+        },
+        {
+          name: 'is_present',
+          type: 'checkbox',
+          label: 'Hadir',
+        },
+        {
+          name: 'actual_score',
+          type: 'number',
+          label: 'Skor Aktual',
+        },
+        {
+          name: 'party_assigned',
+          type: 'text',
+          label: 'Party',
+        },
+      ],
+    },
+    {
+      name: 'gl_total_score',
+      type: 'number',
+      label: 'Total GL Score',
+      admin: {
+        readOnly: true,
+      },
+    },
+    {
+      name: 'gl_present_count',
+      type: 'number',
+      label: 'Jumlah Hadir GL',
+      admin: {
+        readOnly: true,
+      },
+    },
+    {
+      name: 'gl_absent_count',
+      type: 'number',
+      label: 'Jumlah Tidak Hadir GL',
+      admin: {
+        readOnly: true,
+      },
+    },
   ],
 }

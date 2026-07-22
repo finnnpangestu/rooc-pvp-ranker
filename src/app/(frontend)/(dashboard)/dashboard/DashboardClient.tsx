@@ -24,8 +24,6 @@ interface DashboardClientProps {
 
 const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
 
-const LIMIT_OPTIONS = [5, 10, 20]
-
 export function DashboardClient({ guild, members, partySetup }: DashboardClientProps) {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
@@ -36,7 +34,6 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
   const [error, setError] = useState('')
   const router = useRouter()
 
-  // Pagination & limit
   const [memberLimit, setMemberLimit] = useState(5)
   const [leaderboardLimit, setleaderboardLimit] = useState(5)
   const [currentPage, setCurrentPage] = useState(1)
@@ -59,12 +56,10 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
     }
   }, [selectedMember])
 
-  // Sort members by createdAt descending
   const sortedMembers = [...members].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   )
 
-  // Create guild view
   if (!guild) {
     const handleCreateGuild = async (e: React.FormEvent) => {
       e.preventDefault()
@@ -158,7 +153,6 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
     })
   }
 
-  // Roster
   const filteredMembers = selectedRosterJob
     ? sortedMembers.filter((m) => m.job === selectedRosterJob)
     : sortedMembers
@@ -168,7 +162,6 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
     currentPage * memberLimit,
   )
 
-  // Leaderboard
   const verifiedMembers = members.filter((m) => m.isVerified)
   const sortedLeaderboard = (
     selectedLeaderboardJob
@@ -181,7 +174,6 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
     leaderboardPage * leaderboardLimit,
   )
 
-  // Apakah perlu scroll? (limit > 5)
   const rosterShouldScroll = memberLimit > 5
   const leaderboardShouldScroll = leaderboardLimit > 5
   const rosterMaxHeight = rosterShouldScroll ? 'max-h-[420px]' : 'max-h-[none]'
@@ -189,21 +181,14 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
 
   return (
     <div className="max-w-[1400px] mx-auto w-full">
-      {/* Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div
           className="rounded-lg p-6 flex items-center gap-5 transition-colors"
-          style={{
-            background: 'var(--bg-card)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
         >
           <div
             className="p-4 rounded-full flex items-center justify-center"
-            style={{
-              background: 'var(--bg-primary)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
+            style={{ background: 'var(--bg-primary)', boxShadow: 'var(--shadow-neumorph-inset)' }}
           >
             <svg
               width="24"
@@ -211,7 +196,7 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
               style={{ color: 'var(--text-primary)' }}
@@ -234,17 +219,11 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
 
         <div
           className="rounded-lg p-6 flex items-center gap-5 transition-colors"
-          style={{
-            background: 'var(--bg-card)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
         >
           <div
             className="p-4 rounded-full flex items-center justify-center"
-            style={{
-              background: 'var(--bg-primary)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
+            style={{ background: 'var(--bg-primary)', boxShadow: 'var(--shadow-neumorph-inset)' }}
           >
             <svg
               width="24"
@@ -252,12 +231,12 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
               style={{ color: '#f59e0b' }}
             >
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
           </div>
           <div>
@@ -272,17 +251,11 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
 
         <div
           className="rounded-lg p-6 flex items-center gap-5 transition-colors"
-          style={{
-            background: 'var(--bg-card)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
         >
           <div
             className="p-4 rounded-full flex items-center justify-center"
-            style={{
-              background: 'var(--bg-primary)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
+            style={{ background: 'var(--bg-primary)', boxShadow: 'var(--shadow-neumorph-inset)' }}
           >
             <svg
               width="24"
@@ -290,14 +263,13 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
               style={{ color: 'var(--text-primary)' }}
             >
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4l3 3" />
             </svg>
           </div>
           <div>
@@ -311,15 +283,264 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
         </div>
       </div>
 
-      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div
+          className="rounded-lg p-6 flex flex-col justify-between transition-colors lg:col-span-1"
+          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
+        >
+          <div>
+            <h2 className="text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+              Performa Guild League
+            </h2>
+          </div>
+
+          <div className="flex justify-between items-end mb-2">
+            <div className="flex flex-col gap-1">
+              <div
+                className="text-[36px] font-bold tracking-tight leading-none"
+                style={{ color: '#10b981' }}
+              >
+                {guild.gl_wins || 0}{' '}
+                <span className="text-[18px] font-medium" style={{ color: 'var(--text-muted)' }}>
+                  Wins
+                </span>
+              </div>
+              <div
+                className="text-[20px] font-bold tracking-tight leading-none"
+                style={{ color: '#ef4444' }}
+              >
+                {guild.gl_losses || 0}{' '}
+                <span className="text-[12px] font-medium" style={{ color: 'var(--text-muted)' }}>
+                  Losses
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-end gap-2">
+              <span
+                className="text-[10px] font-semibold uppercase tracking-wider"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                5 Match Terakhir
+              </span>
+              <div className="flex gap-1.5">
+                {(guild.gl_trends || '-----')
+                  .padEnd(5, '-')
+                  .split('')
+                  .slice(0, 5)
+                  .map((result: string, i: number) => (
+                    <div
+                      key={i}
+                      className="w-7 h-7 flex items-center justify-center rounded-full text-[12px] font-bold"
+                      style={{
+                        background:
+                          result === 'W'
+                            ? 'rgba(16, 185, 129, 0.15)'
+                            : result === 'L'
+                              ? 'rgba(239, 68, 68, 0.15)'
+                              : 'var(--bg-primary)',
+                        color:
+                          result === 'W'
+                            ? '#10b981'
+                            : result === 'L'
+                              ? '#ef4444'
+                              : 'var(--text-muted)',
+                        boxShadow: result === '-' ? 'var(--shadow-neumorph-inset)' : 'none',
+                        border:
+                          result === 'W'
+                            ? '1px solid rgba(16, 185, 129, 0.3)'
+                            : result === 'L'
+                              ? '1px solid rgba(239, 68, 68, 0.3)'
+                              : 'none',
+                      }}
+                    >
+                      {result}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="rounded-lg p-6 transition-colors lg:col-span-2"
+          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
+        >
+          <div className="flex justify-between items-center mb-5">
+            <div>
+              <h2 className="text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+                Top 5 Best Performers
+              </h2>
+            </div>
+            <div
+              className="p-2 rounded-full flex items-center justify-center"
+              style={{
+                background: 'var(--bg-primary)',
+                boxShadow: 'var(--shadow-neumorph-inset)',
+                color: '#f59e0b',
+              }}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+            {(() => {
+              const verifiedMembers = members.filter((m) => m.isVerified)
+              if (verifiedMembers.length === 0) {
+                return (
+                  <div
+                    className="col-span-5 rounded-2xl p-8 flex flex-col items-center justify-center text-center mt-2 border"
+                    style={{
+                      background: 'var(--bg-primary)',
+                      borderColor: 'var(--border-color)',
+                      boxShadow: 'var(--shadow-neumorph-inset)',
+                    }}
+                  >
+                    <div
+                      className="mb-3 p-3 rounded-full flex items-center justify-center"
+                      style={{
+                        background: 'var(--bg-secondary)',
+                        boxShadow: 'var(--shadow-neumorph-inset)',
+                        color: 'var(--text-muted)',
+                      }}
+                    >
+                      <svg
+                        width="32"
+                        height="32"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <line x1="18" y1="8" x2="23" y2="13" />
+                        <line x1="23" y1="8" x2="18" y2="13" />
+                      </svg>
+                    </div>
+                    <div
+                      className="text-[14px] font-semibold mb-1"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      Belum Ada Member Terverifikasi
+                    </div>
+                    <div className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
+                      Harap verifikasi member di tabel manajemen roster.
+                    </div>
+                  </div>
+                )
+              }
+
+              const rankedMembers = verifiedMembers
+                .map((m) => {
+                  const totalGLScore = m.gl_total_score || 0
+                  return { ...m, calculatedGLScore: totalGLScore }
+                })
+                .sort((a, b) => b.calculatedGLScore - a.calculatedGLScore)
+
+              const top5 = rankedMembers.slice(0, 5)
+              const hasData = top5.some((char) => char.calculatedGLScore > 0)
+
+              if (!hasData) {
+                return (
+                  <div
+                    className="col-span-5 rounded-2xl p-8 flex flex-col items-center justify-center text-center mt-2 border"
+                    style={{
+                      background: 'var(--bg-primary)',
+                      borderColor: 'var(--border-color)',
+                      boxShadow: 'var(--shadow-neumorph-inset)',
+                    }}
+                  >
+                    <div
+                      className="mb-3 p-3 rounded-full flex items-center justify-center"
+                      style={{
+                        background: 'var(--bg-secondary)',
+                        boxShadow: 'var(--shadow-neumorph-inset)',
+                        color: 'var(--text-muted)',
+                      }}
+                    >
+                      <svg
+                        width="32"
+                        height="32"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                      </svg>
+                    </div>
+                    <div
+                      className="text-[14px] font-normal mb-1"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      Data Report Masih Kosong
+                    </div>
+                  </div>
+                )
+              }
+
+              return top5.map((char, index) => (
+                <div
+                  key={char.id}
+                  className="rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all duration-200 border relative"
+                  style={{
+                    background: 'var(--bg-primary)',
+                    borderColor: index === 0 ? 'rgba(251, 191, 36, 0.3)' : 'var(--border-color)',
+                    boxShadow: 'var(--shadow-neumorph-sm)',
+                  }}
+                >
+                  <div className="relative mb-2">
+                    <img
+                      src={getJobIcon(char.job)}
+                      alt=""
+                      className="w-10 h-10 object-cover rounded-[20%] shadow-sm"
+                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                    />
+                    {index === 0 && (
+                      <div className="absolute -top-2 -right-2 text-[12px] bg-amber-400 text-black w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-md">
+                        1
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    className="font-semibold text-[13px] truncate w-full mb-1"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    {char.name}
+                  </div>
+                  <div className="text-[12px] font-bold text-amber-400">
+                    {Math.round(char.calculatedGLScore).toLocaleString('id-ID')}
+                  </div>
+                </div>
+              ))
+            })()}
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-6">
-        {/* Roster Table */}
         <div
           className="rounded-lg flex flex-col h-[600px] overflow-hidden transition-colors"
-          style={{
-            background: 'var(--bg-card)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
         >
           <div
             className="p-5 border-b flex justify-between items-center gap-3 flex-wrap"
@@ -342,7 +563,6 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
                 }}
                 onClose={() => setIsRosterDropdownOpen(false)}
               />
-              {/* Dropdown limit */}
               <LimitDropdown
                 value={memberLimit}
                 onChange={(val) => {
@@ -359,10 +579,7 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
             <table className="w-full border-collapse text-sm">
               <thead
                 className="sticky top-0 shadow-md z-10 border-b"
-                style={{
-                  background: 'var(--bg-secondary)',
-                  borderColor: 'var(--border-color)',
-                }}
+                style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)' }}
               >
                 <tr>
                   <th className="p-4 text-left font-medium" style={{ color: 'var(--text-muted)' }}>
@@ -440,13 +657,9 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
           </div>
         </div>
 
-        {/* Leaderboard Table */}
         <div
           className="rounded-lg flex flex-col h-[600px] overflow-hidden transition-colors"
-          style={{
-            background: 'var(--bg-card)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
         >
           <div
             className="p-5 border-b flex justify-between items-center gap-3 flex-wrap"
@@ -469,7 +682,6 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
                 }}
                 onClose={() => setIsLbdDropdownOpen(false)}
               />
-              {/* Dropdown limit (sama) */}
               <LimitDropdown
                 value={leaderboardLimit}
                 onChange={(val) => {
@@ -486,10 +698,7 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
             <table className="w-full border-collapse text-sm">
               <thead
                 className="sticky top-0 shadow-md z-10 border-b"
-                style={{
-                  background: 'var(--bg-secondary)',
-                  borderColor: 'var(--border-color)',
-                }}
+                style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)' }}
               >
                 <tr>
                   <th
@@ -555,7 +764,6 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
         </div>
       </div>
 
-      {/* Detail Dialog - tidak diubah */}
       {selectedMember && (
         <GlobalDialog
           isOpen={!!selectedMember}
@@ -752,6 +960,14 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
                   value={selectedMember.poison_dmg_reduction}
                   isPercent
                 />
+              </div>
+            </div>
+
+            {/* Present/Absent GL Stats */}
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <div className="grid grid-cols-2 gap-3">
+                <StatCard label="Hadir GL" value={selectedMember.gl_present_count || 0} />
+                <StatCard label="Tidak Hadir GL" value={selectedMember.gl_absent_count || 0} />
               </div>
             </div>
 

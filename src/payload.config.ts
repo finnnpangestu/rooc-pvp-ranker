@@ -10,6 +10,7 @@ import { Media } from './collections/Media'
 import { Characters } from './collections/Characters'
 import { Guilds } from './collections/Guilds'
 import { PartySetups } from './collections/PartySetups'
+import { ReportsGL } from './collections/ReportsGL'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -21,7 +22,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Characters, Guilds, PartySetups],
+  collections: [Users, Media, Characters, Guilds, PartySetups, ReportsGL],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

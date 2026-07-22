@@ -94,6 +94,21 @@ export const Guilds: CollectionConfig = {
       },
     },
     {
+      name: 'gl_wins',
+      type: 'number',
+      admin: { readOnly: true, position: 'sidebar' },
+    },
+    {
+      name: 'gl_losses',
+      type: 'number',
+      admin: { readOnly: true, position: 'sidebar' },
+    },
+    {
+      name: 'gl_trends',
+      type: 'text',
+      admin: { readOnly: true, position: 'sidebar' },
+    },
+    {
       name: 'characters',
       type: 'join',
       label: 'Karakter dalam Guild',

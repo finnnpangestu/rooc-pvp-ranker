@@ -7,19 +7,17 @@ export async function getCharactersDashboard(guildId: string) {
   try {
     const payload = await getPayload({ config: configPromise })
 
-    const charsRes = await payload.find({
+    const result = await payload.find({
       collection: 'characters',
+      where: {
+        guild_id: { equals: guildId },
+      },
       depth: 0,
       limit: 1000,
-      where: {
-        guild_id: {
-          equals: guildId,
-        },
-      },
-      sort: '-pvp_score',
+      pagination: false,
     })
 
-    return charsRes.docs
+    return result.docs
   } catch (error) {
     console.error('Error fetching characters:', error)
     return []

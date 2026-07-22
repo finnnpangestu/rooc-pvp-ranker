@@ -72,6 +72,7 @@ export interface Config {
     characters: Character;
     guilds: Guild;
     party_setups: PartySetup;
+    reports_gl: ReportsGl;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -88,6 +89,7 @@ export interface Config {
     characters: CharactersSelect<false> | CharactersSelect<true>;
     guilds: GuildsSelect<false> | GuildsSelect<true>;
     party_setups: PartySetupsSelect<false> | PartySetupsSelect<true>;
+    reports_gl: ReportsGlSelect<false> | ReportsGlSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -369,6 +371,18 @@ export interface Character {
    */
   poison_dmg_reduction?: number | null;
   pvp_score?: number | null;
+  gl_reports?:
+    | {
+        report_id?: string | null;
+        is_present?: boolean | null;
+        actual_score?: number | null;
+        party_assigned?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  gl_total_score?: number | null;
+  gl_present_count?: number | null;
+  gl_absent_count?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -388,6 +402,9 @@ export interface Guild {
    * Akumulasi PvP score semua karakter terverifikasi
    */
   total_pvp_score?: number | null;
+  gl_wins?: number | null;
+  gl_losses?: number | null;
+  gl_trends?: string | null;
   characters?: {
     docs?: (string | Character)[];
     hasNextPage?: boolean;
@@ -471,6 +488,29 @@ export interface PartySetup {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reports_gl".
+ */
+export interface ReportsGl {
+  id: string;
+  guild_id: string | Guild;
+  report_name: string;
+  match_status: 'win' | 'loss';
+  match_score?: number | null;
+  match_date?: string | null;
+  member_reports?:
+    | {
+        character_id: string | Character;
+        is_present?: boolean | null;
+        actual_score?: number | null;
+        party_assigned?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -512,6 +552,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'party_setups';
         value: string | PartySetup;
+      } | null)
+    | ({
+        relationTo: 'reports_gl';
+        value: string | ReportsGl;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -666,6 +710,18 @@ export interface CharactersSelect<T extends boolean = true> {
   poison_dmg_bonus?: T;
   poison_dmg_reduction?: T;
   pvp_score?: T;
+  gl_reports?:
+    | T
+    | {
+        report_id?: T;
+        is_present?: T;
+        actual_score?: T;
+        party_assigned?: T;
+        id?: T;
+      };
+  gl_total_score?: T;
+  gl_present_count?: T;
+  gl_absent_count?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -679,6 +735,9 @@ export interface GuildsSelect<T extends boolean = true> {
   guild_master?: T;
   total_characters?: T;
   total_pvp_score?: T;
+  gl_wins?: T;
+  gl_losses?: T;
+  gl_trends?: T;
   characters?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -714,6 +773,29 @@ export interface PartySetupsSelect<T extends boolean = true> {
               assigned_character?: T;
               id?: T;
             };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reports_gl_select".
+ */
+export interface ReportsGlSelect<T extends boolean = true> {
+  id?: T;
+  guild_id?: T;
+  report_name?: T;
+  match_status?: T;
+  match_score?: T;
+  match_date?: T;
+  member_reports?:
+    | T
+    | {
+        character_id?: T;
+        is_present?: T;
+        actual_score?: T;
+        party_assigned?: T;
         id?: T;
       };
   updatedAt?: T;
