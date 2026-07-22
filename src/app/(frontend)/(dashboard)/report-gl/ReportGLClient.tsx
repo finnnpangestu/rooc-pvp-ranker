@@ -27,11 +27,11 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
 
   const [reportName, setReportName] = useState('')
   const [matchStatus, setMatchStatus] = useState<'win' | 'loss'>('win')
-  const [matchScore, setMatchScore] = useState<number>(0)
+  const [matchScore, setMatchScore] = useState<number | null>(null)
 
   const [localSetup, setLocalSetup] = useState<any | null>(null)
   const [memberData, setMemberData] = useState<
-    Record<string, { is_present: boolean; actual_score: number }>
+    Record<string, { is_present: boolean; actual_score: number | null }>
   >({})
   const [isSaving, setIsSaving] = useState(false)
 
@@ -363,7 +363,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                           </span>
                           <input
                             type="number"
-                            value={data.actual_score}
+                            value={data.actual_score || ''}
                             onChange={(e) =>
                               setMemberData((prev) => ({
                                 ...prev,
