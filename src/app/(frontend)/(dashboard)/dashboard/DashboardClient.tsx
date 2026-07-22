@@ -20,11 +20,17 @@ interface DashboardClientProps {
   guild: any | null
   members: any[]
   partySetup?: any | null
+  resources?: any[] // tambahan
 }
 
 const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
 
-export function DashboardClient({ guild, members, partySetup }: DashboardClientProps) {
+export function DashboardClient({
+  guild,
+  members,
+  partySetup,
+  resources = [],
+}: DashboardClientProps) {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const [isPending, startTransition] = useTransition()
@@ -181,6 +187,7 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
 
   return (
     <div className="max-w-[1400px] mx-auto w-full">
+      {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div
           className="rounded-lg p-6 flex items-center gap-5 transition-colors"
@@ -283,6 +290,7 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
         </div>
       </div>
 
+      {/* League & Performers */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div
           className="rounded-lg p-6 flex flex-col justify-between transition-colors lg:col-span-1"
@@ -515,19 +523,17 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
                       className="w-10 h-10 object-cover rounded-[20%] shadow-sm"
                       onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
-                    {index === 0 && (
-                      <div className="absolute -top-2 -right-2 text-[12px] bg-amber-400 text-black w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-md">
-                        1
-                      </div>
-                    )}
                   </div>
                   <div
                     className="font-semibold text-[13px] truncate w-full mb-1"
                     style={{ color: 'var(--text-primary)' }}
                   >
-                    {char.name}
+                    {char.name}{' '}
+                    <span className="text-amber-500">
+                      ({Math.round(char.pvp_score || 0).toLocaleString('id-ID')})
+                    </span>
                   </div>
-                  <div className="text-[12px] font-bold text-amber-400">
+                  <div className="text-[18px] font-bold text-amber-400">
                     {Math.round(char.calculatedGLScore).toLocaleString('id-ID')}
                   </div>
                 </div>
@@ -537,6 +543,7 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
         </div>
       </div>
 
+      {/* Main Tables */}
       <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-6">
         <div
           className="rounded-lg flex flex-col h-[600px] overflow-hidden transition-colors"
@@ -764,6 +771,72 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
         </div>
       </div>
 
+      {/* === CARD RESOURCE === */}
+      {resources.length > 0 && (
+        <div
+          className="rounded-lg p-6 border mt-8"
+          style={{
+            background: 'var(--bg-card)',
+            borderColor: 'var(--border-color)',
+            boxShadow: 'var(--shadow-neumorph)',
+          }}
+        >
+          <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+            Resource Guild
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {resources.map((resource) => (
+              <div
+                key={resource.id}
+                className="rounded-lg p-4 border"
+                style={{
+                  background: 'var(--bg-primary)',
+                  borderColor: 'var(--border-color)',
+                  boxShadow: 'var(--shadow-neumorph-inset)',
+                }}
+              >
+                <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  {resource.name}
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    Total
+                  </span>
+                  <span className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                    {resource.total_quantity}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    Sisa
+                  </span>
+                  <span
+                    className={`font-bold ${resource.remaining_quantity === 0 ? 'text-red-400' : 'text-emerald-400'}`}
+                  >
+                    {resource.remaining_quantity}
+                  </span>
+                </div>
+                <div className="mt-2 w-full bg-gray-700/30 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${((resource.total_quantity - resource.remaining_quantity) / resource.total_quantity) * 100}%`,
+                      background:
+                        resource.remaining_quantity === 0
+                          ? '#ef4444'
+                          : resource.remaining_quantity < resource.total_quantity / 2
+                            ? '#f59e0b'
+                            : '#10b981',
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Detail Dialog */}
       {selectedMember && (
         <GlobalDialog
           isOpen={!!selectedMember}
@@ -969,6 +1042,11 @@ export function DashboardClient({ guild, members, partySetup }: DashboardClientP
                 <StatCard label="Hadir GL" value={selectedMember.gl_present_count || 0} />
                 <StatCard label="Tidak Hadir GL" value={selectedMember.gl_absent_count || 0} />
               </div>
+            </div>
+
+            {/* Total Resource */}
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <StatCard label="Total Resource" value={selectedMember.total_resources || 0} />
             </div>
 
             <div

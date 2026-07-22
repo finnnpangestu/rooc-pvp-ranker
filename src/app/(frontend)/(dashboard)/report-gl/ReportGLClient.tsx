@@ -5,6 +5,7 @@ import { GlobalDialog } from '../../components/GlobalDialog'
 import { Button } from '../../components/Button'
 import { Pagination } from '../../components/Pagination'
 import { saveReportGL } from '@/actions/guild/saveReportGL'
+import { useRouter } from 'next/navigation'
 
 interface ReportGLClientProps {
   guild: any
@@ -22,6 +23,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeReport, setActiveReport] = useState<any | null>(null)
   const [viewReport, setViewReport] = useState<any | null>(null)
+  const router = useRouter()
 
   const [reportName, setReportName] = useState('')
   const [matchStatus, setMatchStatus] = useState<'win' | 'loss'>('win')
@@ -240,7 +242,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
 
     if (res.success) {
       alert('Report berhasil disimpan!')
-      window.location.reload()
+      router.refresh()
     } else {
       alert('Gagal: ' + res.message)
     }

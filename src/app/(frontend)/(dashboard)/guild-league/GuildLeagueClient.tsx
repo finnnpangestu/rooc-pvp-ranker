@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { GlobalDialog } from '../../components/GlobalDialog'
 import { Button } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
@@ -8,6 +9,7 @@ import { JOBS, JOB_LABELS } from '@/const/JobLabels'
 import { generateEliteParty } from '@/actions/guild/generateEliteParty'
 import { generateSubParty } from '@/actions/guild/generateSubParty'
 import { savePartySetup } from '@/actions/guild/savePartySetup'
+import { clearParties } from '@/actions/guild/clearParties'
 import { useTheme } from '../../components/ThemeProvider'
 
 interface GuildLeagueClientProps {
@@ -20,6 +22,7 @@ const getJobIcon = (jobValue: string) => `/icons/jobs/${jobValue}.png`
 const clone = (obj: any) => JSON.parse(JSON.stringify(obj))
 
 export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueClientProps) {
+  const router = useRouter()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
@@ -38,6 +41,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   const [selectedPartyType, setSelectedPartyType] = useState<'elite' | 'sub' | null>(null)
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null)
   const [isSaveLoading, setIsSaveLoading] = useState(false)
+  const [isClearing, startClearTransition] = useTransition()
 
   const [eliteBlueprint, setEliteBlueprint] = useState<string[][]>(
     Array(8)
@@ -119,13 +123,23 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     setIsSaveLoading(false)
   }
 
+  // HANDLE CLEAR - SAVE KE DATABASE
   const handleClear = (mode: 'all' | 'elite' | 'sub') => {
     if (!localSetup) return
     if (!confirm(`Hapus formasi ${mode}?`)) return
-    const newSetup = clone(localSetup)
-    if (mode === 'all' || mode === 'elite') newSetup.elite_parties = []
-    if (mode === 'all' || mode === 'sub') newSetup.sub_parties = []
-    setLocalSetup(newSetup)
+
+    startClearTransition(async () => {
+      const res = await clearParties(initialSetup.id, mode)
+      if (res.success) {
+        const newSetup = clone(localSetup)
+        if (mode === 'all' || mode === 'elite') newSetup.elite_parties = []
+        if (mode === 'all' || mode === 'sub') newSetup.sub_parties = []
+        setLocalSetup(newSetup)
+        router.refresh()
+      } else {
+        alert('Gagal clear: ' + res.message)
+      }
+    })
   }
 
   const removeMemberFromParty = (partyType: 'elite' | 'sub', partyIdx: number, slotIdx: number) => {
@@ -333,7 +347,8 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
             <Button
               variant="danger"
               size="md"
-              disabled={!isEliteGenerated}
+              disabled={!isEliteGenerated || isClearing}
+              loading={isClearing}
               onClick={() => handleClear('elite')}
             >
               Clear Elite
@@ -361,7 +376,8 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
             <Button
               variant="danger"
               size="md"
-              disabled={!isSubGenerated}
+              disabled={!isSubGenerated || isClearing}
+              loading={isClearing}
               onClick={() => handleClear('sub')}
             >
               Clear Sub
@@ -456,7 +472,8 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
           variant="danger"
           size="lg"
           className="flex-1 !justify-center"
-          disabled={!localSetup || (!isEliteGenerated && !isSubGenerated)}
+          disabled={!localSetup || (!isEliteGenerated && !isSubGenerated) || isClearing}
+          loading={isClearing}
           onClick={() => handleClear('all')}
         >
           Clear Formations

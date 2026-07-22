@@ -458,5 +458,13 @@ export const Characters: CollectionConfig = {
         readOnly: true,
       },
     },
+    {
+      name: 'total_resources',
+      type: 'number',
+      label: 'Total Resource Diterima',
+      admin: {
+        readOnly: true,
+      },
+    },
   ],
 }

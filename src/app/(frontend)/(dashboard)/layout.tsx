@@ -3,6 +3,8 @@ import configPromise from '@payload-config'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { DashboardShell } from '../components/DashboardShell'
+import { Suspense } from 'react'
+import DashboardLoading from './loading'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const reqHeaders = await headers()
@@ -24,5 +26,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const currentGuild = guildRes.docs[0] || null
 
-  return <DashboardShell guild={currentGuild}>{children}</DashboardShell>
+  return (
+    <DashboardShell guild={currentGuild}>
+      <Suspense fallback={<DashboardLoading />}>{children}</Suspense>
+    </DashboardShell>
+  )
 }

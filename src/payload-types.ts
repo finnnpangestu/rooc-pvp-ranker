@@ -73,6 +73,8 @@ export interface Config {
     guilds: Guild;
     party_setups: PartySetup;
     reports_gl: ReportsGl;
+    resources: Resource;
+    resource_distributions: ResourceDistribution;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -90,6 +92,8 @@ export interface Config {
     guilds: GuildsSelect<false> | GuildsSelect<true>;
     party_setups: PartySetupsSelect<false> | PartySetupsSelect<true>;
     reports_gl: ReportsGlSelect<false> | ReportsGlSelect<true>;
+    resources: ResourcesSelect<false> | ResourcesSelect<true>;
+    resource_distributions: ResourceDistributionsSelect<false> | ResourceDistributionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -383,6 +387,7 @@ export interface Character {
   gl_total_score?: number | null;
   gl_present_count?: number | null;
   gl_absent_count?: number | null;
+  total_resources?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -511,6 +516,41 @@ export interface ReportsGl {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "resources".
+ */
+export interface Resource {
+  id: string;
+  guild_id: string | Guild;
+  /**
+   * Contoh: S, A, B, Mythic, Legendary, dll
+   */
+  name: string;
+  total_quantity: number;
+  /**
+   * Otomatis terupdate saat distribusi
+   */
+  remaining_quantity?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "resource_distributions".
+ */
+export interface ResourceDistribution {
+  id: string;
+  guild_id: string | Guild;
+  resource_id: string | Resource;
+  member_id: string | Character;
+  quantity: number;
+  bid_date?: string | null;
+  status?: ('pending' | 'approved' | 'claimed') | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -556,6 +596,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reports_gl';
         value: string | ReportsGl;
+      } | null)
+    | ({
+        relationTo: 'resources';
+        value: string | Resource;
+      } | null)
+    | ({
+        relationTo: 'resource_distributions';
+        value: string | ResourceDistribution;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -722,6 +770,7 @@ export interface CharactersSelect<T extends boolean = true> {
   gl_total_score?: T;
   gl_present_count?: T;
   gl_absent_count?: T;
+  total_resources?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -798,6 +847,35 @@ export interface ReportsGlSelect<T extends boolean = true> {
         party_assigned?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "resources_select".
+ */
+export interface ResourcesSelect<T extends boolean = true> {
+  id?: T;
+  guild_id?: T;
+  name?: T;
+  total_quantity?: T;
+  remaining_quantity?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "resource_distributions_select".
+ */
+export interface ResourceDistributionsSelect<T extends boolean = true> {
+  id?: T;
+  guild_id?: T;
+  resource_id?: T;
+  member_id?: T;
+  quantity?: T;
+  bid_date?: T;
+  status?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
