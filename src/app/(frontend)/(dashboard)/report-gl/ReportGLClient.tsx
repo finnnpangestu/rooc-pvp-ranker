@@ -968,7 +968,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                             </div>
 
                             <span
-                              className="text-xs font-medium truncate w-full text-center"
+                              className="text-xs font-medium truncate w-full text-center flex-1"
                               style={{ color: 'var(--text-primary)' }}
                             >
                               {char?.name || 'Unknown'}
