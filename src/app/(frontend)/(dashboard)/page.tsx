@@ -34,18 +34,22 @@ export default async function DashboardPage() {
   let resources: any[] = []
 
   if (currentGuild) {
-    guildMembers = await getCharactersDashboard(currentGuild.id.toString())
+    const guildIdStr = currentGuild.id.toString()
 
-    const setupRes = await payload.find({
-      collection: 'party_setups',
-      where: { guild_id: { equals: currentGuild.id } },
-      depth: 1,
-      limit: 1,
-    })
+    const [guildMembersRes, setupRes, resourcesRes] = await Promise.all([
+      getCharactersDashboard(guildIdStr),
+      payload.find({
+        collection: 'party_setups',
+        where: { guild_id: { equals: currentGuild.id } },
+        depth: 1,
+        limit: 1,
+      }),
+      getResources(guildIdStr),
+    ])
+
+    guildMembers = guildMembersRes
     partySetup = setupRes.docs[0] || null
-
-    // Ambil data resource
-    resources = await getResources(currentGuild.id.toString())
+    resources = resourcesRes
   }
 
   return (

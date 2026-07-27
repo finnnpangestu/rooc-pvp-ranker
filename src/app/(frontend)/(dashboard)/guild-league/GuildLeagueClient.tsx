@@ -1,8 +1,10 @@
 'use client'
 
 import React, { useState, useEffect, useTransition } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { GlobalDialog } from '../../components/GlobalDialog'
+import { CharacterDetailModal } from '../../components/CharacterDetailModal'
 import { Button } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
 import { JOBS, JOB_LABELS } from '@/const/JobLabels'
@@ -42,6 +44,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null)
   const [isSaveLoading, setIsSaveLoading] = useState(false)
   const [isClearing, startClearTransition] = useTransition()
+  const [viewedMember, setViewedMember] = useState<any | null>(null)
 
   const [eliteBlueprint, setEliteBlueprint] = useState<string[][]>(
     Array(8)
@@ -253,7 +256,10 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                 return (
                   <div
                     key={sIdx}
-                    className="flex items-center gap-2 p-2 rounded-lg border transition-all duration-200 min-h-[48px]"
+                    className="flex items-center gap-2 p-2 rounded-lg border transition-all duration-200 min-h-[48px] cursor-pointer hover:bg-white/5"
+                    onClick={() => {
+                      if (char) setViewedMember(char)
+                    }}
                     style={{
                       background: 'var(--bg-primary)',
                       borderColor: 'var(--border-color)',
@@ -262,10 +268,12 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                   >
                     {char ? (
                       <>
-                        <img
+                        <Image
                           src={getJobIcon(char.job)}
                           alt=""
-                          className="w-6 h-6 object-cover rounded-[20%] flex-shrink-0"
+                          width={24}
+                          height={24}
+                          className="object-cover rounded-[20%] flex-shrink-0"
                         />
                         <span
                           className="text-[15px] font-semibold flex-1 min-w-0 truncate"
@@ -281,7 +289,10 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                           size="sm"
                           className="!w-7 !h-7 !p-0 flex-shrink-0"
                           title="Hapus dari party"
-                          onClick={() => removeMemberFromParty(type, idx, sIdx)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            removeMemberFromParty(type, idx, sIdx)
+                          }}
                         >
                           ✕
                         </Button>
@@ -433,7 +444,8 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
               benchMembers.map((member) => (
                 <div
                   key={member.id}
-                  className="py-2.5 px-4 rounded-xl border text-[14px] flex items-center gap-2.5 transition-all duration-200"
+                  className="py-2.5 px-4 rounded-xl border text-[14px] flex items-center gap-2.5 transition-all duration-200 cursor-pointer hover:bg-white/5"
+                  onClick={() => setViewedMember(member)}
                   style={{
                     background: 'var(--bg-primary)',
                     borderColor: 'var(--border-color)',
@@ -441,10 +453,12 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                     boxShadow: 'var(--shadow-neumorph-sm)',
                   }}
                 >
-                  <img
+                  <Image
                     src={getJobIcon(member.job)}
                     alt={member.job}
-                    className="w-6 h-6 object-cover rounded-[20%] flex-shrink-0"
+                    width={24}
+                    height={24}
+                    className="object-cover rounded-[20%] flex-shrink-0"
                   />
                   <span className="truncate max-w-[120px]" style={{ color: 'var(--text-primary)' }}>
                     {member.name}
@@ -659,10 +673,12 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                   color: 'var(--text-primary)',
                 }}
               >
-                <img
+                <Image
                   src={getJobIcon(member.job)}
                   alt=""
-                  className="w-6 h-6 object-cover rounded-[20%] flex-shrink-0"
+                  width={24}
+                  height={24}
+                  className="object-cover rounded-[20%] flex-shrink-0"
                 />
                 <span className="truncate">{member.name}</span>
                 <span className="text-[14px] text-amber-400 font-bold ml-auto flex-shrink-0">
@@ -673,6 +689,12 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
           </div>
         )}
       </GlobalDialog>
+
+      <CharacterDetailModal
+        member={viewedMember}
+        isOpen={!!viewedMember}
+        onClose={() => setViewedMember(null)}
+      />
     </div>
   )
 }

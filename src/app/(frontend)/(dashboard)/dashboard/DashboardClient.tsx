@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useState, useTransition, useEffect } from 'react'
+import Image from 'next/image'
 import { GlobalDialog } from '../../components/GlobalDialog'
+import { CharacterDetailModal } from '../../components/CharacterDetailModal'
 import { Badge } from '../../components/Badge'
 import { Button } from '../../components/Button'
 import { Pagination } from '../../components/Pagination'
@@ -517,10 +519,12 @@ export function DashboardClient({
                   }}
                 >
                   <div className="relative mb-2">
-                    <img
+                    <Image
                       src={getJobIcon(char.job)}
                       alt=""
-                      className="w-10 h-10 object-cover rounded-[20%] shadow-sm"
+                      width={40}
+                      height={40}
+                      className="object-cover rounded-[20%] shadow-sm"
                       onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
                   </div>
@@ -631,10 +635,12 @@ export function DashboardClient({
                         className="p-4 flex items-center gap-3"
                         style={{ color: 'var(--text-secondary)' }}
                       >
-                        <img
+                        <Image
                           src={getJobIcon(char.job)}
                           alt=""
-                          className="w-6 h-6 object-cover rounded shadow-sm"
+                          width={24}
+                          height={24}
+                          className="object-cover rounded shadow-sm"
                           onError={(e) => (e.currentTarget.style.display = 'none')}
                         />
                         {JOB_LABELS[char.job] || char.job}
@@ -837,222 +843,13 @@ export function DashboardClient({
       )}
 
       {/* Detail Dialog */}
-      {selectedMember && (
-        <GlobalDialog
-          isOpen={!!selectedMember}
-          onClose={() => setSelectedMember(null)}
-          title={`Detail: ${selectedMember.name}`}
-          maxWidth={800}
-        >
-          <div>
-            <div
-              className="flex items-center gap-4 mb-6 p-4 rounded-lg border"
-              style={{
-                background: 'var(--bg-primary)',
-                borderColor: 'var(--border-color)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-              }}
-            >
-              <img
-                src={getJobIcon(selectedMember.job)}
-                alt=""
-                className="w-12 h-12 object-cover rounded-lg shadow-sm border"
-                style={{ borderColor: 'var(--border-color)' }}
-                onError={(e) => (e.currentTarget.style.display = 'none')}
-              />
-              <div>
-                <div className="font-semibold text-xl" style={{ color: 'var(--text-primary)' }}>
-                  {JOB_LABELS[selectedMember.job] || selectedMember.job}
-                </div>
-                <div className="text-sm text-amber-400 font-medium mt-1 flex items-center gap-1.5">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                  PvP Score: {Math.round(selectedMember.pvp_score || 0).toLocaleString('id-ID')}
-                </div>
-              </div>
-            </div>
-
-            <TabBar className="mb-6">
-              <TabButton
-                isActive={activeDetailTab === 'general'}
-                onClick={() => setActiveDetailTab('general')}
-              >
-                General
-              </TabButton>
-              <TabButton
-                isActive={activeDetailTab === 'quasi'}
-                onClick={() => setActiveDetailTab('quasi')}
-              >
-                Quasi
-              </TabButton>
-              <TabButton
-                isActive={activeDetailTab === 'special'}
-                onClick={() => setActiveDetailTab('special')}
-              >
-                Special
-              </TabButton>
-            </TabBar>
-
-            <div className={activeDetailTab === 'general' ? 'block' : 'hidden'}>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm mb-6 max-h-[400px] overflow-y-auto pr-2">
-                <StatCard label="Max HP" value={selectedMember.max_hp} />
-                <StatCard label="PATK" value={selectedMember.patk} />
-                <StatCard label="MATK" value={selectedMember.matk} />
-                <StatCard label="PDEF" value={selectedMember.pdef} />
-                <StatCard label="MDEF" value={selectedMember.mdef} />
-                <StatCard label="Refine PATK" value={selectedMember.refine_patk} />
-                <StatCard label="Refine MATK" value={selectedMember.refine_matk} />
-                <StatCard label="Refine PDEF" value={selectedMember.refine_pdef} />
-                <StatCard label="Refine MDEF" value={selectedMember.refine_mdef} />
-                <StatCard label="HIT" value={selectedMember.hit} />
-                <StatCard label="FLEE" value={selectedMember.flee} />
-              </div>
-            </div>
-
-            <div className={activeDetailTab === 'quasi' ? 'block' : 'hidden'}>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm mb-6 max-h-[400px] overflow-y-auto pr-2">
-                <StatCard label="ASPD" value={selectedMember.aspd} isPercent />
-                <StatCard label="Movement SPD" value={selectedMember.mspd} isPercent />
-                <StatCard label="Variable CT" value={selectedMember.variable_cast} isPercent />
-                <StatCard label="Fixed CT" value={selectedMember.fixed_cast} isPercent />
-                <StatCard label="Healing Done" value={selectedMember.healing_done} isPercent />
-                <StatCard label="Healing Taken" value={selectedMember.healing_taken} isPercent />
-                <StatCard label="CRIT" value={selectedMember.critical} />
-                <StatCard label="CRIT DMG" value={selectedMember.critical_damage} isPercent />
-                <StatCard label="CRIT RES" value={selectedMember.critical_reduction} />
-                <StatCard
-                  label="CRIT DMG RES"
-                  value={selectedMember.critical_damage_reduction}
-                  isPercent
-                />
-                <StatCard label="PDMG" value={selectedMember.pdmg} isPercent />
-                <StatCard label="MDMG" value={selectedMember.mdmg} isPercent />
-                <StatCard label="PDMG.R" value={selectedMember.pdmg_reduction} isPercent />
-                <StatCard label="MDMG.R" value={selectedMember.mdmg_reduction} isPercent />
-                <StatCard label="Ignore PDEF" value={selectedMember.ignore_pdef} />
-                <StatCard label="Ignore MDEF" value={selectedMember.ignore_mdef} />
-                <StatCard label="PDMG Bonus" value={selectedMember.pdmg_bonus} />
-                <StatCard label="MDMG Bonus" value={selectedMember.mdmg_bonus} />
-                <StatCard label="PvP DMG Bonus" value={selectedMember.pvp_dmg_bonus} />
-                <StatCard label="PvP DMG Red" value={selectedMember.pvp_dmg_reduction} />
-              </div>
-            </div>
-
-            <div className={activeDetailTab === 'special' ? 'block' : 'hidden'}>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm mb-6 max-h-[400px] overflow-y-auto pr-2">
-                <StatCard label="Max HP %" value={selectedMember.max_hp_percentage} isPercent />
-                <StatCard
-                  label="Equip PATK %"
-                  value={selectedMember.equipment_patk_percentage}
-                  isPercent
-                />
-                <StatCard
-                  label="Equip MATK %"
-                  value={selectedMember.equipment_matk_percentage}
-                  isPercent
-                />
-                <StatCard
-                  label="Equip PDEF %"
-                  value={selectedMember.equipment_pdef_percentage}
-                  isPercent
-                />
-                <StatCard
-                  label="Equip MDEF %"
-                  value={selectedMember.equipment_mdef_percentage}
-                  isPercent
-                />
-                <StatCard label="DMG vs Demi" value={selectedMember.dmg_vs_demi_human} isPercent />
-                <StatCard
-                  label="DMG Red vs Demi"
-                  value={selectedMember.dmg_reduction_demi_human}
-                  isPercent
-                />
-                <StatCard label="DMG vs Medium" value={selectedMember.dmg_vs_medium} isPercent />
-                <StatCard
-                  label="DMG Red vs Medium"
-                  value={selectedMember.dmg_reduction_medium}
-                  isPercent
-                />
-                <StatCard
-                  label="Neutral Bonus"
-                  value={selectedMember.neutral_dmg_bonus}
-                  isPercent
-                />
-                <StatCard
-                  label="Neutral Red"
-                  value={selectedMember.neutral_dmg_reduction}
-                  isPercent
-                />
-                <StatCard label="DMG vs Fire" value={selectedMember.fire_dmg_bonus} isPercent />
-                <StatCard
-                  label="DMG Red vs Fire"
-                  value={selectedMember.fire_dmg_reduction}
-                  isPercent
-                />
-                <StatCard label="DMG vs Water" value={selectedMember.water_dmg_bonus} isPercent />
-                <StatCard
-                  label="DMG Red vs Water"
-                  value={selectedMember.water_dmg_reduction}
-                  isPercent
-                />
-                <StatCard label="DMG vs Wind" value={selectedMember.wind_dmg_bonus} isPercent />
-                <StatCard
-                  label="DMG Red vs Wind"
-                  value={selectedMember.wind_dmg_reduction}
-                  isPercent
-                />
-                <StatCard label="DMG vs Earth" value={selectedMember.earth_dmg_bonus} isPercent />
-                <StatCard
-                  label="DMG Red vs Earth"
-                  value={selectedMember.earth_dmg_reduction}
-                  isPercent
-                />
-                <StatCard label="DMG vs Ghost" value={selectedMember.ghost_dmg_bonus} isPercent />
-                <StatCard
-                  label="DMG Red vs Ghost"
-                  value={selectedMember.ghost_dmg_reduction}
-                  isPercent
-                />
-                <StatCard label="DMG vs Holy" value={selectedMember.holy_dmg_bonus} isPercent />
-                <StatCard
-                  label="DMG Red vs Holy"
-                  value={selectedMember.holy_dmg_reduction}
-                  isPercent
-                />
-                <StatCard label="DMG vs Poison" value={selectedMember.poison_dmg_bonus} isPercent />
-                <StatCard
-                  label="DMG Red vs Poison"
-                  value={selectedMember.poison_dmg_reduction}
-                  isPercent
-                />
-              </div>
-            </div>
-
-            {/* Present/Absent GL Stats */}
-            <div className="mt-4 pt-4 border-t border-white/10">
-              <div className="grid grid-cols-2 gap-3">
-                <StatCard label="Hadir GL" value={selectedMember.gl_present_count || 0} />
-                <StatCard label="Tidak Hadir GL" value={selectedMember.gl_absent_count || 0} />
-              </div>
-            </div>
-
-            {/* Total Resource */}
-            <div className="mt-4 pt-4 border-t border-white/10">
-              <StatCard label="Total Resource" value={selectedMember.total_resources || 0} />
-            </div>
-
-            <div
-              className="flex justify-end gap-3 mt-4 pt-5 border-t"
-              style={{ borderColor: 'var(--border-color)' }}
-            >
+      <CharacterDetailModal
+        member={selectedMember}
+        isOpen={!!selectedMember}
+        onClose={() => setSelectedMember(null)}
+        footerActions={
+          selectedMember ? (
+            <>
               <Button
                 variant="destructive"
                 size="md"
@@ -1090,10 +887,10 @@ export function DashboardClient({
               <Button variant="ghost" size="md" onClick={() => setSelectedMember(null)}>
                 Tutup
               </Button>
-            </div>
-          </div>
-        </GlobalDialog>
-      )}
+            </>
+          ) : null
+        }
+      />
     </div>
   )
 }

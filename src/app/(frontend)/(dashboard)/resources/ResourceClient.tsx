@@ -1,13 +1,16 @@
 'use client'
 
-import React, { useState, useTransition } from 'react'
+import React, { useState, useMemo, useTransition } from 'react'
+import Image from 'next/image'
 import { GlobalDialog } from '../../components/GlobalDialog'
+import { CharacterDetailModal } from '../../components/CharacterDetailModal'
 import { Button, ButtonSize, ButtonVariant } from '../../components/Button'
 import { Badge } from '../../components/Badge'
 import { createResource } from '@/actions/resources/createResource'
 import { deleteResource } from '@/actions/resources/deleteResource'
 import { distributeResource } from '@/actions/resources/distributeResource'
 import { updateDistributionStatus } from '@/actions/resources/updateDistributionStatus'
+import { bulkUpdateDistributionStatus } from '@/actions/resources/bulkUpdateDistributionStatus'
 import { updateDistributionDetails } from '@/actions/resources/updateDistributionDetails'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '../../components/ThemeProvider'
@@ -35,6 +38,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
   const [resourceName, setResourceName] = useState('')
   const [resourceQuantity, setResourceQuantity] = useState(0)
 
+  const [viewedMember, setViewedMember] = useState<any | null>(null)
   const [distributeMemberId, setDistributeMemberId] = useState('')
   const [distributeItems, setDistributeItems] = useState<
     { resource_id: string; quantity: number }[]
@@ -58,6 +62,62 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
     (distPage - 1) * DISTRIBUTION_LIMIT,
     distPage * DISTRIBUTION_LIMIT,
   )
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [selectionMode, setSelectionMode] = useState<'pending' | 'approved' | null>(null)
+  const [isBulkUpdating, startBulkUpdateTransition] = useTransition()
+
+  const handleToggleRow = (id: string, status: string) => {
+    if (status === 'claimed') return
+
+    setSelectedIds((prev) => {
+      const isSelected = prev.includes(id)
+      const newSelected = isSelected ? prev.filter((i) => i !== id) : [...prev, id]
+
+      if (newSelected.length === 0) {
+        setSelectionMode(null)
+      } else if (!isSelected && prev.length === 0) {
+        setSelectionMode(status as 'pending' | 'approved')
+      }
+      return newSelected
+    })
+  }
+
+  const handleSelectAll = () => {
+    if (selectedIds.length > 0) {
+      setSelectedIds([])
+      setSelectionMode(null)
+      return
+    }
+
+    const hasPending = paginatedDistributions.some((d) => d.status === 'pending')
+    const hasApproved = paginatedDistributions.some((d) => d.status === 'approved')
+    const mode = hasPending ? 'pending' : hasApproved ? 'approved' : null
+
+    if (mode) {
+      const toSelect = paginatedDistributions.filter((d) => d.status === mode).map((d) => d.id)
+      setSelectedIds(toSelect)
+      setSelectionMode(mode)
+    }
+  }
+
+  const handleBulkAction = () => {
+    if (selectedIds.length === 0 || !selectionMode) return
+    const nextStatus = selectionMode === 'pending' ? 'approved' : 'claimed'
+    const actionName = selectionMode === 'pending' ? 'Approve' : 'Claim'
+    if (!confirm(`Yakin ingin ${actionName} ${selectedIds.length} item?`)) return
+
+    startBulkUpdateTransition(async () => {
+      const res = await bulkUpdateDistributionStatus(selectedIds, nextStatus)
+      if (res.success) {
+        setSelectedIds([])
+        setSelectionMode(null)
+        router.refresh()
+      } else {
+        alert('Gagal: ' + res.message)
+      }
+    })
+  }
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editResourceId, setEditResourceId] = useState<string | null>(null)
@@ -352,191 +412,348 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
       </div>
 
       <div
-        className="rounded-lg p-6 border"
+        className="rounded-3xl p-8 border"
         style={{
-          background: 'var(--bg-card)',
+          background: 'var(--bg-panel)',
           borderColor: 'var(--border-color)',
-          boxShadow: 'var(--shadow-neumorph)',
+          boxShadow: 'var(--shadow-neumorph-lg)',
         }}
       >
-        <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-          Jadwal Bid / Riwayat Distribusi
-        </h2>
+        <div className="flex justify-between items-center mb-6">
+          <h3
+            className="text-[20px] m-0 font-semibold flex flex-col sm:flex-row sm:items-center gap-2"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            <div className="flex items-center gap-2">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ color: '#818cf8' }}
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Jadwal Bid / Riwayat Distribusi
+            </div>
+            <span className="text-[14px] font-normal" style={{ color: 'var(--text-muted)' }}>
+              ({distributions.length} total)
+            </span>
+          </h3>
+
+          {selectedIds.length > 0 && (
+            <Button
+              variant={selectionMode === 'pending' ? 'amber' : 'success'}
+              size="md"
+              loading={isBulkUpdating}
+              onClick={handleBulkAction}
+            >
+              {selectionMode === 'pending' ? 'Approve Selected' : 'Claim Selected'} (
+              {selectedIds.length})
+            </Button>
+          )}
+        </div>
 
         {distributions.length === 0 ? (
           <p className="text-center py-6" style={{ color: 'var(--text-muted)' }}>
             Belum ada riwayat distribusi.
           </p>
         ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
-                      Tanggal
-                    </th>
-                    <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
-                      Resource
-                    </th>
-                    <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
-                      Member
-                    </th>
-                    <th className="p-3 text-right" style={{ color: 'var(--text-muted)' }}>
-                      Jumlah
-                    </th>
-                    <th className="p-3 text-center" style={{ color: 'var(--text-muted)' }}>
-                      Status
-                    </th>
-                    <th className="p-3 text-center" style={{ color: 'var(--text-muted)' }}>
-                      Aksi
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedDistributions.map((dist) => (
-                    <tr
-                      key={dist.id}
-                      className="border-b transition-colors hover:bg-white/5"
-                      style={{ borderColor: 'var(--border-color)' }}
-                    >
-                      <td className="p-3" style={{ color: 'var(--text-secondary)' }}>
-                        {new Date(dist.bid_date).toLocaleDateString('id-ID')}
-                      </td>
-                      <td className="p-3" style={{ color: 'var(--text-primary)' }}>
-                        {dist.resource_id?.name || 'Unknown'}
-                      </td>
-                      <td className="p-3 flex items-center gap-2">
-                        <img
-                          src={getJobIcon(dist.member_id?.job || '')}
-                          alt=""
-                          className="w-5 h-5 object-cover rounded"
-                          onError={(e) => (e.currentTarget.style.display = 'none')}
-                        />
-                        <span style={{ color: 'var(--text-primary)' }}>
-                          {dist.member_id?.name || 'Unknown'}
-                        </span>
-                      </td>
-                      <td className="p-3 text-right font-bold" style={{ color: '#f59e0b' }}>
-                        {dist.quantity}
-                      </td>
-                      <td className="p-3 text-center">
-                        <Badge
-                          variant={
-                            dist.status === 'claimed'
-                              ? 'success'
-                              : dist.status === 'approved'
-                                ? 'info'
-                                : 'warning'
-                          }
-                        >
-                          {dist.status === 'claimed'
-                            ? 'Claimed'
-                            : dist.status === 'approved'
-                              ? 'Approved'
-                              : 'Pending'}
-                        </Badge>
-                      </td>
-                      <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          {dist.status === 'pending' && (
-                            <>
-                              {renderLoadingButton(
-                                () => {
-                                  setEditDistId(dist.id)
-                                  setEditDistType('member')
-                                  setEditDistMemberId(
-                                    typeof dist.member_id === 'object'
-                                      ? dist.member_id.id
-                                      : dist.member_id,
-                                  )
-                                  setIsEditDistModalOpen(true)
-                                },
-                                isEditingDist && actionDistId === dist.id,
+          (() => {
+            const selectableCount = selectionMode
+              ? paginatedDistributions.filter((d) => d.status === selectionMode).length
+              : 0
+            const isAllSelected = selectedIds.length > 0 && selectedIds.length === selectableCount
+            const isIndeterminate = selectedIds.length > 0 && selectedIds.length < selectableCount
+
+            const tableContent = useMemo(() => (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-sm">
+                    <thead>
+                      <tr
+                        className="border-b"
+                        style={{
+                          borderColor: 'var(--border-color)',
+                          background: 'var(--bg-primary)',
+                        }}
+                      >
+                        <th className="p-3 w-12 text-center">
+                          <div className="flex justify-center items-center">
+                            <div
+                              onClick={handleSelectAll}
+                              className="w-5 h-5 rounded-md flex items-center justify-center transition-all cursor-pointer"
+                              style={{
+                                background:
+                                  selectedIds.length > 0 ? 'var(--bg-card)' : 'var(--bg-secondary)',
+                                boxShadow:
+                                  selectedIds.length > 0
+                                    ? 'var(--shadow-neumorph-sm)'
+                                    : 'var(--shadow-neumorph-inset)',
+                                border:
+                                  selectedIds.length > 0
+                                    ? '1px solid rgba(129, 140, 248, 0.5)'
+                                    : '1px solid var(--border-color)',
+                              }}
+                            >
+                              {isAllSelected && (
                                 <svg
-                                  width="14"
-                                  height="14"
+                                  width="12"
+                                  height="12"
                                   viewBox="0 0 24 24"
                                   fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
+                                  stroke="#818cf8"
+                                  strokeWidth="3"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
                                 >
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                </svg>,
-                                'ghost',
-                                'sm',
-                                '',
-                                (isUpdatingStatus || isEditingDist) && actionDistId !== dist.id,
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
                               )}
-                              {renderLoadingButton(
-                                () => handleUpdateStatus(dist.id, 'approved'),
-                                isUpdatingStatus && actionDistId === dist.id,
-                                'Approve',
-                                'success',
-                                'sm',
-                                '',
-                                (isUpdatingStatus || isEditingDist) && actionDistId !== dist.id,
-                              )}
-                            </>
-                          )}
-                          {dist.status === 'approved' && (
-                            <>
-                              {renderLoadingButton(
-                                () => {
-                                  setEditDistId(dist.id)
-                                  setEditDistType('quantity')
-                                  setEditDistQuantity(dist.quantity)
-                                  setIsEditDistModalOpen(true)
-                                },
-                                isEditingDist && actionDistId === dist.id,
+                              {isIndeterminate && (
                                 <svg
-                                  width="14"
-                                  height="14"
+                                  width="12"
+                                  height="12"
                                   viewBox="0 0 24 24"
                                   fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
+                                  stroke="#818cf8"
+                                  strokeWidth="3"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
                                 >
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                </svg>,
-                                'ghost',
-                                'sm',
-                                '',
-                                (isUpdatingStatus || isEditingDist) && actionDistId !== dist.id,
+                                  <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
                               )}
-                              {renderLoadingButton(
-                                () => handleUpdateStatus(dist.id, 'claimed'),
-                                isUpdatingStatus && actionDistId === dist.id,
-                                'Claim',
-                                'primary',
-                                'sm',
-                                '',
-                                (isUpdatingStatus || isEditingDist) && actionDistId !== dist.id,
-                              )}
-                            </>
-                          )}
-                          {dist.status === 'claimed' && (
-                            <span className="text-xs text-emerald-400 font-semibold mt-1 block">
-                              ✓ Selesai
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4">
-              <Pagination
-                currentPage={distPage}
-                totalPages={totalDistPages}
-                onPageChange={setDistPage}
-              />
-            </div>
-          </>
+                            </div>
+                          </div>
+                        </th>
+                        <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
+                          Tanggal
+                        </th>
+                        <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
+                          Resource
+                        </th>
+                        <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
+                          Member
+                        </th>
+                        <th className="p-3 text-right" style={{ color: 'var(--text-muted)' }}>
+                          Jumlah
+                        </th>
+                        <th className="p-3 text-center" style={{ color: 'var(--text-muted)' }}>
+                          Status
+                        </th>
+                        <th className="p-3 text-center" style={{ color: 'var(--text-muted)' }}>
+                          Aksi
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedDistributions.map((dist) => {
+                        const isDisabled =
+                          dist.status === 'claimed' ||
+                          (selectionMode !== null && selectionMode !== dist.status)
+                        const isChecked = selectedIds.includes(dist.id)
+
+                        return (
+                          <tr
+                            key={dist.id}
+                            className={`border-b transition-all ${isDisabled ? 'opacity-50' : 'hover:bg-white/5'} ${isChecked ? 'bg-indigo-500/5' : ''}`}
+                            style={{ borderColor: 'var(--border-color)' }}
+                          >
+                            <td className="p-3">
+                              <div className="flex justify-center items-center">
+                                <div
+                                  onClick={() => {
+                                    if (!isDisabled) handleToggleRow(dist.id, dist.status)
+                                  }}
+                                  className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                  style={{
+                                    background: isChecked
+                                      ? 'var(--bg-card)'
+                                      : 'var(--bg-secondary)',
+                                    boxShadow: isChecked
+                                      ? 'var(--shadow-neumorph-sm)'
+                                      : 'var(--shadow-neumorph-inset)',
+                                    border: isChecked
+                                      ? '1px solid rgba(129, 140, 248, 0.5)'
+                                      : '1px solid var(--border-color)',
+                                    opacity: isDisabled ? 0.5 : 1,
+                                  }}
+                                >
+                                  {isChecked && (
+                                    <svg
+                                      width="12"
+                                      height="12"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="#818cf8"
+                                      strokeWidth="3"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    >
+                                      <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-3" style={{ color: 'var(--text-secondary)' }}>
+                              {new Date(dist.bid_date).toLocaleDateString('id-ID')}
+                            </td>
+                            <td className="p-3" style={{ color: 'var(--text-primary)' }}>
+                              {dist.resource_id?.name || 'Unknown'}
+                            </td>
+                            <td
+                              className="p-4 flex items-center gap-2 cursor-pointer hover:bg-white/5 transition-colors"
+                              onClick={() => setViewedMember(dist.member_id)}
+                            >
+                              <Image
+                                src={getJobIcon(dist.member_id?.job || '')}
+                                alt=""
+                                width={20}
+                                height={20}
+                                className="object-cover rounded"
+                                onError={(e) => (e.currentTarget.style.display = 'none')}
+                              />
+                              <span style={{ color: 'var(--text-primary)' }}>
+                                {dist.member_id?.name || 'Unknown'}
+                              </span>
+                            </td>
+                            <td className="p-3 text-right font-bold" style={{ color: '#f59e0b' }}>
+                              {dist.quantity}
+                            </td>
+                            <td className="p-3 text-center">
+                              <Badge
+                                variant={
+                                  dist.status === 'claimed'
+                                    ? 'success'
+                                    : dist.status === 'approved'
+                                      ? 'info'
+                                      : 'warning'
+                                }
+                              >
+                                {dist.status === 'claimed'
+                                  ? 'Claimed'
+                                  : dist.status === 'approved'
+                                    ? 'Approved'
+                                    : 'Pending'}
+                              </Badge>
+                            </td>
+                            <td className="p-3 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                {dist.status === 'pending' && (
+                                  <>
+                                    {renderLoadingButton(
+                                      () => {
+                                        setEditDistId(dist.id)
+                                        setEditDistType('member')
+                                        setEditDistMemberId(
+                                          typeof dist.member_id === 'object'
+                                            ? dist.member_id.id
+                                            : dist.member_id,
+                                        )
+                                        setIsEditDistModalOpen(true)
+                                      },
+                                      isEditingDist && actionDistId === dist.id,
+                                      <svg
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                      >
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                      </svg>,
+                                      'ghost',
+                                      'sm',
+                                      '',
+                                      (isUpdatingStatus || isEditingDist) &&
+                                        actionDistId !== dist.id,
+                                    )}
+                                    {renderLoadingButton(
+                                      () => handleUpdateStatus(dist.id, 'approved'),
+                                      isUpdatingStatus && actionDistId === dist.id,
+                                      'Approve',
+                                      'success',
+                                      'sm',
+                                      '',
+                                      (isUpdatingStatus || isEditingDist) &&
+                                        actionDistId !== dist.id,
+                                    )}
+                                  </>
+                                )}
+                                {dist.status === 'approved' && (
+                                  <>
+                                    {renderLoadingButton(
+                                      () => {
+                                        setEditDistId(dist.id)
+                                        setEditDistType('quantity')
+                                        setEditDistQuantity(dist.quantity)
+                                        setIsEditDistModalOpen(true)
+                                      },
+                                      isEditingDist && actionDistId === dist.id,
+                                      <svg
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                      >
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                      </svg>,
+                                      'ghost',
+                                      'sm',
+                                      '',
+                                      (isUpdatingStatus || isEditingDist) &&
+                                        actionDistId !== dist.id,
+                                    )}
+                                    {renderLoadingButton(
+                                      () => handleUpdateStatus(dist.id, 'claimed'),
+                                      isUpdatingStatus && actionDistId === dist.id,
+                                      'Claim',
+                                      'primary',
+                                      'sm',
+                                      '',
+                                      (isUpdatingStatus || isEditingDist) &&
+                                        actionDistId !== dist.id,
+                                    )}
+                                  </>
+                                )}
+                                {dist.status === 'claimed' && (
+                                  <span className="text-xs text-emerald-400 font-semibold mt-1 block">
+                                    ✓ Selesai
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4">
+                  <Pagination
+                    currentPage={distPage}
+                    totalPages={totalDistPages}
+                    onPageChange={setDistPage}
+                  />
+                </div>
+              </>
+            ), [paginatedDistributions, selectedIds, selectionMode, isAllSelected, isIndeterminate, distPage, totalDistPages, isUpdatingStatus, isEditingDist, actionDistId])
+            return tableContent
+          })()
         )}
       </div>
 
@@ -906,6 +1123,12 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
           )}
         </div>
       </GlobalDialog>
+
+      <CharacterDetailModal
+        member={viewedMember}
+        isOpen={!!viewedMember}
+        onClose={() => setViewedMember(null)}
+      />
     </div>
   )
 }

@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
+import Image from 'next/image'
 import { GlobalDialog } from '../../components/GlobalDialog'
+import { CharacterDetailModal } from '../../components/CharacterDetailModal'
 import { Button } from '../../components/Button'
 import { Pagination } from '../../components/Pagination'
 import { saveReportGL } from '@/actions/guild/saveReportGL'
@@ -23,6 +25,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeReport, setActiveReport] = useState<any | null>(null)
   const [viewReport, setViewReport] = useState<any | null>(null)
+  const [viewedMember, setViewedMember] = useState<any | null>(null)
   const router = useRouter()
 
   const [reportName, setReportName] = useState('')
@@ -45,7 +48,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
 
   // Ranking members dari seluruh history reports
   const rankingMembers = useMemo(() => {
-    const rankMap: Record<string, { name: string; job: string; total: number }> = {}
+    const rankMap: Record<string, { name: string; job: string; total: number; charObj: any }> = {}
     historyReports.forEach((report) => {
       ;(report.member_reports || []).forEach((mr: any) => {
         const charId = mr.character_id?.id || mr.character_id
@@ -55,6 +58,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
             name: mr.character_id?.name || 'Unknown',
             job: mr.character_id?.job || '',
             total: 0,
+            charObj: mr.character_id,
           }
         }
         rankMap[charId].total += mr.actual_score || 0
@@ -306,7 +310,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                     >
                       <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-3">
-                          <img src={getJobIcon(m.char.job)} alt="" className="w-10 h-10 rounded" />
+                          <Image src={getJobIcon(m.char.job)} alt="" width={40} height={40} className="rounded" />
                           <div>
                             <div
                               className="font-bold text-[15px]"
@@ -505,10 +509,12 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                         opacity: 0.6,
                       }}
                     >
-                      <img
+                      <Image
                         src={getJobIcon(m.char.job)}
                         alt=""
-                        className="w-6 h-6 object-cover rounded"
+                        width={24}
+                        height={24}
+                        className="object-cover rounded"
                       />
                       <span style={{ color: 'var(--text-secondary)' }}>{m.char.name}</span>
                       <span className="text-xs text-red-400 font-semibold">(Absen)</span>
@@ -658,7 +664,8 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                     return (
                       <div
                         key={idx}
-                        className="flex items-center justify-between p-2 rounded-lg border transition-all"
+                        className="flex items-center justify-between p-2 rounded-lg border transition-all cursor-pointer hover:bg-white/5"
+                        onClick={() => setViewedMember(member.charObj)}
                         style={{
                           background: 'var(--bg-primary)',
                           borderColor: isTop3
@@ -688,10 +695,12 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                           >
                             {globalIdx}
                           </span>
-                          <img
+                          <Image
                             src={getJobIcon(member.job)}
                             alt=""
-                            className="w-5 h-5 object-cover rounded"
+                            width={20}
+                            height={20}
+                            className="object-cover rounded"
                             onError={(e) => (e.currentTarget.style.display = 'none')}
                           />
                           <span
@@ -933,7 +942,8 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                         return (
                           <div
                             key={idx}
-                            className="flex flex-col items-center p-3 rounded-xl border transition-all duration-200 hover:shadow-md"
+                            className="flex flex-col items-center p-3 rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer hover:bg-white/5"
+                            onClick={() => setViewedMember(char)}
                             style={{
                               background: isPresent ? 'var(--bg-card)' : 'var(--bg-primary)',
                               borderColor: isPresent
@@ -1015,6 +1025,12 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
           </div>
         )}
       </GlobalDialog>
+
+      <CharacterDetailModal
+        member={viewedMember}
+        isOpen={!!viewedMember}
+        onClose={() => setViewedMember(null)}
+      />
     </div>
   )
 }
