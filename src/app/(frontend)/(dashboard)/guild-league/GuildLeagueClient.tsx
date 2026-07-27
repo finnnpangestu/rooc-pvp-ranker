@@ -45,6 +45,12 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   const [isSaveLoading, setIsSaveLoading] = useState(false)
   const [isClearing, startClearTransition] = useTransition()
   const [viewedMember, setViewedMember] = useState<any | null>(null)
+  const [draggedMember, setDraggedMember] = useState<{
+    member: any
+    sourceType: 'elite' | 'sub' | null
+    sourcePartyIdx: number | null
+    sourceSlotIdx: number | null
+  } | null>(null)
 
   const [eliteBlueprint, setEliteBlueprint] = useState<string[][]>(
     Array(8)
@@ -163,14 +169,83 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     if (selectedPartyType === 'elite') {
       newSetup.elite_parties[selectedPartyIndex].slots[selectedSlotIndex].assigned_character =
         member
+      newSetup.elite_parties[selectedPartyIndex].slots[selectedSlotIndex].required_job = member.job
     } else {
       newSetup.sub_parties[selectedPartyIndex].slots[selectedSlotIndex].assigned_character = member
+      newSetup.sub_parties[selectedPartyIndex].slots[selectedSlotIndex].required_job = member.job
     }
     setLocalSetup(newSetup)
     setIsAddMemberDialogOpen(false)
     setSelectedPartyIndex(null)
     setSelectedPartyType(null)
     setSelectedSlotIndex(null)
+  }
+
+  const handleDragStart = (
+    member: any,
+    sourceType: 'elite' | 'sub' | null,
+    sourcePartyIdx: number | null,
+    sourceSlotIdx: number | null,
+  ) => {
+    setDraggedMember({ member, sourceType, sourcePartyIdx, sourceSlotIdx })
+  }
+
+  const handleDropToSlot = (
+    targetType: 'elite' | 'sub',
+    targetPartyIdx: number,
+    targetSlotIdx: number,
+  ) => {
+    if (!draggedMember || !localSetup) return
+    const { member, sourceType, sourcePartyIdx, sourceSlotIdx } = draggedMember
+    const newSetup = clone(localSetup)
+
+    const targetParties = targetType === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
+    const targetSlot = targetParties[targetPartyIdx].slots[targetSlotIdx]
+    const targetRequiredJob = targetSlot.required_job
+
+    if (targetRequiredJob !== 'any' && member.job !== targetRequiredJob) {
+      alert(`Slot ini khusus untuk job ${JOB_LABELS[targetRequiredJob as keyof typeof JOB_LABELS]}`)
+      setDraggedMember(null)
+      return
+    }
+
+    const targetExistingMember = targetSlot.assigned_character
+
+    if (sourceType !== null && sourcePartyIdx !== null && sourceSlotIdx !== null) {
+      const sourceParties = sourceType === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
+      const sourceSlot = sourceParties[sourcePartyIdx].slots[sourceSlotIdx]
+      if (targetExistingMember) {
+        if (
+          sourceSlot.required_job !== 'any' &&
+          targetExistingMember.job !== sourceSlot.required_job
+        ) {
+          alert('Member yang digantikan tidak sesuai dengan required job di slot asal.')
+          setDraggedMember(null)
+          return
+        }
+      }
+      sourceSlot.assigned_character = targetExistingMember
+      if (targetExistingMember) {
+        sourceSlot.required_job = targetExistingMember.job
+      }
+    }
+
+    targetSlot.assigned_character = member
+    targetSlot.required_job = member.job
+    setLocalSetup(newSetup)
+    setDraggedMember(null)
+  }
+
+  const handleDropToBench = () => {
+    if (!draggedMember || !localSetup) return
+    const { sourceType, sourcePartyIdx, sourceSlotIdx } = draggedMember
+    if (sourceType !== null && sourcePartyIdx !== null && sourceSlotIdx !== null) {
+      const newSetup = clone(localSetup)
+      const sourceParties = sourceType === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
+      sourceParties[sourcePartyIdx].slots[sourceSlotIdx].assigned_character = null
+      setLocalSetup(newSetup)
+    }
+    setDraggedMember(null)
   }
 
   const isEliteGenerated = localSetup?.elite_parties && localSetup.elite_parties.length > 0
@@ -256,10 +331,25 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                 return (
                   <div
                     key={sIdx}
-                    className="flex items-center gap-2 p-2 rounded-lg border transition-all duration-200 min-h-[48px] cursor-pointer hover:bg-white/5"
+                    draggable={!!char}
+                    onDragStart={(e) => {
+                      if (char) {
+                        e.stopPropagation()
+                        handleDragStart(char, type, idx, sIdx)
+                      } else {
+                        e.preventDefault()
+                      }
+                    }}
+                    className={`flex items-center gap-2 p-2 rounded-lg border transition-all duration-200 min-h-[48px] ${char ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} hover:bg-white/5 relative ${
+                      draggedMember && (slot.required_job === 'any' || slot.required_job === draggedMember.member.job)
+                        ? 'border-emerald-500/50 bg-emerald-500/5'
+                        : ''
+                    }`}
                     onClick={() => {
                       if (char) setViewedMember(char)
                     }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => handleDropToSlot(type, idx, sIdx)}
                     style={{
                       background: 'var(--bg-primary)',
                       borderColor: 'var(--border-color)',
@@ -273,21 +363,21 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                           alt=""
                           width={24}
                           height={24}
-                          className="object-cover rounded-[20%] flex-shrink-0"
+                          className="object-cover rounded-[20%] flex-shrink-0 pointer-events-none"
                         />
                         <span
-                          className="text-[15px] font-semibold flex-1 min-w-0 truncate"
+                          className="text-[15px] font-semibold flex-1 min-w-0 truncate pointer-events-none"
                           style={{ color: 'var(--text-primary)' }}
                         >
                           {char.name}
                         </span>
-                        <span className="text-[14px] text-amber-400 font-bold flex-shrink-0">
+                        <span className="text-[14px] text-amber-400 font-bold flex-shrink-0 mr-2 pointer-events-none">
                           {Math.round(char.pvp_score).toLocaleString()}
                         </span>
                         <Button
                           variant="danger"
                           size="sm"
-                          className="!w-7 !h-7 !p-0 flex-shrink-0"
+                          className="!w-7 !h-7 !p-0 flex-shrink-0 relative z-10"
                           title="Hapus dari party"
                           onClick={(e) => {
                             e.stopPropagation()
@@ -312,7 +402,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                         }}
                       >
                         <span className="text-[14px] italic" style={{ color: 'var(--text-muted)' }}>
-                          {JOB_LABELS[slot.required_job] || 'Any'}
+                          {draggedMember ? 'Drop karakter di sini...' : (JOB_LABELS[slot.required_job as keyof typeof JOB_LABELS] || 'Any')}
                         </span>
                       </button>
                     )}
@@ -416,7 +506,9 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
         {/* BENCH PLAYERS */}
         <div
-          className="rounded-2xl p-6 border transition-colors"
+          className="rounded-2xl p-6 border transition-colors relative"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDropToBench}
           style={{
             background: 'var(--bg-card)',
             borderColor: 'var(--border-color)',
@@ -444,7 +536,12 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
               benchMembers.map((member) => (
                 <div
                   key={member.id}
-                  className="py-2.5 px-4 rounded-xl border text-[14px] flex items-center gap-2.5 transition-all duration-200 cursor-pointer hover:bg-white/5"
+                  draggable
+                  onDragStart={(e) => {
+                    e.stopPropagation()
+                    handleDragStart(member, null, null, null)
+                  }}
+                  className="py-2.5 px-4 rounded-xl border text-[14px] flex items-center gap-2.5 transition-all duration-200 cursor-grab active:cursor-grabbing hover:bg-white/5 hover:opacity-80"
                   onClick={() => setViewedMember(member)}
                   style={{
                     background: 'var(--bg-primary)',

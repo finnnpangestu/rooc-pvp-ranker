@@ -75,6 +75,7 @@ export interface Config {
     reports_gl: ReportsGl;
     resources: Resource;
     resource_distributions: ResourceDistribution;
+    woe_setups: WoeSetup;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -94,6 +95,7 @@ export interface Config {
     reports_gl: ReportsGlSelect<false> | ReportsGlSelect<true>;
     resources: ResourcesSelect<false> | ResourcesSelect<true>;
     resource_distributions: ResourceDistributionsSelect<false> | ResourceDistributionsSelect<true>;
+    woe_setups: WoeSetupsSelect<false> | WoeSetupsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -551,6 +553,52 @@ export interface ResourceDistribution {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "woe_setups".
+ */
+export interface WoeSetup {
+  id: string;
+  guild_id: string | Guild;
+  raids?:
+    | {
+        raid_name: string;
+        parties?:
+          | {
+              party_name: string;
+              slots?:
+                | {
+                    required_job:
+                      | 'lord_knight'
+                      | 'paladin'
+                      | 'high_priest'
+                      | 'champion'
+                      | 'assassin_cross'
+                      | 'stalker'
+                      | 'high_wizard'
+                      | 'professor'
+                      | 'sniper'
+                      | 'minstrell'
+                      | 'gypsy'
+                      | 'mastersmith'
+                      | 'biochemist'
+                      | 'summoner'
+                      | 'adept_novice'
+                      | 'rebellion'
+                      | 'any';
+                    assigned_character?: (string | null) | Character;
+                    id?: string | null;
+                  }[]
+                | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -604,6 +652,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'resource_distributions';
         value: string | ResourceDistribution;
+      } | null)
+    | ({
+        relationTo: 'woe_setups';
+        value: string | WoeSetup;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -876,6 +928,35 @@ export interface ResourceDistributionsSelect<T extends boolean = true> {
   bid_date?: T;
   status?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "woe_setups_select".
+ */
+export interface WoeSetupsSelect<T extends boolean = true> {
+  id?: T;
+  guild_id?: T;
+  raids?:
+    | T
+    | {
+        raid_name?: T;
+        parties?:
+          | T
+          | {
+              party_name?: T;
+              slots?:
+                | T
+                | {
+                    required_job?: T;
+                    assigned_character?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

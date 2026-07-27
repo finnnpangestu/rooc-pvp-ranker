@@ -13,6 +13,7 @@ import { PartySetups } from './collections/PartySetups'
 import { ReportsGL } from './collections/ReportsGL'
 import { Resources } from './collections/Resource'
 import { ResourceDistributions } from './collections/ResourceDistributions'
+import { WoeSetups } from './collections/WoeSetups'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -33,6 +34,7 @@ export default buildConfig({
     ReportsGL,
     Resources,
     ResourceDistributions,
+    WoeSetups,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

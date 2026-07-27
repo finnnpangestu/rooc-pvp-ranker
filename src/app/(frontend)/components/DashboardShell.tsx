@@ -9,6 +9,9 @@ import { ThemeProvider, useTheme } from './ThemeProvider'
 
 function DashboardShellContent({ children, guild }: { children: React.ReactNode; guild: any }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    'Party Setup': true,
+  })
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
   const pathname = usePathname()
@@ -33,9 +36,17 @@ function DashboardShellContent({ children, guild }: { children: React.ReactNode;
       paths: ['M4 4h16v16H4z', 'M9 9h6v6H9z'],
     },
     {
-      path: '/guild-league',
-      label: 'Guild League Setup',
-      paths: ['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z', 'M12 8v8', 'M8 12h8'],
+      label: 'Party Setup',
+      paths: [
+        'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2',
+        'M 5 7 a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0',
+        'M23 21v-2a4 4 0 0 0-3-3.87',
+        'M16 3.13a4 4 0 0 1 0 7.75',
+      ], // users icon
+      subItems: [
+        { path: '/guild-league', label: 'Guild League' },
+        { path: '/woe-setup', label: 'WoE Setup' },
+      ],
     },
     {
       path: '/report-gl',
@@ -141,12 +152,95 @@ function DashboardShellContent({ children, guild }: { children: React.ReactNode;
             {isSidebarOpen ? 'Main Menu' : '•••'}
           </div>
 
-          {menuItems.map((item) => {
-            const active = isActive(item.path)
+          {menuItems.map((item, idx) => {
+            if (item.subItems) {
+              const isGroupExpanded = expandedGroups[item.label]
+              const hasActiveSub = item.subItems.some((sub) => isActive(sub.path))
+
+              return (
+                <div key={idx} className="flex flex-col">
+                  <button
+                    onClick={() => {
+                      if (!isSidebarOpen) setIsSidebarOpen(true)
+                      setExpandedGroups((prev) => ({ ...prev, [item.label]: !isGroupExpanded }))
+                    }}
+                    title={item.label}
+                    className={`w-full flex items-center justify-between ${isSidebarOpen ? 'px-3' : 'px-0 justify-center'} py-3 rounded-lg text-sm font-medium transition-all cursor-pointer`}
+                    style={{
+                      background:
+                        hasActiveSub && !isGroupExpanded ? 'var(--bg-primary)' : 'transparent',
+                      color: hasActiveSub ? 'var(--text-primary)' : 'var(--text-muted)',
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <svg
+                        className="shrink-0"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        {item.paths.map((d, i) => (
+                          <path key={i} d={d} />
+                        ))}
+                      </svg>
+                      <span
+                        className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${!isSidebarOpen ? 'opacity-0 hidden' : 'opacity-100 block'}`}
+                      >
+                        {item.label}
+                      </span>
+                    </div>
+                    {isSidebarOpen && (
+                      <svg
+                        className={`w-4 h-4 transition-transform ${isGroupExpanded ? 'rotate-180' : ''}`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    )}
+                  </button>
+
+                  {/* SUB ITEMS */}
+                  {isSidebarOpen && isGroupExpanded && (
+                    <div className="mt-1 flex flex-col gap-1 pl-9 pr-2">
+                      {item.subItems.map((sub) => {
+                        const subActive = isActive(sub.path)
+                        return (
+                          <button
+                            key={sub.path}
+                            onClick={() => router.push(sub.path)}
+                            className={`w-full text-left py-2 px-3 rounded-md text-[13px] font-medium transition-all cursor-pointer`}
+                            style={{
+                              background: subActive ? 'var(--bg-primary)' : 'transparent',
+                              color: subActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                              boxShadow: subActive ? 'var(--shadow-neumorph-inset)' : 'none',
+                            }}
+                          >
+                            {sub.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
+            // Normal Item
+            const active = isActive(item.path!)
             return (
               <button
                 key={item.path}
-                onClick={() => router.push(item.path)}
+                onClick={() => router.push(item.path!)}
                 title={item.label}
                 className={`w-full flex items-center ${isSidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'} py-3 rounded-lg text-sm font-medium transition-all cursor-pointer`}
                 style={{
