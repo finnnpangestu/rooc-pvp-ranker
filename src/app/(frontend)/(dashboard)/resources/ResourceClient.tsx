@@ -261,7 +261,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
   return (
     <div className="max-w-[1400px] mx-auto w-full">
       <div className="flex justify-between items-center mb-6">
-        <div>
+        <div id="tour-resources">
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
             Resource Management
           </h1>
@@ -291,7 +291,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div id="tour-resource-list" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {resources.length === 0 ? (
           <div
             className="col-span-4 rounded-lg p-8 text-center border"
@@ -412,6 +412,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
       </div>
 
       <div
+        id="tour-resource-history"
         className="rounded-3xl p-8 border"
         style={{
           background: 'var(--bg-panel)',

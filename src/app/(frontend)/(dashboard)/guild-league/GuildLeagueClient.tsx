@@ -426,7 +426,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
         margin: '0 auto',
       }}
     >
-      <div className="mb-10 border-b pb-5" style={{ borderColor: 'var(--border-color)' }}>
+      <div id="tour-gl-header" className="mb-10 border-b pb-5" style={{ borderColor: 'var(--border-color)' }}>
         <h1 className="text-[28px] mb-2 font-bold" style={{ color: 'var(--text-primary)' }}>
           League Management
         </h1>
@@ -454,7 +454,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
             >
               Clear Elite
             </Button>
-            <Button variant="amber" size="md" onClick={() => setIsEliteDialogOpen(true)}>
+            <Button id="tour-gl-generate-elite" variant="amber" size="md" onClick={() => setIsEliteDialogOpen(true)}>
               Generate Elite Party
             </Button>
           </div>
@@ -484,6 +484,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
               Clear Sub
             </Button>
             <Button
+              id="tour-gl-generate-sub"
               variant={!isEliteGenerated || maxSubParties === 0 ? 'ghost' : 'primary'}
               size="md"
               disabled={!isEliteGenerated || maxSubParties === 0}
@@ -506,6 +507,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
         {/* BENCH PLAYERS */}
         <div
+          id="tour-gl-bench"
           className="rounded-2xl p-6 border transition-colors relative"
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDropToBench}
@@ -590,6 +592,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
           Clear Formations
         </Button>
         <Button
+          id="tour-gl-save"
           variant="amber"
           size="lg"
           loading={isSaveLoading}

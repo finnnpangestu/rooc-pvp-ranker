@@ -28,6 +28,7 @@
     "clsx": "^2.1.1",
     "cross-env": "^7.0.3",
     "dotenv": "16.4.7",
+    "driver.js": "^1.8.0",
     "graphql": "^16.8.1",
     "html2canvas": "^1.4.1",
     "next": "^16.2.10",

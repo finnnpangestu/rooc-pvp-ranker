@@ -328,7 +328,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
       {/* KIRI - Setup Raid */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-6">
-          <div>
+          <div id="tour-woe-header">
             <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
               WoE Setup
             </h1>
@@ -338,7 +338,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
             </p>
           </div>
           <div className="flex gap-3">
-            <Button variant="amber" size="md" onClick={handleAddRaid}>
+            <Button id="tour-woe-add-castle" variant="amber" size="md" onClick={handleAddRaid}>
               + Add Raid
             </Button>
             <Button
@@ -352,7 +352,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
           </div>
         </div>
 
-        <div className="space-y-8">
+        <div id="tour-woe-list" className="space-y-8">
           {raids.map((raid, raidIdx) => (
             <div
               key={raidIdx}
@@ -596,7 +596,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
       </div>
 
       {/* KANAN - Bench */}
-      <div className="w-[300px] shrink-0 sticky top-4 max-h-[calc(100vh-2rem)] flex flex-col">
+      <div id="tour-woe-benched" className="w-[300px] shrink-0 sticky top-4 max-h-[calc(100vh-2rem)] flex flex-col">
         <div
           className="rounded-2xl flex flex-col flex-1 min-h-0"
           style={{

@@ -6,6 +6,7 @@ import { Button } from './Button'
 import { Badge } from './Badge'
 import { logoutUser } from '@/actions/auth/logoutUser'
 import { ThemeProvider, useTheme } from './ThemeProvider'
+import { TourProvider, useTour } from './TourProvider'
 
 function DashboardShellContent({ children, guild }: { children: React.ReactNode; guild: any }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -23,6 +24,8 @@ function DashboardShellContent({ children, guild }: { children: React.ReactNode;
       router.refresh()
     })
   }
+
+  const { startTour } = useTour()
 
   const isActive = (path: string) => pathname === path
   const hasGuild = !!guild
@@ -405,6 +408,29 @@ function DashboardShellContent({ children, guild }: { children: React.ReactNode;
             {hasGuild && <Badge variant="info">Guild Master Panel</Badge>}
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              variant="amber"
+              size="sm"
+              onClick={startTour}
+              className="!py-2 !px-4 shadow-md hover:scale-105 transition-transform"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <path d="M12 17h.01" />
+              </svg>
+              Panduan Halaman
+            </Button>
             {hasGuild && (
               <Button
                 variant="primary"
@@ -451,7 +477,9 @@ function DashboardShellContent({ children, guild }: { children: React.ReactNode;
 export function DashboardShell({ children, guild }: { children: React.ReactNode; guild: any }) {
   return (
     <ThemeProvider>
-      <DashboardShellContent children={children} guild={guild} />
+      <TourProvider>
+        <DashboardShellContent children={children} guild={guild} />
+      </TourProvider>
     </ThemeProvider>
   )
 }

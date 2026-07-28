@@ -531,7 +531,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
 
   return (
     <div className="max-w-[1200px] mx-auto p-5">
-      <div className="flex justify-between items-center mb-8">
+      <div id="tour-report-gl" className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold m-0" style={{ color: 'var(--text-primary)' }}>
           Riwayat Report GL
         </h1>
@@ -542,7 +542,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
         {/* Daftar Report - 2/3 lebar */}
-        <div className="lg:col-span-2 flex flex-col">
+        <div id="tour-report-list" className="lg:col-span-2 flex flex-col">
           <div
             className="flex-1 rounded-2xl border p-4 flex flex-col"
             style={{
@@ -622,7 +622,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
         </div>
 
         {/* Ranking GL - 1/3 lebar */}
-        <div className="lg:col-span-1 flex flex-col">
+        <div id="tour-report-ranking" className="lg:col-span-1 flex flex-col">
           <div
             className="flex-1 rounded-2xl border p-4 flex flex-col"
             style={{

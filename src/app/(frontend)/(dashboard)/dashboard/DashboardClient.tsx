@@ -190,7 +190,7 @@ export function DashboardClient({
   return (
     <div className="max-w-[1400px] mx-auto w-full">
       {/* Stat cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div id="tour-dashboard-stats" className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div
           className="rounded-lg p-6 flex items-center gap-5 transition-colors"
           style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
@@ -295,6 +295,7 @@ export function DashboardClient({
       {/* League & Performers */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div
+          id="tour-dashboard-league"
           className="rounded-lg p-6 flex flex-col justify-between transition-colors lg:col-span-1"
           style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
         >
@@ -373,6 +374,7 @@ export function DashboardClient({
         </div>
 
         <div
+          id="tour-dashboard-performers"
           className="rounded-lg p-6 transition-colors lg:col-span-2"
           style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
         >
@@ -550,6 +552,7 @@ export function DashboardClient({
       {/* Main Tables */}
       <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-6">
         <div
+          id="tour-dashboard-roster"
           className="rounded-lg flex flex-col h-[600px] overflow-hidden transition-colors"
           style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
         >
