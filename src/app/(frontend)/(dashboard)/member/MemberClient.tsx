@@ -51,7 +51,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
         setSelectedDetailMember(null)
         router.refresh()
       } else {
-        alert('Gagal menghapus: ' + res.message)
+        alert('Gagal menghapus: ' + String(res.error))
       }
     })
   }
