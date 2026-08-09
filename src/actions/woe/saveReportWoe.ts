@@ -19,7 +19,6 @@ export async function saveReportWoe(
       data: {
         guild_id: guildId,
         report_name: reportData.report_name,
-        match_status: reportData.match_status,
         match_rank: reportData.match_rank,
         member_reports: reportData.member_reports,
         match_date: new Date().toISOString(),
