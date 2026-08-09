@@ -62,12 +62,32 @@ function DashboardShellContent({ children, guild }: { children: React.ReactNode;
       ],
     },
     {
+      path: '/report-woe',
+      label: 'Report WoE',
+      paths: [
+        'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z',
+        'M14 2v6h6',
+        'M16 13H8',
+        'M16 17H8',
+      ],
+    },
+    {
       path: '/resources',
       label: 'Resources',
       paths: [
         'M20 7h-4.5A2.5 2.5 0 0 0 13 9.5v9a2.5 2.5 0 0 0 2.5 2.5H20a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z',
         'M4 7h4.5A2.5 2.5 0 0 1 11 9.5v9A2.5 2.5 0 0 1 8.5 21H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z',
         'M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3',
+      ],
+    },
+    {
+      path: '/member',
+      label: 'Daftar Member',
+      paths: [
+        'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2',
+        'M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+        'M23 21v-2a4 4 0 0 0-3-3.87',
+        'M16 3.13a4 4 0 0 1 0 7.75',
       ],
     },
   ]
@@ -467,6 +487,26 @@ function DashboardShellContent({ children, guild }: { children: React.ReactNode;
           }}
         >
           {children}
+
+          {/* FOOTER */}
+          <footer
+            className="mt-16 pt-6 border-t text-center w-full"
+            style={{ borderColor: 'var(--border-color)' }}
+          >
+            <p
+              className="text-[13px] font-medium flex items-center justify-center gap-1.5"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              <span>Made</span>
+              <span>by</span>
+              <span
+                className="font-bold tracking-wider ml-0.5"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                Finnn
+              </span>
+            </p>
+          </footer>
         </main>
       </div>
     </div>

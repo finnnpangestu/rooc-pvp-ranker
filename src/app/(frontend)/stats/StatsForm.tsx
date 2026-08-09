@@ -253,9 +253,17 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
           </div>
 
           <p style={{ color: 'var(--text-secondary)' }}>
-            {formMode === 'add'
-              ? 'Masukkan data stat karaktermu untuk berpartisipasi dalam rank PvP.'
-              : 'Pilih karaktermu untuk memperbarui data stats terbaru (Mereset Verifikasi).'}
+            {formMode === 'add' ? (
+              <>
+                Masukkan data stat karaktermu untuk berpartisipasi dalam rank PvP. <br />
+                <span className="text-[13px] italic">Note: Gunakan stats ketika tanpa menggunakan buff.</span>
+              </>
+            ) : (
+              <>
+                Pilih karaktermu untuk memperbarui data stats terbaru (Mereset Verifikasi). <br />
+                <span className="text-[13px] italic">Note: Gunakan stats ketika tanpa menggunakan buff.</span>
+              </>
+            )}
           </p>
 
           <p style={{ marginTop: '8px' }}>

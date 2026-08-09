@@ -459,6 +459,47 @@ export const Characters: CollectionConfig = {
       },
     },
     {
+      name: 'woe_reports',
+      type: 'array',
+      label: 'Riwayat Report WoE',
+      admin: {
+        readOnly: true,
+      },
+      fields: [
+        {
+          name: 'report_id',
+          type: 'text',
+          label: 'ID Report',
+        },
+        {
+          name: 'is_present',
+          type: 'checkbox',
+          label: 'Hadir',
+        },
+        {
+          name: 'party_assigned',
+          type: 'text',
+          label: 'Party',
+        },
+      ],
+    },
+    {
+      name: 'woe_present_count',
+      type: 'number',
+      label: 'Jumlah Hadir WoE',
+      admin: {
+        readOnly: true,
+      },
+    },
+    {
+      name: 'woe_absent_count',
+      type: 'number',
+      label: 'Jumlah Tidak Hadir WoE',
+      admin: {
+        readOnly: true,
+      },
+    },
+    {
       name: 'total_resources',
       type: 'number',
       label: 'Total Resource Diterima',

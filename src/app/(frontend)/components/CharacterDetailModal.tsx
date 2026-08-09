@@ -80,20 +80,24 @@ export function CharacterDetailModal({
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-4">
             <div className="flex flex-col items-center">
               <span className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
-                Hadir GL
+                Kehadiran GL
               </span>
-              <span className="text-lg font-bold text-emerald-400">
-                {member.gl_present_count || 0}
-              </span>
+              <div className="flex items-center gap-1.5 text-lg font-bold">
+                <span className="text-emerald-400">{member.gl_present_count || 0}</span>
+                <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>/</span>
+                <span className="text-red-400">{member.gl_absent_count || 0}</span>
+              </div>
             </div>
             <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
             <div className="flex flex-col items-center">
               <span className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
-                Absen GL
+                Kehadiran WoE
               </span>
-              <span className="text-lg font-bold text-red-400">
-                {member.gl_absent_count || 0}
-              </span>
+              <div className="flex items-center gap-1.5 text-lg font-bold">
+                <span className="text-emerald-400">{member.woe_present_count || 0}</span>
+                <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>/</span>
+                <span className="text-red-400">{member.woe_absent_count || 0}</span>
+              </div>
             </div>
             <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
             <div className="flex flex-col items-center">

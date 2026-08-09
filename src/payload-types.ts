@@ -76,6 +76,7 @@ export interface Config {
     resources: Resource;
     resource_distributions: ResourceDistribution;
     woe_setups: WoeSetup;
+    reports_woe: ReportsWoe;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -96,6 +97,7 @@ export interface Config {
     resources: ResourcesSelect<false> | ResourcesSelect<true>;
     resource_distributions: ResourceDistributionsSelect<false> | ResourceDistributionsSelect<true>;
     woe_setups: WoeSetupsSelect<false> | WoeSetupsSelect<true>;
+    reports_woe: ReportsWoeSelect<false> | ReportsWoeSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -389,6 +391,16 @@ export interface Character {
   gl_total_score?: number | null;
   gl_present_count?: number | null;
   gl_absent_count?: number | null;
+  woe_reports?:
+    | {
+        report_id?: string | null;
+        is_present?: boolean | null;
+        party_assigned?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  woe_present_count?: number | null;
+  woe_absent_count?: number | null;
   total_resources?: number | null;
   updatedAt: string;
   createdAt: string;
@@ -599,6 +611,27 @@ export interface WoeSetup {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reports_woe".
+ */
+export interface ReportsWoe {
+  id: string;
+  guild_id: string | Guild;
+  report_name: string;
+  match_rank?: number | null;
+  match_date?: string | null;
+  member_reports?:
+    | {
+        character_id: string | Character;
+        is_present?: boolean | null;
+        party_assigned?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -656,6 +689,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'woe_setups';
         value: string | WoeSetup;
+      } | null)
+    | ({
+        relationTo: 'reports_woe';
+        value: string | ReportsWoe;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -822,6 +859,16 @@ export interface CharactersSelect<T extends boolean = true> {
   gl_total_score?: T;
   gl_present_count?: T;
   gl_absent_count?: T;
+  woe_reports?:
+    | T
+    | {
+        report_id?: T;
+        is_present?: T;
+        party_assigned?: T;
+        id?: T;
+      };
+  woe_present_count?: T;
+  woe_absent_count?: T;
   total_resources?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -955,6 +1002,27 @@ export interface WoeSetupsSelect<T extends boolean = true> {
                   };
               id?: T;
             };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reports_woe_select".
+ */
+export interface ReportsWoeSelect<T extends boolean = true> {
+  id?: T;
+  guild_id?: T;
+  report_name?: T;
+  match_rank?: T;
+  match_date?: T;
+  member_reports?:
+    | T
+    | {
+        character_id?: T;
+        is_present?: T;
+        party_assigned?: T;
         id?: T;
       };
   updatedAt?: T;

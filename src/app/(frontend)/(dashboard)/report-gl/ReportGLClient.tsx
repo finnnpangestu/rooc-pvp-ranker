@@ -232,6 +232,16 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
     }, 400)
   }
 
+  const handleHadirSemua = () => {
+    setMemberData((prev) => {
+      const newData = { ...prev }
+      Object.keys(newData).forEach((key) => {
+        newData[key].is_present = true
+      })
+      return newData
+    })
+  }
+
   const handleSave = async () => {
     setIsSaving(true)
     const memberReports = flattenedMembers.map((m) => ({
@@ -272,9 +282,19 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
               Evaluasi Performa & Formasi
             </p>
           </div>
-          <Button variant="amber" size="lg" loading={isSaving} onClick={handleSave}>
-            {isSaving ? 'Menyimpan...' : 'Simpan Report & Update Formasi'}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              onClick={handleHadirSemua}
+              style={{ color: '#10b981', borderColor: '#10b981' }}
+              className="border hover:bg-[#10b981]/10"
+            >
+              ✓ Hadir Semua
+            </Button>
+            <Button variant="amber" size="lg" loading={isSaving} onClick={handleSave}>
+              {isSaving ? 'Menyimpan...' : 'Simpan Report & Update Formasi'}
+            </Button>
+          </div>
         </div>
 
         {availableParties.map((party) => {
@@ -284,10 +304,13 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
           return (
             <div key={party.id} className="mb-10">
               <h2
-                className="text-[20px] font-bold mb-4 pb-2 border-b"
+                className="text-[20px] font-bold mb-4 pb-2 border-b flex items-center justify-between"
                 style={{ color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
               >
-                {party.name}
+                <span>{party.name}</span>
+                <span className="text-sm px-3 py-1 rounded bg-white/5 text-gray-400">
+                  {party.memberCount}/5 Member
+                </span>
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -301,16 +324,22 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                   return (
                     <div
                       key={charId}
-                      className="rounded-2xl p-5 transition-colors border"
+                      className="rounded-xl p-5 flex flex-col gap-4 border transition-all"
                       style={{
-                        background: 'var(--bg-card)',
+                        background: 'var(--bg-secondary)',
                         borderColor: 'var(--border-color)',
-                        boxShadow: 'var(--shadow-neumorph)',
+                        boxShadow: 'var(--shadow-neumorph-sm)',
                       }}
                     >
-                      <div className="flex justify-between items-center mb-4">
+                      <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
-                          <Image src={getJobIcon(m.char.job)} alt="" width={40} height={40} className="rounded" />
+                          <Image
+                            src={getJobIcon(m.char.job)}
+                            alt=""
+                            width={32}
+                            height={32}
+                            className="rounded object-cover"
+                          />
                           <div>
                             <div
                               className="font-bold text-[15px]"
@@ -318,41 +347,44 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                             >
                               {m.char.name}
                             </div>
-                            <div className="text-[11px] text-amber-400 font-semibold">
+                            <div className="text-[11px] text-amber-400 font-semibold mt-0.5">
                               PvP Score: {Math.round(m.char.pvp_score || 0).toLocaleString('id-ID')}
                             </div>
                           </div>
                         </div>
 
-                        <label className="flex items-center gap-2 cursor-pointer">
+                        <label className="flex flex-col items-center gap-1 cursor-pointer">
                           <span
-                            className="text-[13px] font-semibold"
+                            className="text-[11px] font-bold uppercase tracking-wider"
                             style={{ color: data.is_present ? '#10b981' : 'var(--text-muted)' }}
                           >
                             Hadir
                           </span>
-                          <input
-                            type="checkbox"
-                            className="hidden"
-                            checked={data.is_present}
-                            onChange={(e) =>
-                              setMemberData((prev) => ({
-                                ...prev,
-                                [charId]: { ...prev[charId], is_present: e.target.checked },
-                              }))
-                            }
-                          />
-                          <div
-                            className="w-10 h-5 rounded-full relative transition-all duration-300"
-                            style={{
-                              background: data.is_present ? '#10b981' : 'var(--bg-secondary)',
-                              boxShadow: 'var(--shadow-neumorph-inset)',
-                            }}
-                          >
-                            <div
-                              className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all duration-300 ${data.is_present ? 'left-6' : 'left-1'}`}
-                              style={{ boxShadow: 'var(--shadow-neumorph-sm)' }}
+                          <div className="relative">
+                            <input
+                              type="checkbox"
+                              className="sr-only"
+                              checked={data.is_present}
+                              onChange={(e) =>
+                                setMemberData((prev) => ({
+                                  ...prev,
+                                  [charId]: { ...prev[charId], is_present: e.target.checked },
+                                }))
+                              }
                             />
+                            <div
+                              className={`w-10 h-5 rounded-full transition-colors duration-300 ${data.is_present ? 'bg-emerald-500' : 'bg-gray-600'}`}
+                              style={{
+                                boxShadow: data.is_present
+                                  ? 'inset 0 2px 4px rgba(0,0,0,0.2)'
+                                  : 'var(--shadow-neumorph-inset)',
+                              }}
+                            >
+                              <div
+                                className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all duration-300 ${data.is_present ? 'left-6' : 'left-1'}`}
+                                style={{ boxShadow: 'var(--shadow-neumorph-sm)' }}
+                              />
+                            </div>
                           </div>
                         </label>
                       </div>
@@ -403,7 +435,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                               }}
                               className="w-full rounded-lg py-2 px-3 outline-none text-[14px]"
                               style={{
-                                background: 'var(--bg-secondary)',
+                                background: 'var(--bg-primary)',
                                 color: 'var(--text-primary)',
                                 boxShadow: 'var(--shadow-neumorph-inset)',
                                 border: 'none',
@@ -454,15 +486,15 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
 
                             {selectedTargetId && (
                               <Button
-                                variant="primary"
+                                variant="amber"
                                 size="sm"
                                 loading={isDropdownLoading[charId]}
-                                disabled={isTargetFull && !swapTargetChar[charId]}
                                 onClick={() =>
                                   handleSwapExecute(charId, m.partyType, m.pIdx, m.sIdx)
                                 }
+                                className="w-full text-xs mt-1"
                               >
-                                {isDropdownLoading[charId] ? 'Memuat...' : 'Konfirmasi Pindah'}
+                                {isTargetFull ? 'Tukar Formasi' : 'Pindah Formasi'}
                               </Button>
                             )}
                           </div>

@@ -214,6 +214,57 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
           }
         }
       ]
+    } else if (pathname === '/member') {
+      steps = [
+        {
+          element: '#tour-member-list',
+          popover: {
+            title: 'Daftar Member',
+            description: 'Di sini Anda dapat melihat seluruh member yang ada di Guild Anda.',
+            side: 'bottom',
+            align: 'start'
+          }
+        },
+        {
+          element: '#tour-member-pagination',
+          popover: {
+            title: 'Pengaturan Tampilan',
+            description: 'Anda bisa menyesuaikan jumlah member yang tampil per halaman melalui dropdown ini.',
+            side: 'left',
+            align: 'start'
+          }
+        },
+        {
+          element: '#tour-member-action',
+          popover: {
+            title: 'Aksi Karakter',
+            description: 'Gunakan tombol Edit untuk memperbarui stats dari karakter member secara langsung.',
+            side: 'left',
+            align: 'start'
+          }
+        }
+      ]
+    } else if (pathname === '/report-woe') {
+      steps = [
+        {
+          element: '#tour-woe-report-header',
+          popover: {
+            title: 'Report WoE',
+            description: 'Di sini Anda dapat membuat dan melihat riwayat laporan War of Emperium.',
+            side: 'bottom',
+            align: 'start'
+          }
+        },
+        {
+          element: '#tour-woe-report-list',
+          popover: {
+            title: 'Riwayat Laporan WoE',
+            description: 'Daftar riwayat laporan WoE sebelumnya. Anda bisa mengklik tiap laporan untuk melihat detail kehadiran anggota dan perpindahan party.',
+            side: 'right',
+            align: 'start'
+          }
+        }
+      ]
     }
 
     if (steps.length === 0) {

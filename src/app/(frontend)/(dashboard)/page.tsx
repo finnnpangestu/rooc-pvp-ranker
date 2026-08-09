@@ -32,11 +32,12 @@ export default async function DashboardPage() {
   let guildMembers: any[] = []
   let partySetup: any = null
   let resources: any[] = []
+  let woeReports: any[] = []
 
   if (currentGuild) {
     const guildIdStr = currentGuild.id.toString()
 
-    const [guildMembersRes, setupRes, resourcesRes] = await Promise.all([
+    const [guildMembersRes, setupRes, resourcesRes, woeReportsRes] = await Promise.all([
       getCharactersDashboard(guildIdStr),
       payload.find({
         collection: 'party_setups',
@@ -45,11 +46,19 @@ export default async function DashboardPage() {
         limit: 1,
       }),
       getResources(guildIdStr),
+      payload.find({
+        collection: 'reports_woe',
+        where: { guild_id: { equals: currentGuild.id } },
+        sort: '-match_date',
+        limit: 5,
+        depth: 0,
+      }),
     ])
 
     guildMembers = guildMembersRes
     partySetup = setupRes.docs[0] || null
     resources = resourcesRes
+    woeReports = woeReportsRes.docs.reverse() // reverse to show oldest first in graph
   }
 
   return (
@@ -58,6 +67,7 @@ export default async function DashboardPage() {
       members={guildMembers}
       partySetup={partySetup}
       resources={resources}
+      woeReports={woeReports}
     />
   )
 }

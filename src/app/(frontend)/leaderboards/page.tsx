@@ -13,8 +13,10 @@ interface PageProps {
 
 export default async function LeaderboardPage({ searchParams }: PageProps) {
   const { guild: selectedGuildId } = await searchParams
-  const guildsRes = await getGuilds()
-  const charactersRes = await getCharacters()
+  const [guildsRes, charactersRes] = await Promise.all([
+    getGuilds(),
+    getCharacters()
+  ])
 
   const guildMap = guildsRes.reduce(
     (acc, g) => {

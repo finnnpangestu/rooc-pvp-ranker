@@ -14,6 +14,7 @@ import { ReportsGL } from './collections/ReportsGL'
 import { Resources } from './collections/Resource'
 import { ResourceDistributions } from './collections/ResourceDistributions'
 import { WoeSetups } from './collections/WoeSetups'
+import { ReportsWoe } from './collections/ReportsWoe'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -35,6 +36,7 @@ export default buildConfig({
     Resources,
     ResourceDistributions,
     WoeSetups,
+    ReportsWoe,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

@@ -17,12 +17,22 @@ import { deleteCharacter } from '@/actions/dashboard/deleteCharacter'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '../../components/ThemeProvider'
 import { LimitDropdown } from '../../components/LimitDropdown'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 
 interface DashboardClientProps {
   guild: any | null
   members: any[]
   partySetup?: any | null
   resources?: any[] // tambahan
+  woeReports?: any[]
 }
 
 const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
@@ -32,6 +42,7 @@ export function DashboardClient({
   members,
   partySetup,
   resources = [],
+  woeReports = [],
 }: DashboardClientProps) {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
@@ -161,31 +172,51 @@ export function DashboardClient({
     })
   }
 
-  const filteredMembers = selectedRosterJob
-    ? sortedMembers.filter((m) => m.job === selectedRosterJob)
-    : sortedMembers
-  const totalPages = Math.ceil(filteredMembers.length / memberLimit)
-  const paginatedMembers = filteredMembers.slice(
-    (currentPage - 1) * memberLimit,
-    currentPage * memberLimit,
-  )
+  const { filteredMembers, paginatedMembers, totalPages } = React.useMemo(() => {
+    const filtered = selectedRosterJob
+      ? sortedMembers.filter((m) => m.job === selectedRosterJob)
+      : sortedMembers
+    const pages = Math.ceil(filtered.length / memberLimit)
+    const paginated = filtered.slice(
+      (currentPage - 1) * memberLimit,
+      currentPage * memberLimit,
+    )
+    return { filteredMembers: filtered, paginatedMembers: paginated, totalPages: pages }
+  }, [sortedMembers, selectedRosterJob, memberLimit, currentPage])
 
-  const verifiedMembers = members.filter((m) => m.isVerified)
-  const sortedLeaderboard = (
-    selectedLeaderboardJob
-      ? verifiedMembers.filter((m) => m.job === selectedLeaderboardJob)
-      : verifiedMembers
-  ).sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
-  const totalLeaderboardPages = Math.ceil(sortedLeaderboard.length / leaderboardLimit)
-  const paginatedLeaderboard = sortedLeaderboard.slice(
-    (leaderboardPage - 1) * leaderboardLimit,
-    leaderboardPage * leaderboardLimit,
-  )
+  const { sortedLeaderboard, paginatedLeaderboard, totalLeaderboardPages } = React.useMemo(() => {
+    const verifiedMembers = members.filter((m) => m.isVerified)
+    const sorted = (
+      selectedLeaderboardJob
+        ? verifiedMembers.filter((m) => m.job === selectedLeaderboardJob)
+        : verifiedMembers
+    ).sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
+    const pages = Math.ceil(sorted.length / leaderboardLimit)
+    const paginated = sorted.slice(
+      (leaderboardPage - 1) * leaderboardLimit,
+      leaderboardPage * leaderboardLimit,
+    )
+    return { sortedLeaderboard: sorted, paginatedLeaderboard: paginated, totalLeaderboardPages: pages }
+  }, [members, selectedLeaderboardJob, leaderboardLimit, leaderboardPage])
 
   const rosterShouldScroll = memberLimit > 5
   const leaderboardShouldScroll = leaderboardLimit > 5
   const rosterMaxHeight = rosterShouldScroll ? 'max-h-[420px]' : 'max-h-[none]'
   const leaderboardMaxHeight = leaderboardShouldScroll ? 'max-h-[420px]' : 'max-h-[none]'
+
+  // Preparing data for WoE Performance chart
+  const woeChartData = React.useMemo(() => {
+    if (!woeReports || woeReports.length === 0) return []
+    return woeReports.map((report, idx) => ({
+      name: `Match ${idx + 1}`,
+      rank: report.match_rank || 0,
+      date: new Date(report.match_date).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+      }),
+      tooltipTitle: report.report_name || `Match ${idx + 1}`
+    }))
+  }, [woeReports])
 
   return (
     <div className="max-w-[1400px] mx-auto w-full">
@@ -552,124 +583,64 @@ export function DashboardClient({
       {/* Main Tables */}
       <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-6">
         <div
-          id="tour-dashboard-roster"
+          id="tour-dashboard-woe"
           className="rounded-lg flex flex-col h-[600px] overflow-hidden transition-colors"
           style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
         >
-          <div
-            className="p-5 border-b flex justify-between items-center gap-3 flex-wrap"
-            style={{ borderColor: 'var(--border-color)' }}
-          >
+          <div className="p-5 flex justify-between items-center gap-3 flex-wrap">
             <h2 className="text-lg font-semibold m-0" style={{ color: 'var(--text-primary)' }}>
-              Manajemen Roster Guild
+              Performa WoE
             </h2>
-            <div className="flex items-center gap-3">
-              <JobFilterDropdown
-                value={selectedRosterJob}
-                onChange={(v) => {
-                  setSelectedRosterJob(v)
-                  setCurrentPage(1)
-                }}
-                isOpen={isRosterDropdownOpen}
-                onToggle={() => {
-                  setIsRosterDropdownOpen(!isRosterDropdownOpen)
-                  setIsLbdDropdownOpen(false)
-                }}
-                onClose={() => setIsRosterDropdownOpen(false)}
-              />
-              <LimitDropdown
-                value={memberLimit}
-                onChange={(val) => {
-                  setMemberLimit(val)
-                  setCurrentPage(1)
-                }}
-              />
-            </div>
           </div>
-          <div
-            className={`flex-1 overflow-y-auto relative ${rosterShouldScroll ? rosterMaxHeight : ''}`}
-            style={rosterShouldScroll ? { maxHeight: '420px' } : {}}
-          >
-            <table className="w-full border-collapse text-sm">
-              <thead
-                className="sticky top-0 shadow-md z-10 border-b"
-                style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)' }}
-              >
-                <tr>
-                  <th className="p-4 text-left font-medium" style={{ color: 'var(--text-muted)' }}>
-                    Karakter
-                  </th>
-                  <th className="p-4 text-left font-medium" style={{ color: 'var(--text-muted)' }}>
-                    Job
-                  </th>
-                  <th
-                    className="p-4 text-center font-medium"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
-                    Status
-                  </th>
-                  <th className="p-4 text-right font-medium" style={{ color: 'var(--text-muted)' }}>
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedMembers.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="p-8 text-center"
-                      style={{ color: 'var(--text-muted)' }}
-                    >
-                      Tidak ada data karakter untuk kriteria job ini.
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedMembers.map((char) => (
-                    <tr
-                      key={char.id}
-                      className="border-b transition-colors hover:bg-white/5"
-                      style={{ borderColor: 'var(--border-color)' }}
-                    >
-                      <td className="p-4 font-medium" style={{ color: 'var(--text-primary)' }}>
-                        {char.name}
-                      </td>
-                      <td
-                        className="p-4 flex items-center gap-3"
-                        style={{ color: 'var(--text-secondary)' }}
-                      >
-                        <Image
-                          src={getJobIcon(char.job)}
-                          alt=""
-                          width={24}
-                          height={24}
-                          className="object-cover rounded shadow-sm"
-                          onError={(e) => (e.currentTarget.style.display = 'none')}
-                        />
-                        {JOB_LABELS[char.job] || char.job}
-                      </td>
-                      <td className="p-4 text-center">
-                        <Badge variant={char.isVerified ? 'success' : 'warning'}>
-                          {char.isVerified ? 'Verified' : 'Pending'}
-                        </Badge>
-                      </td>
-                      <td className="p-4 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => setSelectedMember(char)}>
-                          Detail
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="p-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+          <div className="flex-1 p-5 relative flex items-center justify-center">
+            {woeChartData.length === 0 ? (
+              <div className="text-center" style={{ color: 'var(--text-muted)' }}>
+                Belum ada data report WoE.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={woeChartData}
+                  margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="var(--text-secondary)" 
+                    tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} 
+                    tickLine={false} 
+                    axisLine={false} 
+                  />
+                  <YAxis 
+                    reversed={true}
+                    stroke="var(--text-secondary)" 
+                    tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    domain={['dataMin - 1', 'dataMax + 1']}
+                    allowDecimals={false}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'var(--bg-secondary)', 
+                      borderColor: 'var(--border-color)', 
+                      color: 'var(--text-primary)',
+                      borderRadius: '8px' 
+                    }}
+                    itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
+                    labelFormatter={(label, payload) => payload?.[0]?.payload?.tooltipTitle || label}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="rank" 
+                    stroke="#10b981" 
+                    strokeWidth={4} 
+                    dot={{ fill: '#10b981', r: 6, strokeWidth: 2, stroke: 'var(--bg-card)' }}
+                    activeDot={{ r: 8 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -677,10 +648,7 @@ export function DashboardClient({
           className="rounded-lg flex flex-col h-[600px] overflow-hidden transition-colors"
           style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
         >
-          <div
-            className="p-5 border-b flex justify-between items-center gap-3 flex-wrap"
-            style={{ borderColor: 'var(--border-color)' }}
-          >
+          <div className="p-5 flex justify-between items-center gap-3 flex-wrap">
             <h2 className="text-lg font-semibold m-0" style={{ color: 'var(--text-primary)' }}>
               Top Rank Internal
             </h2>
