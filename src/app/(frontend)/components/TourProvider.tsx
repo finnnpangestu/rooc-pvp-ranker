@@ -58,10 +58,10 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
           }
         },
         {
-          element: '#tour-dashboard-roster',
+          element: '#tour-dashboard-woe',
           popover: {
-            title: 'Manajemen Roster',
-            description: 'Tabel untuk mengelola, melihat detail, dan memverifikasi member.',
+            title: 'Performa WoE',
+            description: 'Pantau grafik peringkat (rank) Guild dalam 5 pertandingan War of Emperium terakhir.',
             side: 'top',
             align: 'start'
           }
