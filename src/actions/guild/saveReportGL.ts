@@ -49,37 +49,60 @@ export async function saveReportGL(
       },
     })
 
-    // 3. Update each character's gl_reports, gl_total_score, present/absent counts
-    for (const memberReport of reportData.member_reports) {
-      const charId = memberReport.character_id
-      const char = await payload.findByID({
-        collection: 'characters',
-        id: charId,
-      })
+    // 3. Bulk fetch characters to avoid sequential DB lookups
+    const charIds = reportData.member_reports.map((mr: any) => mr.character_id)
+    const charactersRes = await payload.find({
+      collection: 'characters',
+      where: { id: { in: charIds } },
+      limit: 1000,
+    })
 
-      const existingReports = char.gl_reports || []
-      const newReportEntry = {
-        report_id: newReport.id,
-        is_present: memberReport.is_present,
-        actual_score: memberReport.actual_score,
-        party_assigned: memberReport.party_assigned,
+    const charMap = new Map()
+    charactersRes.docs.forEach((doc) => charMap.set(doc.id, doc))
+
+    // Helper for chunking
+    const chunkArray = (arr: any[], size: number) => {
+      const res = []
+      for (let i = 0; i < arr.length; i += size) {
+        res.push(arr.slice(i, i + size))
       }
-      const updatedReports = [...existingReports, newReportEntry]
+      return res
+    }
 
-      const totalScore = updatedReports.reduce((sum, r) => sum + (r.actual_score || 0), 0)
-      const presentCount = updatedReports.filter((r) => r.is_present).length
-      const absentCount = updatedReports.filter((r) => !r.is_present).length
+    // Process updates in chunks of 10 to avoid overwhelming connection pool while still being fast
+    const chunks = chunkArray(reportData.member_reports, 10)
+    for (const chunk of chunks) {
+      await Promise.all(
+        chunk.map(async (memberReport: any) => {
+          const charId = memberReport.character_id
+          const char = charMap.get(charId)
+          if (!char) return
 
-      await payload.update({
-        collection: 'characters',
-        id: charId,
-        data: {
-          gl_reports: updatedReports,
-          gl_total_score: totalScore,
-          gl_present_count: presentCount,
-          gl_absent_count: absentCount,
-        },
-      })
+          const existingReports = char.gl_reports || []
+          const newReportEntry = {
+            report_id: newReport.id,
+            is_present: memberReport.is_present,
+            actual_score: memberReport.actual_score,
+            party_assigned: memberReport.party_assigned,
+          }
+          const updatedReports = [...existingReports, newReportEntry]
+
+          const totalScore = updatedReports.reduce((sum, r) => sum + (r.actual_score || 0), 0)
+          const presentCount = updatedReports.filter((r) => r.is_present).length
+          const absentCount = updatedReports.filter((r) => !r.is_present).length
+
+          return payload.update({
+            collection: 'characters',
+            id: charId,
+            data: {
+              gl_reports: updatedReports,
+              gl_total_score: totalScore,
+              gl_present_count: presentCount,
+              gl_absent_count: absentCount,
+            },
+          })
+        }),
+      )
     }
 
     // 4. Update party setup: remove absent players from parties

@@ -25,34 +25,55 @@ export async function saveReportWoe(
       },
     })
 
-    // 2. Update each character's woe_reports, present/absent counts
-    for (const memberReport of reportData.member_reports) {
-      const charId = memberReport.character_id
-      const char = await payload.findByID({
-        collection: 'characters',
-        id: charId,
-      })
+    // 2. Bulk fetch characters to avoid sequential DB lookups
+    const charIds = reportData.member_reports.map((mr: any) => mr.character_id)
+    const charactersRes = await payload.find({
+      collection: 'characters',
+      where: { id: { in: charIds } },
+      limit: 1000,
+    })
 
-      const existingReports = char.woe_reports || []
-      const newReportEntry = {
-        report_id: newReport.id,
-        is_present: memberReport.is_present,
-        party_assigned: memberReport.party_assigned,
+    const charMap = new Map()
+    charactersRes.docs.forEach((doc) => charMap.set(doc.id, doc))
+
+    const chunkArray = (arr: any[], size: number) => {
+      const res = []
+      for (let i = 0; i < arr.length; i += size) {
+        res.push(arr.slice(i, i + size))
       }
-      const updatedReports = [...existingReports, newReportEntry]
+      return res
+    }
 
-      const presentCount = updatedReports.filter((r) => r.is_present).length
-      const absentCount = updatedReports.filter((r) => !r.is_present).length
+    const chunks = chunkArray(reportData.member_reports, 10)
+    for (const chunk of chunks) {
+      await Promise.all(
+        chunk.map(async (memberReport: any) => {
+          const charId = memberReport.character_id
+          const char = charMap.get(charId)
+          if (!char) return
 
-      await payload.update({
-        collection: 'characters',
-        id: charId,
-        data: {
-          woe_reports: updatedReports,
-          woe_present_count: presentCount,
-          woe_absent_count: absentCount,
-        },
-      })
+          const existingReports = char.woe_reports || []
+          const newReportEntry = {
+            report_id: newReport.id,
+            is_present: memberReport.is_present,
+            party_assigned: memberReport.party_assigned,
+          }
+          const updatedReports = [...existingReports, newReportEntry]
+
+          const presentCount = updatedReports.filter((r: any) => r.is_present).length
+          const absentCount = updatedReports.filter((r: any) => !r.is_present).length
+
+          return payload.update({
+            collection: 'characters',
+            id: charId,
+            data: {
+              woe_reports: updatedReports,
+              woe_present_count: presentCount,
+              woe_absent_count: absentCount,
+            },
+          })
+        }),
+      )
     }
 
     // 3. Update party setup: remove absent players from parties and update swaps
