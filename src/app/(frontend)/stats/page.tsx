@@ -8,6 +8,8 @@ export const metadata = {
   description: 'Form input stats karakter untuk kalkulasi score PvP.',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function StatsPage() {
   const payload = await getPayload({ config: configPromise })
 
