@@ -60,49 +60,36 @@ export async function saveReportGL(
     const charMap = new Map()
     charactersRes.docs.forEach((doc) => charMap.set(doc.id, doc))
 
-    // Helper for chunking
-    const chunkArray = (arr: any[], size: number) => {
-      const res = []
-      for (let i = 0; i < arr.length; i += size) {
-        res.push(arr.slice(i, i + size))
+    // Process updates sequentially to avoid overwhelming the Postgres connection pool
+    // (Supabase session pool limit is typically 15)
+    for (const memberReport of reportData.member_reports) {
+      const charId = memberReport.character_id
+      const char = charMap.get(charId)
+      if (!char) continue
+
+      const existingReports = char.gl_reports || []
+      const newReportEntry = {
+        report_id: newReport.id,
+        is_present: memberReport.is_present,
+        actual_score: memberReport.actual_score,
+        party_assigned: memberReport.party_assigned,
       }
-      return res
-    }
+      const updatedReports = [...existingReports, newReportEntry]
 
-    // Process updates in chunks of 10 to avoid overwhelming connection pool while still being fast
-    const chunks = chunkArray(reportData.member_reports, 10)
-    for (const chunk of chunks) {
-      await Promise.all(
-        chunk.map(async (memberReport: any) => {
-          const charId = memberReport.character_id
-          const char = charMap.get(charId)
-          if (!char) return
+      const totalScore = updatedReports.reduce((sum: number, r: any) => sum + (r.actual_score || 0), 0)
+      const presentCount = updatedReports.filter((r: any) => r.is_present).length
+      const absentCount = updatedReports.filter((r: any) => !r.is_present).length
 
-          const existingReports = char.gl_reports || []
-          const newReportEntry = {
-            report_id: newReport.id,
-            is_present: memberReport.is_present,
-            actual_score: memberReport.actual_score,
-            party_assigned: memberReport.party_assigned,
-          }
-          const updatedReports = [...existingReports, newReportEntry]
-
-          const totalScore = updatedReports.reduce((sum, r) => sum + (r.actual_score || 0), 0)
-          const presentCount = updatedReports.filter((r) => r.is_present).length
-          const absentCount = updatedReports.filter((r) => !r.is_present).length
-
-          return payload.update({
-            collection: 'characters',
-            id: charId,
-            data: {
-              gl_reports: updatedReports,
-              gl_total_score: totalScore,
-              gl_present_count: presentCount,
-              gl_absent_count: absentCount,
-            },
-          })
-        }),
-      )
+      await payload.update({
+        collection: 'characters',
+        id: charId,
+        data: {
+          gl_reports: updatedReports,
+          gl_total_score: totalScore,
+          gl_present_count: presentCount,
+          gl_absent_count: absentCount,
+        },
+      })
     }
 
     // 4. Update party setup: remove absent players from parties
