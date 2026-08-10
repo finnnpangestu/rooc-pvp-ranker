@@ -211,7 +211,7 @@ export interface Character {
     | 'rebellion';
   guild_id: string | Guild;
   isVerified?: boolean | null;
-  max_hp: number;
+  max_hp?: number | null;
   patk?: number | null;
   matk?: number | null;
   pdef?: number | null;

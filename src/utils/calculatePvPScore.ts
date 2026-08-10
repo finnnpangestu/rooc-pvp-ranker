@@ -179,7 +179,7 @@ export const calculatePvPScore = (data: any): number => {
   const weights = JOB_WEIGHTS[job] || JOB_WEIGHTS['paladin']
 
   // 1. HP stat
-  const totalHPValue = (data.max_hp || 0) / 1000
+  const totalHPValue = (data.max_hp ?? 0) / 1000
 
   // 2. Base stats (ATK, MATK, DEF, MDEF)
   const patk = (data.patk || 0) / 100

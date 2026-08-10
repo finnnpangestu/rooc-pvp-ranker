@@ -15,8 +15,10 @@ export async function generateSubParty(
     const totalSubParties = blueprint.length
 
     for (let i = 0; i < totalSubParties; i++) {
+      const subPartyGroup = Math.floor(i / 8) + 1
+      const partyInGroup = (i % 8) + 1
       subParties.push({
-        party_name: `Sub Party ${i + 1}`,
+        party_name: `Sub Party ${subPartyGroup} - P${partyInGroup}`,
         slots: blueprint[i].map((job) => ({ required_job: job, assigned_character: null })),
       })
     }

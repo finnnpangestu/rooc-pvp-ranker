@@ -131,7 +131,7 @@ export const Characters: CollectionConfig = {
         {
           label: 'General Stats',
           fields: [
-            { name: 'max_hp', type: 'number', required: true, label: 'HP' },
+            { name: 'max_hp', type: 'number', label: 'HP', defaultValue: 0 },
             { name: 'patk', type: 'number', label: 'PATK' },
             { name: 'matk', type: 'number', label: 'MATK' },
             { name: 'pdef', type: 'number', label: 'PDEF' },

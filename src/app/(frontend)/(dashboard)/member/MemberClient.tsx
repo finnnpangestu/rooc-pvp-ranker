@@ -28,7 +28,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const router = useRouter()
   const [isPending, startTransition] = React.useTransition()
-  
+
   const [selectedDetailMember, setSelectedDetailMember] = useState<any | null>(null)
   const [selectedUpdateMember, setSelectedUpdateMember] = useState<any | null>(null)
 
@@ -36,7 +36,9 @@ export function MemberClient({ guild, members }: MemberClientProps) {
     startTransition(async () => {
       const res = await toggleVerifyMember(char.id, char.isVerified)
       if (res.success) {
-        setSelectedDetailMember((prev: any) => (prev ? { ...prev, isVerified: !prev.isVerified } : null))
+        setSelectedDetailMember((prev: any) =>
+          prev ? { ...prev, isVerified: !prev.isVerified } : null,
+        )
         router.refresh()
       }
     })
@@ -70,23 +72,18 @@ export function MemberClient({ guild, members }: MemberClientProps) {
 
   const { sortedMembers, filteredMembers, paginatedMembers, totalPages } = React.useMemo(() => {
     const sorted = [...members].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
-    const filtered = selectedJob
-      ? sorted.filter((m) => m.job === selectedJob)
-      : sorted
-    
+    const filtered = selectedJob ? sorted.filter((m) => m.job === selectedJob) : sorted
+
     const pages = Math.ceil(filtered.length / memberLimit)
-    const paginated = filtered.slice(
-      (currentPage - 1) * memberLimit,
-      currentPage * memberLimit
-    )
-    
+    const paginated = filtered.slice((currentPage - 1) * memberLimit, currentPage * memberLimit)
+
     return {
       sortedMembers: sorted,
       filteredMembers: filtered,
       paginatedMembers: paginated,
-      totalPages: pages
+      totalPages: pages,
     }
   }, [members, selectedJob, currentPage, memberLimit])
 
@@ -94,7 +91,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
     <div className="max-w-[1400px] mx-auto w-full">
       <div
         id="tour-member-list"
-        className="rounded-lg flex flex-col h-[700px] overflow-hidden transition-colors"
+        className="rounded-lg flex flex-col h-[955px] overflow-hidden transition-colors"
         style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
       >
         <div
@@ -159,7 +156,11 @@ export function MemberClient({ guild, members }: MemberClientProps) {
             <tbody>
               {paginatedMembers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center" style={{ color: 'var(--text-muted)' }}>
+                  <td
+                    colSpan={5}
+                    className="p-8 text-center"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
                     Tidak ada member yang ditemukan.
                   </td>
                 </tr>
@@ -173,7 +174,10 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                     <td className="p-4 font-medium" style={{ color: 'var(--text-primary)' }}>
                       {char.name}
                     </td>
-                    <td className="p-4 flex items-center gap-3" style={{ color: 'var(--text-secondary)' }}>
+                    <td
+                      className="p-4 flex items-center gap-3"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
                       <Image
                         src={getJobIcon(char.job)}
                         alt=""
@@ -208,10 +212,18 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2" id="tour-member-action">
-                        <Button variant="ghost" size="sm" onClick={() => setSelectedDetailMember(char)}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedDetailMember(char)}
+                        >
                           Detail
                         </Button>
-                        <Button variant="amber" size="sm" onClick={() => setSelectedUpdateMember(char)}>
+                        <Button
+                          variant="amber"
+                          size="sm"
+                          onClick={() => setSelectedUpdateMember(char)}
+                        >
                           Edit
                         </Button>
                       </div>

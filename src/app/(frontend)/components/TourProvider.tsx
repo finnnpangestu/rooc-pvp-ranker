@@ -34,10 +34,11 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
           element: '#tour-dashboard-stats',
           popover: {
             title: 'Statistik Guild',
-            description: 'Di sini Anda dapat melihat total member, skor PVP keseluruhan, dan antrean verifikasi.',
+            description:
+              'Di sini Anda dapat melihat total member, skor PVP keseluruhan, dan antrean verifikasi.',
             side: 'bottom',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-dashboard-league',
@@ -45,8 +46,8 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
             title: 'Performa Guild League',
             description: 'Pantau riwayat kemenangan dan kekalahan Guild League di sini.',
             side: 'right',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-dashboard-performers',
@@ -54,18 +55,19 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
             title: 'Top 5 Performers',
             description: 'Daftar 5 pemain dengan skor PVP tertinggi dalam guild.',
             side: 'left',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-dashboard-woe',
           popover: {
             title: 'Performa WoE',
-            description: 'Pantau grafik peringkat (rank) Guild dalam 5 pertandingan War of Emperium terakhir.',
+            description:
+              'Pantau grafik peringkat (rank) Guild dalam 5 pertandingan War of Emperium terakhir.',
             side: 'top',
-            align: 'start'
-          }
-        }
+            align: 'start',
+          },
+        },
       ]
     } else if (pathname === '/guild-league') {
       steps = [
@@ -73,37 +75,41 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
           element: '#tour-gl-header',
           popover: {
             title: 'Guild League Management',
-            description: 'Halaman ini digunakan untuk merancang formasi 8 Elite Party (Top 40) dan sisanya ke Sub Party.',
+            description:
+              'Halaman ini digunakan untuk merancang formasi 8 Elite Party (Top 40) dan sisanya ke Sub Party.',
             side: 'bottom',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-gl-generate-elite',
           popover: {
             title: 'Generate Elite Party',
-            description: 'Klik ini untuk otomatis memilih 40 pemain terkuat dan membaginya ke 8 party.',
+            description:
+              'Klik ini untuk otomatis memilih 40 pemain terkuat dan membaginya ke 8 party.',
             side: 'bottom',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-gl-generate-sub',
           popover: {
             title: 'Generate Sub Party',
-            description: 'Setelah Elite terbentuk, sisa member bisa otomatis dimasukkan ke Sub Party.',
+            description:
+              'Setelah Elite terbentuk, sisa member bisa otomatis dimasukkan ke Sub Party.',
             side: 'bottom',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-gl-bench',
           popover: {
             title: 'Bench Players',
-            description: 'Pemain yang tidak mendapatkan party akan muncul di sini. Anda bisa me-drag dan drop mereka ke slot kosong.',
+            description:
+              'Pemain yang tidak mendapatkan party akan muncul di sini. Anda bisa me-drag dan drop mereka ke slot kosong.',
             side: 'top',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-gl-save',
@@ -111,9 +117,9 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
             title: 'Simpan Setup',
             description: 'Jangan lupa menyimpan setup Anda setelah formasi terbentuk dengan baik!',
             side: 'top',
-            align: 'end'
-          }
-        }
+            align: 'end',
+          },
+        },
       ]
     } else if (pathname === '/woe-setup') {
       steps = [
@@ -121,38 +127,41 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
           element: '#tour-woe-header',
           popover: {
             title: 'WoE Setup',
-            description: 'Atur alokasi party dan pemain untuk War of Emperium di kastil-kastil Anda.',
+            description:
+              'Atur alokasi party dan pemain untuk War of Emperium di kastil-kastil Anda.',
             side: 'bottom',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-woe-add-castle',
           popover: {
-            title: 'Tambah Kastil',
-            description: 'Buat pengaturan untuk kastil baru.',
+            title: 'Tambah Raid',
+            description: 'Buat pengaturan untuk Raid baru.',
             side: 'bottom',
-            align: 'end'
-          }
+            align: 'end',
+          },
         },
         {
           element: '#tour-woe-list',
           popover: {
             title: 'Daftar Formasi Raid',
-            description: 'Di sini Anda dapat melihat dan mengelola formasi raid untuk setiap kastil yang sudah Anda buat.',
+            description:
+              'Di sini Anda dapat melihat dan mengelola formasi raid untuk setiap kastil yang sudah Anda buat.',
             side: 'top',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-woe-benched',
           popover: {
             title: 'Pemain Bench',
-            description: 'Pemain yang belum dialokasikan ke party mana pun akan muncul di sini. Anda bisa me-drag and drop mereka ke formasi yang ada.',
+            description:
+              'Pemain yang belum dialokasikan ke party mana pun akan muncul di sini. Anda bisa me-drag and drop mereka ke formasi yang ada.',
             side: 'left',
-            align: 'start'
-          }
-        }
+            align: 'start',
+          },
+        },
       ]
     } else if (pathname === '/report-gl') {
       steps = [
@@ -160,29 +169,32 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
           element: '#tour-report-gl',
           popover: {
             title: 'Report Guild League',
-            description: 'Laporan pertandingan dan performa individual anggota akan muncul di sini.',
+            description:
+              'Laporan pertandingan dan performa individual anggota akan muncul di sini.',
             side: 'bottom',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-report-list',
           popover: {
             title: 'Daftar Laporan',
-            description: 'Kumpulan laporan Guild League sebelumnya. Anda bisa mengklik tiap laporan untuk melihat detail performa anggota.',
+            description:
+              'Kumpulan laporan Guild League sebelumnya. Anda bisa mengklik tiap laporan untuk melihat detail performa anggota.',
             side: 'right',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-report-ranking',
           popover: {
             title: 'Ranking Keseluruhan',
-            description: 'Melihat anggota dengan performa (poin) terbaik di Guild League secara keseluruhan.',
+            description:
+              'Melihat anggota dengan performa (poin) terbaik di Guild League secara keseluruhan.',
             side: 'left',
-            align: 'start'
-          }
-        }
+            align: 'start',
+          },
+        },
       ]
     } else if (pathname === '/resources') {
       steps = [
@@ -192,27 +204,29 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
             title: 'Resources',
             description: 'Kelola resource/material guild Anda dari halaman ini.',
             side: 'bottom',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-resource-list',
           popover: {
             title: 'Daftar Resource',
-            description: 'Di sini Anda bisa melihat stok terkini dari masing-masing jenis resource (misalnya Mythic, S, A, dll).',
+            description:
+              'Di sini Anda bisa melihat stok terkini dari masing-masing jenis resource (misalnya Mythic, S, A, dll).',
             side: 'bottom',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-resource-history',
           popover: {
             title: 'Riwayat Distribusi',
-            description: 'Tabel riwayat distribusi ke member. Anda dapat mengecek status (Pending, Approved, Claimed) dan melakukan bulk approve.',
+            description:
+              'Tabel riwayat distribusi ke member. Anda dapat mengecek status (Pending, Approved, Claimed) dan melakukan bulk approve.',
             side: 'top',
-            align: 'start'
-          }
-        }
+            align: 'start',
+          },
+        },
       ]
     } else if (pathname === '/member') {
       steps = [
@@ -222,27 +236,29 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
             title: 'Daftar Member',
             description: 'Di sini Anda dapat melihat seluruh member yang ada di Guild Anda.',
             side: 'bottom',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-member-pagination',
           popover: {
             title: 'Pengaturan Tampilan',
-            description: 'Anda bisa menyesuaikan jumlah member yang tampil per halaman melalui dropdown ini.',
+            description:
+              'Anda bisa menyesuaikan jumlah member yang tampil per halaman melalui dropdown ini.',
             side: 'left',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-member-action',
           popover: {
             title: 'Aksi Karakter',
-            description: 'Gunakan tombol Edit untuk memperbarui stats dari karakter member secara langsung.',
+            description:
+              'Gunakan tombol Edit untuk memperbarui stats dari karakter member secara langsung.',
             side: 'left',
-            align: 'start'
-          }
-        }
+            align: 'start',
+          },
+        },
       ]
     } else if (pathname === '/report-woe') {
       steps = [
@@ -252,18 +268,19 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
             title: 'Report WoE',
             description: 'Di sini Anda dapat membuat dan melihat riwayat laporan War of Emperium.',
             side: 'bottom',
-            align: 'start'
-          }
+            align: 'start',
+          },
         },
         {
           element: '#tour-woe-report-list',
           popover: {
             title: 'Riwayat Laporan WoE',
-            description: 'Daftar riwayat laporan WoE sebelumnya. Anda bisa mengklik tiap laporan untuk melihat detail kehadiran anggota dan perpindahan party.',
+            description:
+              'Daftar riwayat laporan WoE sebelumnya. Anda bisa mengklik tiap laporan untuk melihat detail kehadiran anggota dan perpindahan party.',
             side: 'right',
-            align: 'start'
-          }
-        }
+            align: 'start',
+          },
+        },
       ]
     }
 
@@ -277,7 +294,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
       showProgress: true,
       animate: true,
       steps: steps,
-      popoverClass: isDark ? 'driver-theme-dark' : 'driver-theme-light'
+      popoverClass: isDark ? 'driver-theme-dark' : 'driver-theme-light',
     })
 
     driverObj.drive()
@@ -338,9 +355,5 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  return (
-    <TourContext.Provider value={{ startTour }}>
-      {children}
-    </TourContext.Provider>
-  )
+  return <TourContext.Provider value={{ startTour }}>{children}</TourContext.Provider>
 }

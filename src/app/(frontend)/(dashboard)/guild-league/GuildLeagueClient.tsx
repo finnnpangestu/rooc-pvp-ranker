@@ -78,7 +78,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
   const assignedIds = getAssignedMemberIds()
   const benchMembers = members.filter((m) => !assignedIds.includes(m.id))
-  const maxSubParties = Math.floor(benchMembers.length / 5)
+  const maxSubParties = Math.ceil(benchMembers.length / 5)
 
   useEffect(() => {
     const needed = Math.max(1, maxSubParties)
@@ -138,16 +138,19 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     if (!confirm(`Hapus formasi ${mode}?`)) return
 
     startClearTransition(async () => {
-      const res = await clearParties(initialSetup.id, mode)
-      if (res.success) {
-        const newSetup = clone(localSetup)
-        if (mode === 'all' || mode === 'elite') newSetup.elite_parties = []
-        if (mode === 'all' || mode === 'sub') newSetup.sub_parties = []
-        setLocalSetup(newSetup)
-        router.refresh()
-      } else {
-        alert('Gagal clear: ' + res.message)
+      if (initialSetup?.id) {
+        const res = await clearParties(initialSetup.id, mode)
+        if (!res.success) {
+          alert('Gagal clear: ' + res.message)
+          return
+        }
       }
+
+      const newSetup = clone(localSetup)
+      if (mode === 'all' || mode === 'elite') newSetup.elite_parties = []
+      if (mode === 'all' || mode === 'sub') newSetup.sub_parties = []
+      setLocalSetup(newSetup)
+      router.refresh()
     })
   }
 
@@ -258,10 +261,10 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     selectedPartyIndex !== null &&
     selectedSlotIndex !== null
   ) {
-    if (selectedPartyType === 'elite') {
+    if (selectedPartyType === 'elite' && localSetup.elite_parties?.[selectedPartyIndex]) {
       requiredJobForSlot =
         localSetup.elite_parties[selectedPartyIndex].slots[selectedSlotIndex].required_job
-    } else {
+    } else if (selectedPartyType === 'sub' && localSetup.sub_parties?.[selectedPartyIndex]) {
       requiredJobForSlot =
         localSetup.sub_parties[selectedPartyIndex].slots[selectedSlotIndex].required_job
     }
@@ -281,9 +284,10 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     })
     .sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
 
-  const renderPartyCards = (parties: any[], titleColor: string, type: 'elite' | 'sub') => (
+  const renderPartyCards = (parties: any[], titleColor: string, type: 'elite' | 'sub', startIndexOffset: number = 0) => (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4 mb-6 auto-rows-fr">
-      {parties.map((party: any, idx: number) => {
+      {parties.map((party: any, localIdx: number) => {
+        const idx = startIndexOffset + localIdx;
         const totalScore = party.slots.reduce(
           (sum: number, slot: any) => sum + (slot.assigned_character?.pvp_score || 0),
           0,
@@ -503,7 +507,24 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
         {!isSubGenerated
           ? isEliteGenerated && <EmptyState message="Sub Party kosong atau belum di-generate." />
-          : renderPartyCards(localSetup.sub_parties, '#818cf8', 'sub')}
+          : (
+            <div className="flex flex-col gap-4">
+              {Array.from({ length: Math.ceil(localSetup.sub_parties.length / 8) }).map((_, groupIdx) => {
+                const groupParties = localSetup.sub_parties.slice(groupIdx * 8, (groupIdx + 1) * 8);
+                return (
+                  <div key={groupIdx}>
+                    <div className="flex items-center gap-4 mb-4">
+                      <h3 className="text-[18px] font-bold m-0" style={{ color: '#818cf8' }}>
+                        Sub Party {groupIdx + 1}
+                      </h3>
+                      <div className="flex-1 h-px bg-current opacity-20" style={{ color: '#818cf8' }} />
+                    </div>
+                    {renderPartyCards(groupParties, '#818cf8', 'sub', groupIdx * 8)}
+                  </div>
+                )
+              })}
+            </div>
+          )}
 
         {/* BENCH PLAYERS */}
         <div
@@ -691,48 +712,61 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
           </p>
         ) : (
           <div className="flex flex-col gap-5 max-h-[50vh] overflow-y-auto pr-2">
-            {subBlueprint.map((party, pIdx) => (
-              <div
-                key={pIdx}
-                className="p-4 rounded-xl border"
-                style={{
-                  background: 'var(--bg-primary)',
-                  borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
-                }}
-              >
-                <h3 className="text-[16px] m-0 mb-3 font-semibold" style={{ color: '#818cf8' }}>
-                  Sub Party {pIdx + 1}
-                </h3>
-                <div className="grid grid-cols-5 gap-2.5">
-                  {party.map((job, sIdx) => (
-                    <select
-                      key={sIdx}
-                      value={job}
-                      onChange={(e) => {
-                        const newBp = [...subBlueprint]
-                        newBp[pIdx][sIdx] = e.target.value
-                        setSubBlueprint(newBp)
-                      }}
-                      className="w-full appearance-none rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
-                      style={{
-                        background: 'var(--bg-secondary)',
-                        boxShadow: 'var(--shadow-neumorph-inset)',
-                        color: 'var(--text-primary)',
-                        border: 'none',
-                      }}
-                    >
-                      <option value="any">Any (Bebas)</option>
-                      {JOBS.map((j) => (
-                        <option key={j.value} value={j.value}>
-                          {j.label}
-                        </option>
+            {subBlueprint.map((party, pIdx) => {
+              const isFirstOfGroup = pIdx % 8 === 0;
+              const groupNum = Math.floor(pIdx / 8) + 1;
+              return (
+                <React.Fragment key={pIdx}>
+                  {isFirstOfGroup && (
+                    <div className="flex items-center gap-4 mt-2">
+                      <h3 className="text-[16px] font-bold m-0" style={{ color: '#818cf8' }}>
+                        Group Sub Party {groupNum}
+                      </h3>
+                      <div className="flex-1 h-px bg-current opacity-20" style={{ color: '#818cf8' }} />
+                    </div>
+                  )}
+                  <div
+                    className="p-4 rounded-xl border"
+                    style={{
+                      background: 'var(--bg-primary)',
+                      borderColor: 'var(--border-color)',
+                      boxShadow: 'var(--shadow-neumorph-inset)',
+                    }}
+                  >
+                    <h3 className="text-[16px] m-0 mb-3 font-semibold" style={{ color: '#818cf8' }}>
+                      Sub Party {groupNum} - P{(pIdx % 8) + 1}
+                    </h3>
+                    <div className="grid grid-cols-5 gap-2.5">
+                      {party.map((job, sIdx) => (
+                        <select
+                          key={sIdx}
+                          value={job}
+                          onChange={(e) => {
+                            const newBp = [...subBlueprint]
+                            newBp[pIdx][sIdx] = e.target.value
+                            setSubBlueprint(newBp)
+                          }}
+                          className="w-full appearance-none rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
+                          style={{
+                            background: 'var(--bg-secondary)',
+                            boxShadow: 'var(--shadow-neumorph-inset)',
+                            color: 'var(--text-primary)',
+                            border: 'none',
+                          }}
+                        >
+                          <option value="any">Any (Bebas)</option>
+                          {JOBS.map((j) => (
+                            <option key={j.value} value={j.value}>
+                              {j.label}
+                            </option>
+                          ))}
+                        </select>
                       ))}
-                    </select>
-                  ))}
-                </div>
-              </div>
-            ))}
+                    </div>
+                  </div>
+                </React.Fragment>
+              )
+            })}
           </div>
         )}
         <Button

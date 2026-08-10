@@ -1,5 +1,5 @@
 export const GENERAL_STATS = [
-  { name: 'max_hp', label: 'HP', required: true },
+  { name: 'max_hp', label: 'HP' },
   { name: 'patk', label: 'PATK' },
   { name: 'matk', label: 'MATK' },
   { name: 'pdef', label: 'PDEF' },

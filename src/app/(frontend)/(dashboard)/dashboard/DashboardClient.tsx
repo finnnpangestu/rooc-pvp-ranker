@@ -75,9 +75,57 @@ export function DashboardClient({
     }
   }, [selectedMember])
 
-  const sortedMembers = [...members].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  const safeMembers = members || []
+
+  const sortedMembers = [...safeMembers].sort(
+    (a, b) => new Date(b?.createdAt).getTime() - new Date(a?.createdAt).getTime(),
   )
+
+  const { filteredMembers, paginatedMembers, totalPages } = React.useMemo(() => {
+    const filtered = selectedRosterJob
+      ? sortedMembers.filter((m) => m?.job === selectedRosterJob)
+      : sortedMembers
+    const pages = Math.ceil(filtered.length / memberLimit) || 1
+    const paginated = filtered.slice(
+      (currentPage - 1) * memberLimit,
+      currentPage * memberLimit,
+    )
+    return { filteredMembers: filtered, paginatedMembers: paginated, totalPages: pages }
+  }, [sortedMembers, selectedRosterJob, memberLimit, currentPage])
+
+  const { sortedLeaderboard, paginatedLeaderboard, totalLeaderboardPages } = React.useMemo(() => {
+    const verifiedMembers = safeMembers.filter((m) => m?.isVerified)
+    const sorted = (
+      selectedLeaderboardJob
+        ? verifiedMembers.filter((m) => m?.job === selectedLeaderboardJob)
+        : verifiedMembers
+    ).sort((a, b) => (b?.pvp_score || 0) - (a?.pvp_score || 0))
+    const pages = Math.ceil(sorted.length / leaderboardLimit) || 1
+    const paginated = sorted.slice(
+      (leaderboardPage - 1) * leaderboardLimit,
+      leaderboardPage * leaderboardLimit,
+    )
+    return { sortedLeaderboard: sorted, paginatedLeaderboard: paginated, totalLeaderboardPages: pages }
+  }, [safeMembers, selectedLeaderboardJob, leaderboardLimit, leaderboardPage])
+
+  const rosterShouldScroll = memberLimit > 5
+  const leaderboardShouldScroll = leaderboardLimit > 5
+  const rosterMaxHeight = rosterShouldScroll ? 'max-h-[420px]' : 'max-h-[none]'
+  const leaderboardMaxHeight = leaderboardShouldScroll ? 'max-h-[420px]' : 'max-h-[none]'
+
+  // Preparing data for WoE Performance chart
+  const woeChartData = React.useMemo(() => {
+    if (!woeReports || woeReports.length === 0) return []
+    return woeReports.map((report, idx) => ({
+      name: `Match ${idx + 1}`,
+      rank: report?.match_rank || 0,
+      date: new Date(report?.match_date).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+      }),
+      tooltipTitle: report?.report_name || `Match ${idx + 1}`
+    }))
+  }, [woeReports])
 
   if (!guild) {
     const handleCreateGuild = async (e: React.FormEvent) => {
@@ -171,52 +219,6 @@ export function DashboardClient({
       }
     })
   }
-
-  const { filteredMembers, paginatedMembers, totalPages } = React.useMemo(() => {
-    const filtered = selectedRosterJob
-      ? sortedMembers.filter((m) => m.job === selectedRosterJob)
-      : sortedMembers
-    const pages = Math.ceil(filtered.length / memberLimit)
-    const paginated = filtered.slice(
-      (currentPage - 1) * memberLimit,
-      currentPage * memberLimit,
-    )
-    return { filteredMembers: filtered, paginatedMembers: paginated, totalPages: pages }
-  }, [sortedMembers, selectedRosterJob, memberLimit, currentPage])
-
-  const { sortedLeaderboard, paginatedLeaderboard, totalLeaderboardPages } = React.useMemo(() => {
-    const verifiedMembers = members.filter((m) => m.isVerified)
-    const sorted = (
-      selectedLeaderboardJob
-        ? verifiedMembers.filter((m) => m.job === selectedLeaderboardJob)
-        : verifiedMembers
-    ).sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
-    const pages = Math.ceil(sorted.length / leaderboardLimit)
-    const paginated = sorted.slice(
-      (leaderboardPage - 1) * leaderboardLimit,
-      leaderboardPage * leaderboardLimit,
-    )
-    return { sortedLeaderboard: sorted, paginatedLeaderboard: paginated, totalLeaderboardPages: pages }
-  }, [members, selectedLeaderboardJob, leaderboardLimit, leaderboardPage])
-
-  const rosterShouldScroll = memberLimit > 5
-  const leaderboardShouldScroll = leaderboardLimit > 5
-  const rosterMaxHeight = rosterShouldScroll ? 'max-h-[420px]' : 'max-h-[none]'
-  const leaderboardMaxHeight = leaderboardShouldScroll ? 'max-h-[420px]' : 'max-h-[none]'
-
-  // Preparing data for WoE Performance chart
-  const woeChartData = React.useMemo(() => {
-    if (!woeReports || woeReports.length === 0) return []
-    return woeReports.map((report, idx) => ({
-      name: `Match ${idx + 1}`,
-      rank: report.match_rank || 0,
-      date: new Date(report.match_date).toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'short',
-      }),
-      tooltipTitle: report.report_name || `Match ${idx + 1}`
-    }))
-  }, [woeReports])
 
   return (
     <div className="max-w-[1400px] mx-auto w-full">
