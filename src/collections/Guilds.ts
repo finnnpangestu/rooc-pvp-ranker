@@ -19,37 +19,7 @@ export const Guilds: CollectionConfig = {
     },
     delete: ({ req: { user } }) => user?.role === 'super_admin',
   },
-  hooks: {
-    afterRead: [
-      async ({ doc, req: { payload } }) => {
-        try {
-          const result = await payload.find({
-            collection: 'characters',
-            where: {
-              guild_id: { equals: doc.id },
-              isVerified: { equals: true },
-            },
-            limit: 0,
-            pagination: false,
-            depth: 0,
-          })
-
-          const totalScore = result.docs.reduce(
-            (sum: number, char: any) => sum + (char.pvp_score ?? 0),
-            0,
-          )
-
-          doc.total_characters = result.totalDocs
-          doc.total_pvp_score = totalScore
-        } catch (_) {
-          doc.total_characters = 0
-          doc.total_pvp_score = 0
-        }
-
-        return doc
-      },
-    ],
-  },
+  // hooks removed to prevent dynamic N+1 queries on every read
   fields: [
     {
       name: 'id',

@@ -379,26 +379,9 @@ export interface Character {
    */
   poison_dmg_reduction?: number | null;
   pvp_score?: number | null;
-  gl_reports?:
-    | {
-        report_id?: string | null;
-        is_present?: boolean | null;
-        actual_score?: number | null;
-        party_assigned?: string | null;
-        id?: string | null;
-      }[]
-    | null;
   gl_total_score?: number | null;
   gl_present_count?: number | null;
   gl_absent_count?: number | null;
-  woe_reports?:
-    | {
-        report_id?: string | null;
-        is_present?: boolean | null;
-        party_assigned?: string | null;
-        id?: string | null;
-      }[]
-    | null;
   woe_present_count?: number | null;
   woe_absent_count?: number | null;
   total_resources?: number | null;
@@ -847,26 +830,9 @@ export interface CharactersSelect<T extends boolean = true> {
   poison_dmg_bonus?: T;
   poison_dmg_reduction?: T;
   pvp_score?: T;
-  gl_reports?:
-    | T
-    | {
-        report_id?: T;
-        is_present?: T;
-        actual_score?: T;
-        party_assigned?: T;
-        id?: T;
-      };
   gl_total_score?: T;
   gl_present_count?: T;
   gl_absent_count?: T;
-  woe_reports?:
-    | T
-    | {
-        report_id?: T;
-        is_present?: T;
-        party_assigned?: T;
-        id?: T;
-      };
   woe_present_count?: T;
   woe_absent_count?: T;
   total_resources?: T;

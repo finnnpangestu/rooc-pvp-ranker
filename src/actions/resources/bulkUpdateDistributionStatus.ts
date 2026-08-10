@@ -25,12 +25,14 @@ export async function bulkUpdateDistributionStatus(
     const memberIdsToUpdate = new Set<string>()
 
     for (const doc of distributions.docs) {
-      const isApproving = doc.status === 'pending' && (status === 'approved' || status === 'claimed')
-      
+      const isApproving =
+        doc.status === 'pending' && (status === 'approved' || status === 'claimed')
+
       if (isApproving) {
         const resId = typeof doc.resource_id === 'object' ? doc.resource_id.id : doc.resource_id
         if (resId) {
-          resourceDeductions[resId as string] = (resourceDeductions[resId as string] || 0) + doc.quantity
+          resourceDeductions[resId as string] =
+            (resourceDeductions[resId as string] || 0) + doc.quantity
         }
       }
 
@@ -51,22 +53,20 @@ export async function bulkUpdateDistributionStatus(
 
     // 3. Process Resource Deductions (Unique resources only)
     if (Object.keys(resourceDeductions).length > 0) {
-      await Promise.all(
-        Object.entries(resourceDeductions).map(async ([resId, deduction]) => {
-          const resource = await payload.findByID({
-            collection: 'resources',
-            id: resId,
-          })
-          const newRemaining = (resource.remaining_quantity ?? 0) - deduction
-          return payload.update({
-            collection: 'resources',
-            id: resId,
-            data: {
-              remaining_quantity: Math.max(0, newRemaining),
-            },
-          })
+      for (const [resId, deduction] of Object.entries(resourceDeductions)) {
+        const resource = await payload.findByID({
+          collection: 'resources',
+          id: resId,
         })
-      )
+        const newRemaining = (resource.remaining_quantity ?? 0) - deduction
+        await payload.update({
+          collection: 'resources',
+          id: resId,
+          data: {
+            remaining_quantity: Math.max(0, newRemaining),
+          },
+        })
+      }
     }
 
     // 4. Recalculate member totals efficiently
@@ -89,17 +89,15 @@ export async function bulkUpdateDistributionStatus(
         }
       }
 
-      await Promise.all(
-        Array.from(memberIdsToUpdate).map((memId) =>
-          payload.update({
-            collection: 'characters',
-            id: memId,
-            data: {
-              total_resources: memberTotals[memId] || 0,
-            },
-          })
-        )
-      )
+      for (const memId of Array.from(memberIdsToUpdate)) {
+        await payload.update({
+          collection: 'characters',
+          id: memId,
+          data: {
+            total_resources: memberTotals[memId] || 0,
+          },
+        })
+      }
     }
 
     revalidatePath('/resources')

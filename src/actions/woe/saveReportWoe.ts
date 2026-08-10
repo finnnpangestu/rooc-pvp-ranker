@@ -8,7 +8,7 @@ export async function saveReportWoe(
   guildId: string,
   setupId: string,
   reportData: any,
-  updatedSetupData: any
+  updatedSetupData: any,
 ) {
   try {
     const payload = await getPayload({ config: configPromise })
@@ -43,22 +43,13 @@ export async function saveReportWoe(
       const char = charMap.get(charId)
       if (!char) continue
 
-      const existingReports = char.woe_reports || []
-      const newReportEntry = {
-        report_id: newReport.id,
-        is_present: memberReport.is_present,
-        party_assigned: memberReport.party_assigned,
-      }
-      const updatedReports = [...existingReports, newReportEntry]
-
-      const presentCount = updatedReports.filter((r: any) => r.is_present).length
-      const absentCount = updatedReports.filter((r: any) => !r.is_present).length
+      const presentCount = (char.woe_present_count || 0) + (memberReport.is_present ? 1 : 0)
+      const absentCount = (char.woe_absent_count || 0) + (memberReport.is_present ? 0 : 1)
 
       await payload.update({
         collection: 'characters',
         id: charId,
         data: {
-          woe_reports: updatedReports,
           woe_present_count: presentCount,
           woe_absent_count: absentCount,
         },

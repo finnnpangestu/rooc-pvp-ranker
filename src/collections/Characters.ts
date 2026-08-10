@@ -67,8 +67,82 @@ export const Characters: CollectionConfig = {
     beforeChange: [
       ({ data }) => {
         data.pvp_score = calculatePvPScore(data)
-
         return data
+      },
+    ],
+    afterChange: [
+      async ({ doc, previousDoc, req: { payload } }) => {
+        const updateGuildTotals = async (guildId: string) => {
+          if (!guildId) return
+          try {
+            const result = await payload.find({
+              collection: 'characters',
+              where: {
+                guild_id: { equals: guildId },
+                isVerified: { equals: true },
+              },
+              limit: 0,
+              pagination: false,
+              depth: 0,
+            })
+            const totalScore = result.docs.reduce(
+              (sum: number, char: any) => sum + (char.pvp_score ?? 0),
+              0,
+            )
+            await payload.update({
+              collection: 'guilds',
+              id: guildId,
+              data: {
+                total_characters: result.totalDocs,
+                total_pvp_score: totalScore,
+              },
+            })
+          } catch (e) {
+            console.error('Error updating guild totals:', e)
+          }
+        }
+
+        const newGuildId = typeof doc.guild_id === 'object' ? doc.guild_id?.id : doc.guild_id
+        const oldGuildId =
+          previousDoc &&
+          (typeof previousDoc.guild_id === 'object'
+            ? previousDoc.guild_id?.id
+            : previousDoc.guild_id)
+
+        if (newGuildId) await updateGuildTotals(newGuildId)
+        if (oldGuildId && oldGuildId !== newGuildId) await updateGuildTotals(oldGuildId)
+      },
+    ],
+    afterDelete: [
+      async ({ doc, req: { payload } }) => {
+        const guildId = typeof doc.guild_id === 'object' ? doc.guild_id?.id : doc.guild_id
+        if (!guildId) return
+        try {
+          const result = await payload.find({
+            collection: 'characters',
+            where: {
+              guild_id: { equals: guildId },
+              isVerified: { equals: true },
+            },
+            limit: 0,
+            pagination: false,
+            depth: 0,
+          })
+          const totalScore = result.docs.reduce(
+            (sum: number, char: any) => sum + (char.pvp_score ?? 0),
+            0,
+          )
+          await payload.update({
+            collection: 'guilds',
+            id: guildId,
+            data: {
+              total_characters: result.totalDocs,
+              total_pvp_score: totalScore,
+            },
+          })
+        } catch (e) {
+          console.error('Error updating guild totals on delete:', e)
+        }
       },
     ],
   },
@@ -405,36 +479,6 @@ export const Characters: CollectionConfig = {
       },
     },
     {
-      name: 'gl_reports',
-      type: 'array',
-      label: 'Riwayat Report GL',
-      admin: {
-        readOnly: true,
-      },
-      fields: [
-        {
-          name: 'report_id',
-          type: 'text',
-          label: 'ID Report',
-        },
-        {
-          name: 'is_present',
-          type: 'checkbox',
-          label: 'Hadir',
-        },
-        {
-          name: 'actual_score',
-          type: 'number',
-          label: 'Skor Aktual',
-        },
-        {
-          name: 'party_assigned',
-          type: 'text',
-          label: 'Party',
-        },
-      ],
-    },
-    {
       name: 'gl_total_score',
       type: 'number',
       label: 'Total GL Score',
@@ -457,31 +501,6 @@ export const Characters: CollectionConfig = {
       admin: {
         readOnly: true,
       },
-    },
-    {
-      name: 'woe_reports',
-      type: 'array',
-      label: 'Riwayat Report WoE',
-      admin: {
-        readOnly: true,
-      },
-      fields: [
-        {
-          name: 'report_id',
-          type: 'text',
-          label: 'ID Report',
-        },
-        {
-          name: 'is_present',
-          type: 'checkbox',
-          label: 'Hadir',
-        },
-        {
-          name: 'party_assigned',
-          type: 'text',
-          label: 'Party',
-        },
-      ],
     },
     {
       name: 'woe_present_count',

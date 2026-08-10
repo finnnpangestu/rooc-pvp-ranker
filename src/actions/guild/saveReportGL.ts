@@ -67,24 +67,14 @@ export async function saveReportGL(
       const char = charMap.get(charId)
       if (!char) continue
 
-      const existingReports = char.gl_reports || []
-      const newReportEntry = {
-        report_id: newReport.id,
-        is_present: memberReport.is_present,
-        actual_score: memberReport.actual_score,
-        party_assigned: memberReport.party_assigned,
-      }
-      const updatedReports = [...existingReports, newReportEntry]
-
-      const totalScore = updatedReports.reduce((sum: number, r: any) => sum + (r.actual_score || 0), 0)
-      const presentCount = updatedReports.filter((r: any) => r.is_present).length
-      const absentCount = updatedReports.filter((r: any) => !r.is_present).length
+      const totalScore = (char.gl_total_score || 0) + (memberReport.actual_score || 0)
+      const presentCount = (char.gl_present_count || 0) + (memberReport.is_present ? 1 : 0)
+      const absentCount = (char.gl_absent_count || 0) + (memberReport.is_present ? 0 : 1)
 
       await payload.update({
         collection: 'characters',
         id: charId,
         data: {
-          gl_reports: updatedReports,
           gl_total_score: totalScore,
           gl_present_count: presentCount,
           gl_absent_count: absentCount,
