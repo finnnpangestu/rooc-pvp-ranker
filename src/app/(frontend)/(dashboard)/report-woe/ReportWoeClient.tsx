@@ -7,6 +7,7 @@ import { CharacterDetailModal } from '../../components/CharacterDetailModal'
 import { Button } from '../../components/Button'
 import { Pagination } from '../../components/Pagination'
 import { saveReportWoe } from '@/actions/woe/saveReportWoe'
+import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
 import { useRouter } from 'next/navigation'
 
 interface ReportWoeClientProps {
@@ -737,7 +738,37 @@ export function ReportWoeClient({ guild, initialSetup, historyReports }: ReportW
       <CharacterDetailModal
         member={viewedMember}
         isOpen={!!viewedMember}
-        onClose={() => setViewedMember(null)}
+        onClose={async (isUpdated) => {
+          setViewedMember(null)
+          if (isUpdated) {
+            const updated = await getCharactersDashboard(guild.id)
+            if (localSetup) {
+              const newSetup = clone(localSetup)
+              newSetup.raids.forEach((r: any) => {
+                r.parties.forEach((p: any) => {
+                  p.slots.forEach((s: any) => {
+                    if (s.assigned_character) {
+                      const newChar = updated.find((m: any) => m.id === s.assigned_character.id || m.id === s.assigned_character)
+                      if (newChar) s.assigned_character = newChar
+                    }
+                  })
+                })
+              })
+              setLocalSetup(newSetup)
+            }
+            if (viewReport) {
+              const newReport = clone(viewReport)
+              newReport.member_reports.forEach((mr: any) => {
+                if (mr.character_id) {
+                  const newChar = updated.find((m: any) => m.id === mr.character_id.id || m.id === mr.character_id)
+                  if (newChar) mr.character_id = newChar
+                }
+              })
+              setViewReport(newReport)
+            }
+            router.refresh()
+          }
+        }}
       />
     </div>
   )

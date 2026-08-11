@@ -6,16 +6,14 @@ import { GENERAL_STATS, QUASI_STATS, SPECIAL_STATS } from '@/const/StatsLabels'
 import { updateCharacterStats } from '@/actions/stats/updateCharacter'
 import { JOBS } from '@/const/JobLabels'
 import clsx from 'clsx'
-import { useRouter } from 'next/navigation'
 
 interface MemberUpdateDialogProps {
   isOpen: boolean
-  onClose: () => void
+  onClose: (isUpdated?: boolean) => void
   character: any | null
 }
 
 export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateDialogProps) {
-  const router = useRouter()
   const [formData, setFormData] = useState<any>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState('general')
@@ -24,7 +22,10 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
     if (character && isOpen) {
       setFormData({
         ...character,
-        guild_id: String(character.guild_id),
+        guild_id:
+          typeof character.guild_id === 'object' && character.guild_id?.id
+            ? String(character.guild_id.id)
+            : String(character.guild_id || ''),
       })
       setActiveTab('general')
     }
@@ -46,6 +47,17 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
 
     try {
       const payloadData = { ...formData }
+
+      // Remove read-only/system fields to prevent SQL update errors
+      delete payloadData.id
+      delete payloadData.createdAt
+      delete payloadData.updatedAt
+      delete payloadData.gl_present_count
+      delete payloadData.gl_absent_count
+      delete payloadData.woe_present_count
+      delete payloadData.woe_absent_count
+      delete payloadData.total_resources
+
       if (payloadData.guild_id) {
         payloadData.guild_id = String(payloadData.guild_id)
       }
@@ -54,8 +66,7 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
       if (!res.success) throw new Error(res.message)
 
       alert('Berhasil memperbarui karakter!')
-      router.refresh()
-      onClose()
+      onClose(true)
     } catch (err: any) {
       console.error(err)
       alert(err.message || 'Terjadi kesalahan jaringan.')
@@ -74,7 +85,11 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {fields.map((field) => (
         <div key={field.name} className="flex flex-col gap-1.5">
-          <label htmlFor={field.name} className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+          <label
+            htmlFor={field.name}
+            className="text-sm font-medium"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             {field.label} {field.required && <span className="text-red-500 font-bold">*</span>}
           </label>
           <input
@@ -106,12 +121,14 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
       title={`Update Stats: ${character.name}`}
       maxWidth={700}
     >
-      <div className="flex gap-2 p-2 rounded-xl mb-6 border overflow-x-auto scrollbar-none"
+      <div
+        className="flex gap-2 p-2 rounded-xl mb-6 border overflow-x-auto scrollbar-none"
         style={{
           background: 'var(--bg-secondary)',
           borderColor: 'var(--border-color)',
           boxShadow: 'var(--shadow-neumorph-inset)',
-        }}>
+        }}
+      >
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -127,9 +144,7 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
               color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-muted)',
               borderColor: 'var(--border-color)',
               boxShadow:
-                activeTab === tab.id
-                  ? 'var(--shadow-neumorph-inset)'
-                  : 'var(--shadow-neumorph-sm)',
+                activeTab === tab.id ? 'var(--shadow-neumorph-inset)' : 'var(--shadow-neumorph-sm)',
             }}
             onClick={() => setActiveTab(tab.id)}
           >
@@ -142,7 +157,11 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
         <div className="max-h-[50vh] overflow-y-auto pr-2 mb-6">
           <div className="flex flex-col gap-4 mb-4">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="name" className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                htmlFor="name"
+                className="text-sm font-medium"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 IGN (In-Game Name) <span className="text-red-500 font-bold">*</span>
               </label>
               <input
@@ -162,7 +181,11 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="job" className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                htmlFor="job"
+                className="text-sm font-medium"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Job <span className="text-red-500 font-bold">*</span>
               </label>
               <select
@@ -179,7 +202,9 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled>-- Pilih Job --</option>
+                <option value="" disabled>
+                  -- Pilih Job --
+                </option>
                 {JOBS.map((j) => (
                   <option key={j.value} value={j.value}>
                     {j.label}
@@ -200,15 +225,18 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
+        <div
+          className="flex justify-end gap-3 pt-4 border-t"
+          style={{ borderColor: 'var(--border-color)' }}
+        >
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => onClose()}
             className="px-4 py-2 text-sm font-semibold rounded-lg cursor-pointer transition-all duration-300"
             style={{
               background: 'var(--bg-secondary)',
               color: 'var(--text-primary)',
-              boxShadow: 'var(--shadow-neumorph-sm)'
+              boxShadow: 'var(--shadow-neumorph-sm)',
             }}
           >
             Batal
@@ -220,7 +248,7 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
             style={{
               background: 'var(--bg-primary)',
               color: '#f59e0b',
-              boxShadow: 'var(--shadow-neumorph-inset)'
+              boxShadow: 'var(--shadow-neumorph-inset)',
             }}
           >
             {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}

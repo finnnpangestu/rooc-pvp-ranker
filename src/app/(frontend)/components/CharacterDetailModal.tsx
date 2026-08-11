@@ -1,9 +1,13 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useTransition } from 'react'
 import { GlobalDialog } from './GlobalDialog'
 import { TabBar, TabButton } from './TabBar'
 import { StatCard } from './StatCard'
+import { Button } from './Button'
+import { MemberUpdateDialog } from './MemberUpdateDialog'
+import { toggleVerifyMember } from '@/actions/dashboard/toggleVerifyMember'
+import { deleteCharacter } from '@/actions/dashboard/deleteCharacter'
 import { JOB_LABELS } from '@/const/JobLabels'
 
 const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
@@ -11,7 +15,7 @@ const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
 interface CharacterDetailModalProps {
   member: any | null
   isOpen: boolean
-  onClose: () => void
+  onClose: (isUpdated?: boolean) => void
   footerActions?: React.ReactNode
 }
 
@@ -22,6 +26,30 @@ export function CharacterDetailModal({
   footerActions,
 }: CharacterDetailModalProps) {
   const [activeDetailTab, setActiveDetailTab] = useState('general')
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  const handleToggleVerify = () => {
+    startTransition(async () => {
+      const res = await toggleVerifyMember(member.id, member.isVerified)
+      if (res.success) {
+        onClose(true)
+      }
+    })
+  }
+
+  const handleDelete = () => {
+    if (!confirm('Yakin ingin menghapus karakter ini permanen?')) return
+    startTransition(async () => {
+      const res = await deleteCharacter(member.id)
+      if (res.success) {
+        alert('Karakter berhasil dihapus!')
+        onClose(true)
+      } else {
+        alert('Gagal menghapus: ' + String(res.error))
+      }
+    })
+  }
 
   useEffect(() => {
     if (member) {
@@ -32,12 +60,7 @@ export function CharacterDetailModal({
   if (!member) return null
 
   return (
-    <GlobalDialog
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`Detail: ${member.name}`}
-      maxWidth={800}
-    >
+    <GlobalDialog isOpen={isOpen} onClose={onClose} title={`Detail: ${member.name}`} maxWidth={800}>
       <div>
         <div
           className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 p-4 rounded-lg border"
@@ -79,29 +102,42 @@ export function CharacterDetailModal({
           {/* Bagian Kanan: Info GL & Resource */}
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-4">
             <div className="flex flex-col items-center">
-              <span className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
+              <span
+                className="text-[11px] font-semibold uppercase tracking-wider mb-1"
+                style={{ color: 'var(--text-muted)' }}
+              >
                 Kehadiran GL
               </span>
               <div className="flex items-center gap-1.5 text-lg font-bold">
                 <span className="text-emerald-400">{member.gl_present_count || 0}</span>
-                <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>/</span>
+                <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>
+                  /
+                </span>
                 <span className="text-red-400">{member.gl_absent_count || 0}</span>
               </div>
             </div>
             <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
             <div className="flex flex-col items-center">
-              <span className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
+              <span
+                className="text-[11px] font-semibold uppercase tracking-wider mb-1"
+                style={{ color: 'var(--text-muted)' }}
+              >
                 Kehadiran WoE
               </span>
               <div className="flex items-center gap-1.5 text-lg font-bold">
                 <span className="text-emerald-400">{member.woe_present_count || 0}</span>
-                <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>/</span>
+                <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>
+                  /
+                </span>
                 <span className="text-red-400">{member.woe_absent_count || 0}</span>
               </div>
             </div>
             <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
             <div className="flex flex-col items-center">
-              <span className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
+              <span
+                className="text-[11px] font-semibold uppercase tracking-wider mb-1"
+                style={{ color: 'var(--text-muted)' }}
+              >
                 Resource
               </span>
               <span className="text-lg font-bold text-indigo-400">
@@ -203,15 +239,52 @@ export function CharacterDetailModal({
           </div>
         </div>
 
-        {footerActions && (
-          <div
-            className="flex justify-end gap-3 mt-4 pt-5 border-t"
-            style={{ borderColor: 'var(--border-color)' }}
+        <div
+          className="flex justify-end gap-3 mt-4 pt-5 border-t flex-wrap"
+          style={{ borderColor: 'var(--border-color)' }}
+        >
+          {footerActions}
+
+          <Button variant="amber" size="md" onClick={() => setIsUpdateModalOpen(true)}>
+            Edit Karakter
+          </Button>
+
+          <Button
+            variant={member.isVerified ? 'ghost' : 'success'}
+            size="md"
+            loading={isPending}
+            className={`flex-1 sm:flex-none ${member.isVerified ? '!bg-amber-500/10 !text-amber-500 !border-amber-500/20' : ''}`}
+            onClick={handleToggleVerify}
           >
-            {footerActions}
-          </div>
-        )}
+            {member.isVerified ? 'Batalkan Verifikasi' : 'Approve & Verifikasi'}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="md"
+            loading={isPending}
+            className="flex-1 sm:flex-none !bg-red-500/10 !text-red-500 !border-red-500/20"
+            onClick={handleDelete}
+          >
+            Hapus Member
+          </Button>
+
+          <Button variant="ghost" size="md" onClick={() => onClose()}>
+            Tutup
+          </Button>
+        </div>
       </div>
+
+      <MemberUpdateDialog
+        character={member}
+        isOpen={isUpdateModalOpen}
+        onClose={(isUpdated) => {
+          setIsUpdateModalOpen(false)
+          if (isUpdated) {
+            onClose(true)
+          }
+        }}
+      />
     </GlobalDialog>
   )
 }

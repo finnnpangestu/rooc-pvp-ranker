@@ -1126,9 +1126,14 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
       </GlobalDialog>
 
       <CharacterDetailModal
-        member={viewedMember}
+        member={typeof viewedMember === 'object' ? viewedMember : members.find((m) => m.id === viewedMember) || viewedMember}
         isOpen={!!viewedMember}
-        onClose={() => setViewedMember(null)}
+        onClose={(isUpdated) => {
+          setViewedMember(null)
+          if (isUpdated) {
+            router.refresh()
+          }
+        }}
       />
     </div>
   )

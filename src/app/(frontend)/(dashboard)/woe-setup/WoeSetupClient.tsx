@@ -9,6 +9,7 @@ import { Button } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
 import { JOBS, JOB_LABELS, JOBS_OPTIONS } from '@/const/JobLabels'
 import { saveWoeSetup } from '@/actions/woe/saveWoeSetup'
+import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
 import { useTheme } from '../../components/ThemeProvider'
 
 interface WoeSetupClientProps {
@@ -25,6 +26,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
+  const [localMembers, setLocalMembers] = useState(members)
   const [raids, setRaids] = useState<any[]>([])
   const [isPending, startTransition] = useTransition()
   const [saveStatus, setSaveStatus] = useState<string | null>(null)
@@ -104,7 +106,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
       }
     })
 
-    const availableMembers = members
+    const availableMembers = localMembers
       .filter((m) => !assignedIds.has(m.id))
       .sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
 
@@ -200,6 +202,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
   const removeMember = (raidIdx: number, partyIdx: number, slotIdx: number) => {
     const newRaids = clone(raids)
     newRaids[raidIdx].parties[partyIdx].slots[slotIdx].assigned_character = null
+    newRaids[raidIdx].parties[partyIdx].slots[slotIdx].required_job = 'any'
     setRaids(newRaids)
   }
 
@@ -246,6 +249,8 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
       sourceSlot.assigned_character = targetExistingMember
       if (targetExistingMember) {
         sourceSlot.required_job = targetExistingMember.job
+      } else {
+        sourceSlot.required_job = 'any'
       }
     }
 
@@ -261,6 +266,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
     if (sourceRaidIdx !== null && sourcePartyIdx !== null && sourceSlotIdx !== null) {
       const newRaids = clone(raids)
       newRaids[sourceRaidIdx].parties[sourcePartyIdx].slots[sourceSlotIdx].assigned_character = null
+      newRaids[sourceRaidIdx].parties[sourcePartyIdx].slots[sourceSlotIdx].required_job = 'any'
       setRaids(newRaids)
     }
     setDraggedMember(null)
@@ -731,9 +737,34 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
 
       {/* Modal Detail Karakter */}
       <CharacterDetailModal
-        member={members.find((m) => m.id === viewedMemberId) || null}
+        member={localMembers.find((m) => m.id === viewedMemberId) || null}
         isOpen={!!viewedMemberId}
-        onClose={() => setViewedMemberId(null)}
+        onClose={async (isUpdated) => {
+          setViewedMemberId(null)
+          if (isUpdated) {
+            const updated = await getCharactersDashboard(guild.id)
+            setLocalMembers(updated)
+            
+            // Sync characters inside raids
+            setRaids((prev) => {
+              const newRaids = clone(prev)
+              newRaids.forEach((r: any) => {
+                r.parties.forEach((p: any) => {
+                  p.slots.forEach((s: any) => {
+                    if (s.assigned_character) {
+                      const updatedChar = updated.find((m: any) => m.id === s.assigned_character.id)
+                      if (updatedChar) {
+                        s.assigned_character = updatedChar
+                        s.required_job = updatedChar.job
+                      }
+                    }
+                  })
+                })
+              })
+              return newRaids
+            })
+          }
+        }}
       />
     </div>
   )

@@ -9,9 +9,7 @@ import { LimitDropdown } from '../../components/LimitDropdown'
 import { JobFilterDropdown } from '../../components/JobFilterDropdown'
 import { JOB_LABELS } from '@/const/JobLabels'
 import { CharacterDetailModal } from '../../components/CharacterDetailModal'
-import { MemberUpdateDialog } from '../../components/MemberUpdateDialog'
-import { toggleVerifyMember } from '@/actions/dashboard/toggleVerifyMember'
-import { deleteCharacter } from '@/actions/dashboard/deleteCharacter'
+import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
 import { useRouter } from 'next/navigation'
 
 interface MemberClientProps {
@@ -22,41 +20,14 @@ interface MemberClientProps {
 const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
 
 export function MemberClient({ guild, members }: MemberClientProps) {
+  const [localMembers, setLocalMembers] = useState(members)
   const [memberLimit, setMemberLimit] = useState(10)
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedJob, setSelectedJob] = useState('')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const router = useRouter()
-  const [isPending, startTransition] = React.useTransition()
 
   const [selectedDetailMember, setSelectedDetailMember] = useState<any | null>(null)
-  const [selectedUpdateMember, setSelectedUpdateMember] = useState<any | null>(null)
-
-  const handleToggleVerify = (char: any) => {
-    startTransition(async () => {
-      const res = await toggleVerifyMember(char.id, char.isVerified)
-      if (res.success) {
-        setSelectedDetailMember((prev: any) =>
-          prev ? { ...prev, isVerified: !prev.isVerified } : null,
-        )
-        router.refresh()
-      }
-    })
-  }
-
-  const handleDeleteMember = (charId: string) => {
-    if (!confirm('Yakin ingin menghapus karakter ini permanen?')) return
-    startTransition(async () => {
-      const res = await deleteCharacter(charId)
-      if (res.success) {
-        alert('Karakter berhasil dihapus!')
-        setSelectedDetailMember(null)
-        router.refresh()
-      } else {
-        alert('Gagal menghapus: ' + String(res.error))
-      }
-    })
-  }
 
   useEffect(() => {
     setCurrentPage(1)
@@ -71,7 +42,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
   }
 
   const { sortedMembers, filteredMembers, paginatedMembers, totalPages } = React.useMemo(() => {
-    const sorted = [...members].sort(
+    const sorted = [...localMembers].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
     const filtered = selectedJob ? sorted.filter((m) => m.job === selectedJob) : sorted
@@ -85,7 +56,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
       paginatedMembers: paginated,
       totalPages: pages,
     }
-  }, [members, selectedJob, currentPage, memberLimit])
+  }, [localMembers, selectedJob, currentPage, memberLimit])
 
   return (
     <div className="max-w-[1400px] mx-auto w-full">
@@ -217,14 +188,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                           size="sm"
                           onClick={() => setSelectedDetailMember(char)}
                         >
-                          Detail
-                        </Button>
-                        <Button
-                          variant="amber"
-                          size="sm"
-                          onClick={() => setSelectedUpdateMember(char)}
-                        >
-                          Edit
+                          Detail & Aksi
                         </Button>
                       </div>
                     </td>
@@ -246,40 +210,13 @@ export function MemberClient({ guild, members }: MemberClientProps) {
       <CharacterDetailModal
         member={selectedDetailMember}
         isOpen={!!selectedDetailMember}
-        onClose={() => setSelectedDetailMember(null)}
-        footerActions={
-          selectedDetailMember ? (
-            <>
-              <Button
-                variant={selectedDetailMember.isVerified ? 'ghost' : 'success'}
-                size="md"
-                loading={isPending}
-                className={`flex-1 sm:flex-none ${selectedDetailMember.isVerified ? '!bg-amber-500/10 !text-amber-500 !border-amber-500/20' : ''}`}
-                onClick={() => handleToggleVerify(selectedDetailMember)}
-              >
-                {selectedDetailMember.isVerified ? 'Batalkan Verifikasi' : 'Approve & Verifikasi'}
-              </Button>
-              <Button
-                variant="ghost"
-                size="md"
-                loading={isPending}
-                className="flex-1 sm:flex-none !bg-red-500/10 !text-red-500 !border-red-500/20"
-                onClick={() => handleDeleteMember(selectedDetailMember.id)}
-              >
-                Hapus Member
-              </Button>
-              <Button variant="ghost" size="md" onClick={() => setSelectedDetailMember(null)}>
-                Tutup
-              </Button>
-            </>
-          ) : null
-        }
-      />
-
-      <MemberUpdateDialog
-        character={selectedUpdateMember}
-        isOpen={!!selectedUpdateMember}
-        onClose={() => setSelectedUpdateMember(null)}
+        onClose={async (isUpdated) => {
+          setSelectedDetailMember(null)
+          if (isUpdated) {
+            const updated = await getCharactersDashboard(guild.id)
+            setLocalMembers(updated)
+          }
+        }}
       />
     </div>
   )
