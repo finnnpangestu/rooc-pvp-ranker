@@ -258,6 +258,10 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
     if (res.success) {
       alert('Report berhasil disimpan!')
       router.refresh()
+      setActiveReport(null)
+      setReportName('')
+      setMatchScore(null)
+      setLocalSetup(null)
     } else {
       alert('Gagal: ' + res.message)
     }

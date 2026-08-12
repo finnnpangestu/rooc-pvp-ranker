@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { GlobalDialog } from '../../components/GlobalDialog'
 import { CharacterDetailModal } from '../../components/CharacterDetailModal'
+import { CharacterCard } from '../../components/CharacterCard'
 import { Button } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
 import { JOBS, JOB_LABELS } from '@/const/JobLabels'
@@ -39,8 +40,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     return null
   })
 
-  const [isEliteDialogOpen, setIsEliteDialogOpen] = useState(false)
-  const [isSubDialogOpen, setIsSubDialogOpen] = useState(false)
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false)
   const [selectedPartyIndex, setSelectedPartyIndex] = useState<number | null>(null)
   const [selectedPartyType, setSelectedPartyType] = useState<'elite' | 'sub' | null>(null)
@@ -54,17 +53,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     sourcePartyIdx: number | null
     sourceSlotIdx: number | null
   } | null>(null)
-
-  const [eliteBlueprint, setEliteBlueprint] = useState<string[][]>(
-    Array(8)
-      .fill(null)
-      .map(() => Array(5).fill('any')),
-  )
-  const [subBlueprint, setSubBlueprint] = useState<string[][]>(
-    Array(1)
-      .fill(null)
-      .map(() => Array(5).fill('any')),
-  )
 
   const getAssignedMemberIds = () => {
     if (!localSetup) return []
@@ -97,19 +85,13 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
   const maxSubParties = calculateMaxSubParties(benchMembers.length)
 
-  useEffect(() => {
-    const needed = Math.max(1, maxSubParties)
-    if (subBlueprint.length !== needed) {
-      setSubBlueprint(
-        Array(needed)
-          .fill(null)
-          .map(() => Array(5).fill('any')),
-      )
-    }
-  }, [maxSubParties])
+  // removed blueprint effects
 
   const handleGenerateElite = async () => {
-    const res = await generateEliteParty(guild.id, eliteBlueprint, localMembers)
+    const defaultBlueprint = Array(8)
+      .fill(null)
+      .map(() => Array(5).fill('any'))
+    const res = await generateEliteParty(guild.id, defaultBlueprint, localMembers)
     if (res.success) {
       const newSetup = localSetup
         ? clone(localSetup)
@@ -117,7 +99,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
       newSetup.elite_parties = res.parties
       newSetup.sub_parties = []
       setLocalSetup(newSetup)
-      setIsEliteDialogOpen(false)
     } else {
       alert('Gagal generate: ' + (res as any).message)
     }
@@ -125,12 +106,15 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
   const handleGenerateSub = async () => {
     if (!localSetup) return
-    const res = await generateSubParty(guild.id, subBlueprint, benchMembers)
+    const needed = Math.max(1, maxSubParties)
+    const defaultBlueprint = Array(needed)
+      .fill(null)
+      .map(() => Array(5).fill('any'))
+    const res = await generateSubParty(guild.id, defaultBlueprint, benchMembers)
     if (res.success) {
       const newSetup = clone(localSetup)
       newSetup.sub_parties = res.parties
       setLocalSetup(newSetup)
-      setIsSubDialogOpen(false)
     } else {
       alert('Gagal generate sub: ' + (res as any).message)
     }
@@ -219,33 +203,17 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
     const targetParties = targetType === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
     const targetSlot = targetParties[targetPartyIdx].slots[targetSlotIdx]
-    const targetRequiredJob = targetSlot.required_job
-
-    if (targetRequiredJob !== 'any' && member.job !== targetRequiredJob) {
-      alert(`Slot ini khusus untuk job ${JOB_LABELS[targetRequiredJob as keyof typeof JOB_LABELS]}`)
-      setDraggedMember(null)
-      return
-    }
-
     const targetExistingMember = targetSlot.assigned_character
 
     if (sourceType !== null && sourcePartyIdx !== null && sourceSlotIdx !== null) {
       const sourceParties = sourceType === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
       const sourceSlot = sourceParties[sourcePartyIdx].slots[sourceSlotIdx]
-      if (targetExistingMember) {
-        if (
-          sourceSlot.required_job !== 'any' &&
-          targetExistingMember.job !== sourceSlot.required_job
-        ) {
-          alert('Member yang digantikan tidak sesuai dengan required job di slot asal.')
-          setDraggedMember(null)
-          return
-        }
-      }
       sourceSlot.assigned_character = targetExistingMember
+      sourceSlot.required_job = 'any'
     }
 
     targetSlot.assigned_character = member
+    targetSlot.required_job = 'any'
     setLocalSetup(newSetup)
     setDraggedMember(null)
   }
@@ -302,7 +270,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     type: 'elite' | 'sub',
     startIndexOffset: number = 0,
   ) => (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4 mb-6 auto-rows-fr">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 mb-6 auto-rows-fr">
       {parties.map((party: any, localIdx: number) => {
         const idx = startIndexOffset + localIdx
         const totalScore = party.slots.reduce(
@@ -361,12 +329,8 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                         e.preventDefault()
                       }
                     }}
-                    className={`flex items-center gap-2 p-2 rounded-lg border transition-all duration-200 min-h-[48px] ${char ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} hover:bg-white/5 relative ${
-                      draggedMember &&
-                      (slot.required_job === 'any' ||
-                        slot.required_job === draggedMember.member.job)
-                        ? 'border-emerald-500/50 bg-emerald-500/5'
-                        : ''
+                    className={`flex items-center p-2.5 rounded-xl border relative group transition-colors ${char ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} hover:opacity-80 ${
+                      draggedMember ? 'border-emerald-500/50 bg-emerald-500/5' : ''
                     }`}
                     onClick={() => {
                       if (char) setViewedMember(char)
@@ -376,40 +340,17 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                     style={{
                       background: 'var(--bg-primary)',
                       borderColor: 'var(--border-color)',
-                      boxShadow: 'var(--shadow-neumorph-inset)',
+                      boxShadow: 'var(--shadow-neumorph-sm)',
                     }}
                   >
                     {char ? (
-                      <>
-                        <Image
-                          src={getJobIcon(char.job)}
-                          alt=""
-                          width={24}
-                          height={24}
-                          className="object-cover rounded-[20%] flex-shrink-0 pointer-events-none"
-                        />
-                        <span
-                          className="text-[15px] font-semibold flex-1 min-w-0 truncate pointer-events-none"
-                          style={{ color: 'var(--text-primary)' }}
-                        >
-                          {char.name}
-                        </span>
-                        <span className="text-[14px] text-amber-400 font-bold flex-shrink-0 mr-2 pointer-events-none">
-                          {Math.round(char.pvp_score).toLocaleString()}
-                        </span>
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          className="!w-7 !h-7 !p-0 flex-shrink-0 relative z-10"
-                          title="Hapus dari party"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            removeMemberFromParty(type, idx, sIdx)
-                          }}
-                        >
-                          ✕
-                        </Button>
-                      </>
+                      <CharacterCard
+                        character={char}
+                        onRemove={(e) => {
+                          e.stopPropagation()
+                          removeMemberFromParty(type, idx, sIdx)
+                        }}
+                      />
                     ) : (
                       <button
                         onClick={() => {
@@ -418,13 +359,13 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                           setSelectedSlotIndex(sIdx)
                           setIsAddMemberDialogOpen(true)
                         }}
-                        className="w-full flex items-center justify-center font-sans text-[13px] cursor-pointer transition-all duration-200 min-h-[48px] bg-transparent border border-dashed rounded-lg"
+                        className="w-full flex items-center justify-center font-sans text-[13px] cursor-pointer transition-all duration-200 min-h-[42px] bg-transparent border border-dashed rounded-lg"
                         style={{
                           color: 'var(--text-muted)',
                           borderColor: 'var(--border-color)',
                         }}
                       >
-                        <span className="text-[14px] italic" style={{ color: 'var(--text-muted)' }}>
+                        <span className="text-[13px] italic" style={{ color: 'var(--text-muted)' }}>
                           {draggedMember
                             ? 'Drop karakter di sini...'
                             : JOB_LABELS[slot.required_job as keyof typeof JOB_LABELS] || 'Any'}
@@ -480,13 +421,8 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                 >
                   Clear Elite
                 </Button>
-                <Button
-                  id="tour-gl-generate-elite"
-                  variant="amber"
-                  size="md"
-                  onClick={() => setIsEliteDialogOpen(true)}
-                >
-                  Generate Elite Party
+                <Button variant="danger" size="sm" onClick={() => handleGenerateElite()}>
+                  Generate Elite
                 </Button>
               </div>
             </div>
@@ -522,14 +458,8 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                 >
                   Clear Sub
                 </Button>
-                <Button
-                  id="tour-gl-generate-sub"
-                  variant={!isEliteGenerated || maxSubParties === 0 ? 'ghost' : 'primary'}
-                  size="md"
-                  disabled={!isEliteGenerated || maxSubParties === 0}
-                  onClick={() => setIsSubDialogOpen(true)}
-                >
-                  Generate Sub Party
+                <Button variant="danger" size="sm" onClick={() => handleGenerateSub()}>
+                  Generate Sub
                 </Button>
               </div>
             </div>
@@ -645,34 +575,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                   boxShadow: 'var(--shadow-neumorph-sm)',
                 }}
               >
-                <div className="w-8 h-8 relative mr-3 shrink-0">
-                  <Image
-                    src={getJobIcon(m.job)}
-                    alt={m.job}
-                    fill
-                    sizes="32px"
-                    className="object-contain"
-                  />
-                </div>
-                <div className="min-w-0 flex-1" onClick={() => setViewedMember(m)}>
-                  <div
-                    className="font-semibold text-sm truncate hover:underline cursor-pointer"
-                    style={{ color: 'var(--text-primary)' }}
-                  >
-                    {m.name}
-                  </div>
-                  <div
-                    className="text-xs flex justify-between pr-2"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    <span className="truncate max-w-[80px]">
-                      {JOB_LABELS[m.job as keyof typeof JOB_LABELS]}
-                    </span>
-                    <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
-                      {m.pvp_score}
-                    </span>
-                  </div>
-                </div>
+                <CharacterCard character={m} />
               </div>
             ))}
             {benchMembers.length === 0 && (
@@ -686,164 +589,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
           </div>
         </div>
       </div>
-
-      {/* BLUEPRINT ELITE DIALOG */}
-      <GlobalDialog
-        isOpen={isEliteDialogOpen}
-        onClose={() => setIsEliteDialogOpen(false)}
-        title="Blueprint Elite Party"
-        maxWidth={1200}
-      >
-        <div className="text-[14px] mb-5" style={{ color: 'var(--text-secondary)' }}>
-          Tentukan kebutuhan Job untuk 8 Elite Party.
-        </div>
-        <div className="flex flex-col gap-5 max-h-[50vh] overflow-y-auto pr-2">
-          {eliteBlueprint.map((party, pIdx) => (
-            <div
-              key={pIdx}
-              className="p-4 rounded-xl border"
-              style={{
-                background: 'var(--bg-primary)',
-                borderColor: 'var(--border-color)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-              }}
-            >
-              <h3 className="text-[16px] m-0 mb-3 font-semibold" style={{ color: '#fbbf24' }}>
-                Elite Party {pIdx + 1}
-              </h3>
-              <div className="grid grid-cols-5 gap-2.5">
-                {party.map((job, sIdx) => (
-                  <select
-                    key={sIdx}
-                    value={job}
-                    onChange={(e) => {
-                      const newBp = [...eliteBlueprint]
-                      newBp[pIdx][sIdx] = e.target.value
-                      setEliteBlueprint(newBp)
-                    }}
-                    className="w-full appearance-none rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
-                    style={{
-                      background: 'var(--bg-secondary)',
-                      boxShadow: 'var(--shadow-neumorph-inset)',
-                      color: 'var(--text-primary)',
-                      border: 'none',
-                    }}
-                  >
-                    <option value="any">Any (Bebas)</option>
-                    {JOBS.map((j) => (
-                      <option key={j.value} value={j.value}>
-                        {j.label}
-                      </option>
-                    ))}
-                  </select>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        <Button variant="amber" size="lg" className="w-full mt-6" onClick={handleGenerateElite}>
-          Generate Elite (Preview)
-        </Button>
-      </GlobalDialog>
-
-      {/* BLUEPRINT SUB DIALOG */}
-      <GlobalDialog
-        isOpen={isSubDialogOpen}
-        onClose={() => setIsSubDialogOpen(false)}
-        title="Blueprint Sub Party"
-        maxWidth={1200}
-      >
-        <div
-          className="p-3 rounded-lg mb-5 text-[14px] leading-relaxed"
-          style={{
-            background: 'var(--bg-primary)',
-            borderColor: 'var(--border-color)',
-            boxShadow: 'var(--shadow-neumorph-inset)',
-            color: 'var(--text-secondary)',
-          }}
-        >
-          Sisa Member di Bench:{' '}
-          <strong style={{ color: 'var(--text-primary)' }}>{benchMembers.length}</strong> orang
-          <br />
-          Maksimal Sub Party:{' '}
-          <strong style={{ color: 'var(--text-primary)' }}>{maxSubParties}</strong>
-        </div>
-        {maxSubParties === 0 ? (
-          <p className="text-center py-5 text-[14px]" style={{ color: '#ef4444' }}>
-            Tidak ada cukup sisa member di bench (Minimal 5 orang).
-          </p>
-        ) : (
-          <div className="flex flex-col gap-5 max-h-[50vh] overflow-y-auto pr-2">
-            {subBlueprint.map((party, pIdx) => {
-              const isFirstOfGroup = pIdx % 8 === 0
-              const groupNum = Math.floor(pIdx / 8) + 1
-              return (
-                <React.Fragment key={pIdx}>
-                  {isFirstOfGroup && (
-                    <div className="flex items-center gap-4 mt-2">
-                      <h3 className="text-[16px] font-bold m-0" style={{ color: '#818cf8' }}>
-                        Group Sub Party {groupNum}
-                      </h3>
-                      <div
-                        className="flex-1 h-px bg-current opacity-20"
-                        style={{ color: '#818cf8' }}
-                      />
-                    </div>
-                  )}
-                  <div
-                    className="p-4 rounded-xl border"
-                    style={{
-                      background: 'var(--bg-primary)',
-                      borderColor: 'var(--border-color)',
-                      boxShadow: 'var(--shadow-neumorph-inset)',
-                    }}
-                  >
-                    <h3 className="text-[16px] m-0 mb-3 font-semibold" style={{ color: '#818cf8' }}>
-                      Sub Party {groupNum} - P{(pIdx % 8) + 1}
-                    </h3>
-                    <div className="grid grid-cols-5 gap-2.5">
-                      {party.map((job, sIdx) => (
-                        <select
-                          key={sIdx}
-                          value={job}
-                          onChange={(e) => {
-                            const newBp = [...subBlueprint]
-                            newBp[pIdx][sIdx] = e.target.value
-                            setSubBlueprint(newBp)
-                          }}
-                          className="w-full appearance-none rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
-                          style={{
-                            background: 'var(--bg-secondary)',
-                            boxShadow: 'var(--shadow-neumorph-inset)',
-                            color: 'var(--text-primary)',
-                            border: 'none',
-                          }}
-                        >
-                          <option value="any">Any (Bebas)</option>
-                          {JOBS.map((j) => (
-                            <option key={j.value} value={j.value}>
-                              {j.label}
-                            </option>
-                          ))}
-                        </select>
-                      ))}
-                    </div>
-                  </div>
-                </React.Fragment>
-              )
-            })}
-          </div>
-        )}
-        <Button
-          variant="primary"
-          size="lg"
-          className="w-full mt-6"
-          disabled={maxSubParties === 0}
-          onClick={handleGenerateSub}
-        >
-          👥 Generate Sub (Preview)
-        </Button>
-      </GlobalDialog>
 
       {/* ADD MEMBER PICKER DIALOG */}
       <GlobalDialog
@@ -910,7 +655,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                       )
                       if (updatedChar) {
                         s.assigned_character = updatedChar
-                        s.required_job = updatedChar.job
+                        s.required_job = 'any'
                       }
                     }
                   })

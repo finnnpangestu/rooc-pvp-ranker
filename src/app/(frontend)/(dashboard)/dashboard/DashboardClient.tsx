@@ -619,8 +619,9 @@ export function DashboardClient({
                     tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} 
                     tickLine={false} 
                     axisLine={false} 
-                    domain={['dataMin - 1', 'dataMax + 1']}
+                    domain={[1, 'dataMax + 1']}
                     allowDecimals={false}
+                    ticks={Array.from({ length: Math.max(1, ...woeChartData.map((d: any) => d.rank)) + 1 }, (_, i) => i + 1)}
                   />
                   <Tooltip 
                     contentStyle={{ 

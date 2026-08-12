@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { GlobalDialog } from '../../components/GlobalDialog'
 import { CharacterDetailModal } from '../../components/CharacterDetailModal'
+import { CharacterCard } from '../../components/CharacterCard'
 import { Button } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
 import { JOBS, JOB_LABELS, JOBS_OPTIONS } from '@/const/JobLabels'
@@ -266,7 +267,8 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
     newRaids[selectedRaidIndex].parties[selectedPartyIndex].slots[
       selectedSlotIndex
     ].assigned_character = member
-    newRaids[selectedRaidIndex].parties[selectedPartyIndex].slots[selectedSlotIndex].required_job = 'any'
+    newRaids[selectedRaidIndex].parties[selectedPartyIndex].slots[selectedSlotIndex].required_job =
+      'any'
     setRaids(newRaids)
     setIsAddMemberDialogOpen(false)
     setSelectedRaidIndex(null)
@@ -361,7 +363,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                 </div>
               </div>
 
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4 auto-rows-fr">
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 auto-rows-fr">
                 {raid.parties.map((party: any, partyIdx: number) => {
                   const totalScore = party.slots.reduce(
                     (sum: number, slot: any) => sum + (slot.assigned_character?.pvp_score || 0),
@@ -407,7 +409,6 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                       <div className="flex flex-col gap-2.5 flex-1">
                         {party.slots.map((slot: any, slotIdx: number) => {
                           const char = slot.assigned_character
-                          const reqJob = slot.required_job
                           return (
                             <div
                               key={slotIdx}
@@ -420,15 +421,11 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                                   e.preventDefault()
                                 }
                               }}
-                              className={`flex items-center p-2 rounded-xl border relative group transition-colors ${char ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}
-                                ${
-                                  draggedMember
-                                    ? 'border-emerald-500/50 bg-emerald-500/5'
-                                    : ''
-                                }`}
+                              className={`flex items-center p-2.5 rounded-xl border relative group transition-colors ${char ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} hover:opacity-80 ${draggedMember ? 'border-emerald-500/50 bg-emerald-500/5' : ''}`}
                               style={{
+                                background: 'var(--bg-primary)',
                                 borderColor: 'var(--border-color)',
-                                background: 'var(--bg-panel)',
+                                boxShadow: 'var(--shadow-neumorph-sm)',
                               }}
                               onDragOver={(e) => {
                                 e.preventDefault()
@@ -438,89 +435,28 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                                 if (char) setViewedMemberId(char.id)
                               }}
                             >
-                              <div className="mr-3 pl-1 relative">
-                                <div
-                                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
-                                  style={{
-                                    background: 'var(--bg-secondary)',
-                                    boxShadow: 'var(--shadow-neumorph-inset)',
-                                    border: 'none',
-                                  }}
-                                >
-                                  {char ? (
-                                    <div className="relative w-9 h-9 rounded-lg overflow-hidden shrink-0">
-                                      <Image
-                                        src={getJobIcon(char.job)}
-                                        alt={char.job}
-                                        fill
-                                        sizes="36px"
-                                        className="object-cover"
-                                      />
-                                    </div>
-                                  ) : (
-                                    <span
-                                      className="text-[11px] font-bold opacity-60 uppercase"
-                                      style={{ color: 'var(--text-muted)' }}
-                                    >
-                                      -
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="flex-1 min-w-0">
-                                {char ? (
-                                  <div className="flex items-center p-1 -ml-1 rounded transition-colors pointer-events-none">
-                                    <div className="min-w-0">
-                                      <div
-                                        className="font-medium text-sm truncate hover:underline"
-                                        style={{ color: 'var(--text-primary)' }}
-                                      >
-                                        {char.name}
-                                      </div>
-                                      <div
-                                        className="text-[11px] truncate"
-                                        style={{ color: 'var(--text-muted)' }}
-                                      >
-                                        PvP • {char.pvp_score} Score
-                                      </div>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div
-                                    className="text-sm italic cursor-pointer p-1 -ml-1 hover:text-emerald-500 transition-colors"
-                                    style={{ color: 'var(--text-muted)' }}
-                                    onClick={() => openAddMemberDialog(raidIdx, partyIdx, slotIdx)}
-                                  >
-                                    {draggedMember
-                                      ? 'Drop karakter di sini...'
-                                      : '+ Tambah Karakter'}
-                                  </div>
-                                )}
-                              </div>
-
-                              {char && (
-                                <button
-                                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/10 text-red-500/70 hover:text-red-500"
-                                  onClick={(e) => {
+                              {char ? (
+                                <CharacterCard
+                                  character={char}
+                                  onRemove={(e) => {
                                     e.stopPropagation()
                                     removeMember(raidIdx, partyIdx, slotIdx)
                                   }}
-                                  title="Keluarkan dari party"
+                                />
+                              ) : (
+                                <button
+                                  onClick={() => openAddMemberDialog(raidIdx, partyIdx, slotIdx)}
+                                  className="w-full flex items-center justify-center font-sans text-[13px] cursor-pointer transition-all duration-200 min-h-[42px] bg-transparent border border-dashed rounded-lg"
+                                  style={{
+                                    color: 'var(--text-muted)',
+                                    borderColor: 'var(--border-color)',
+                                  }}
                                 >
-                                  <svg
-                                    width="14"
-                                    height="14"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                  </svg>
+                                  <span className="text-[13px] italic" style={{ color: 'var(--text-muted)' }}>
+                                    {draggedMember
+                                      ? 'Drop karakter di sini...'
+                                      : '+ Tambah Karakter'}
+                                  </span>
                                 </button>
                               )}
                             </div>
@@ -537,7 +473,10 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
       </div>
 
       {/* KANAN - Bench */}
-      <div id="tour-woe-benched" className="w-[300px] shrink-0 sticky top-4 max-h-[calc(100vh-2rem)] flex flex-col">
+      <div
+        id="tour-woe-benched"
+        className="w-[300px] shrink-0 sticky top-4 max-h-[calc(100vh-2rem)] flex flex-col"
+      >
         <div
           className="rounded-2xl flex flex-col flex-1 min-h-0"
           style={{
@@ -575,34 +514,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                   boxShadow: 'var(--shadow-neumorph-sm)',
                 }}
               >
-                <div className="w-8 h-8 relative mr-3 shrink-0">
-                  <Image
-                    src={getJobIcon(m.job)}
-                    alt={m.job}
-                    fill
-                    sizes="32px"
-                    className="object-contain"
-                  />
-                </div>
-                <div className="min-w-0 flex-1" onClick={() => setViewedMemberId(m.id)}>
-                  <div
-                    className="font-semibold text-sm truncate hover:underline"
-                    style={{ color: 'var(--text-primary)' }}
-                  >
-                    {m.name}
-                  </div>
-                  <div
-                    className="text-xs flex justify-between pr-2"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    <span className="truncate max-w-[80px]">
-                      {JOB_LABELS[m.job as keyof typeof JOB_LABELS]}
-                    </span>
-                    <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
-                      {m.pvp_score}
-                    </span>
-                  </div>
-                </div>
+                <CharacterCard character={m} />
               </div>
             ))}
             {benchedMembers.length === 0 && (
@@ -679,7 +591,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
           if (isUpdated) {
             const updated = await getCharactersDashboard(guild.id)
             setLocalMembers(updated)
-            
+
             // Sync characters inside raids
             setRaids((prev) => {
               const newRaids = clone(prev)
