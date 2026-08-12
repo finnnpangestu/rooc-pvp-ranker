@@ -302,7 +302,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     type: 'elite' | 'sub',
     startIndexOffset: number = 0,
   ) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 auto-rows-fr">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4 mb-6 auto-rows-fr">
       {parties.map((party: any, localIdx: number) => {
         const idx = startIndexOffset + localIdx
         const totalScore = party.slots.reduce(
