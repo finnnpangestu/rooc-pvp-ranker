@@ -36,23 +36,30 @@ export async function saveReportWoe(
     const charMap = new Map()
     charactersRes.docs.forEach((doc) => charMap.set(doc.id, doc))
 
-    // Process updates sequentially to completely avoid Supabase pool limit (EMAXCONNSESSION)
-    for (const memberReport of reportData.member_reports) {
-      const charId = memberReport.character_id
-      const char = charMap.get(charId)
-      if (!char) continue
+    // Process updates in chunks to speed up without overwhelming Postgres connection pool
+    // (Supabase session pool limit is 15, we use 3 to be extremely safe but still 3x faster than sequential)
+    const CHUNK_SIZE = 3;
+    for (let i = 0; i < reportData.member_reports.length; i += CHUNK_SIZE) {
+      const chunk = reportData.member_reports.slice(i, i + CHUNK_SIZE);
+      await Promise.all(
+        chunk.map(async (memberReport: any) => {
+          const charId = memberReport.character_id
+          const char = charMap.get(charId)
+          if (!char) return
 
-      const presentCount = (char.woe_present_count || 0) + (memberReport.is_present ? 1 : 0)
-      const absentCount = (char.woe_absent_count || 0) + (memberReport.is_present ? 0 : 1)
+          const presentCount = (char.woe_present_count || 0) + (memberReport.is_present ? 1 : 0)
+          const absentCount = (char.woe_absent_count || 0) + (memberReport.is_present ? 0 : 1)
 
-      await payload.update({
-        collection: 'characters',
-        id: charId,
-        data: {
-          woe_present_count: presentCount,
-          woe_absent_count: absentCount,
-        },
-      })
+          await payload.update({
+            collection: 'characters',
+            id: charId,
+            data: {
+              woe_present_count: presentCount,
+              woe_absent_count: absentCount,
+            },
+          })
+        })
+      );
     }
 
     // 3. Update party setup: remove absent players from parties and update swaps
