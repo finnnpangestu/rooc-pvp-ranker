@@ -212,21 +212,25 @@ export function ReportWoeClient({ guild, initialSetup, historyReports }: ReportW
     }))
 
     const reportPayload = { ...activeReport, member_reports: memberReports }
-    
+
     // Clean up relations for Payload to drastically reduce request size and prevent timeouts
-    const payloadSetup = localSetup ? {
-      ...localSetup,
-      raids: localSetup.raids.map((raid: any) => ({
-        ...raid,
-        parties: raid.parties.map((party: any) => ({
-          ...party,
-          slots: party.slots.map((slot: any) => ({
-            required_job: slot.required_job,
-            assigned_character: slot.assigned_character ? (slot.assigned_character.id || slot.assigned_character) : null,
+    const payloadSetup = localSetup
+      ? {
+          ...localSetup,
+          raids: localSetup.raids.map((raid: any) => ({
+            ...raid,
+            parties: raid.parties.map((party: any) => ({
+              ...party,
+              slots: party.slots.map((slot: any) => ({
+                required_job: slot.required_job,
+                assigned_character: slot.assigned_character
+                  ? slot.assigned_character.id || slot.assigned_character
+                  : null,
+              })),
+            })),
           })),
-        })),
-      })),
-    } : null;
+        }
+      : null
 
     const res = await saveReportWoe(guild.id, initialSetup.id, reportPayload, payloadSetup)
 
@@ -764,7 +768,10 @@ export function ReportWoeClient({ guild, initialSetup, historyReports }: ReportW
                 r.parties.forEach((p: any) => {
                   p.slots.forEach((s: any) => {
                     if (s.assigned_character) {
-                      const newChar = updated.find((m: any) => m.id === s.assigned_character.id || m.id === s.assigned_character)
+                      const newChar = updated.find(
+                        (m: any) =>
+                          m.id === s.assigned_character.id || m.id === s.assigned_character,
+                      )
                       if (newChar) s.assigned_character = newChar
                     }
                   })
@@ -776,7 +783,9 @@ export function ReportWoeClient({ guild, initialSetup, historyReports }: ReportW
               const newReport = clone(viewReport)
               newReport.member_reports.forEach((mr: any) => {
                 if (mr.character_id) {
-                  const newChar = updated.find((m: any) => m.id === mr.character_id.id || m.id === mr.character_id)
+                  const newChar = updated.find(
+                    (m: any) => m.id === mr.character_id.id || m.id === mr.character_id,
+                  )
                   if (newChar) mr.character_id = newChar
                 }
               })

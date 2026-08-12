@@ -19,7 +19,7 @@ interface ReportGLClientProps {
 const getJobIcon = (jobValue: string) => `/icons/jobs/${jobValue}.png`
 const clone = (obj: any) => JSON.parse(JSON.stringify(obj))
 
-const REPORT_LIMIT = 5
+const REPORT_LIMIT = 14
 const RANKING_LIMIT = 10
 
 export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGLClientProps) {
