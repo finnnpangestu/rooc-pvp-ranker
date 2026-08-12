@@ -17,8 +17,8 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata = {
-  description: 'A blank template using Payload in a Next.js app.',
-  title: 'Payload Blank Template',
+  title: 'ROO PvP Ranker & Guild Manager',
+  description: 'Sistem manajemen formasi dan pelacakan performa War of Emperium (WoE) serta Guild League.',
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
