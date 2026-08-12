@@ -60,32 +60,25 @@ export async function saveReportGL(
     const charMap = new Map()
     charactersRes.docs.forEach((doc) => charMap.set(doc.id, doc))
 
-    // Process updates in chunks to speed up without overwhelming Postgres connection pool
-    // (Supabase session pool limit is typically 15, we use 10 to maximize speed)
-    const CHUNK_SIZE = 10;
-    for (let i = 0; i < reportData.member_reports.length; i += CHUNK_SIZE) {
-      const chunk = reportData.member_reports.slice(i, i + CHUNK_SIZE);
-      await Promise.all(
-        chunk.map(async (memberReport: any) => {
-          const charId = memberReport.character_id
-          const char = charMap.get(charId)
-          if (!char) return
+    // Process updates sequentially to completely avoid Supabase pool limit (EMAXCONNSESSION)
+    for (const memberReport of reportData.member_reports) {
+      const charId = memberReport.character_id
+      const char = charMap.get(charId)
+      if (!char) continue
 
-          const totalScore = (char.gl_total_score || 0) + (memberReport.actual_score || 0)
-          const presentCount = (char.gl_present_count || 0) + (memberReport.is_present ? 1 : 0)
-          const absentCount = (char.gl_absent_count || 0) + (memberReport.is_present ? 0 : 1)
+      const totalScore = (char.gl_total_score || 0) + (memberReport.actual_score || 0)
+      const presentCount = (char.gl_present_count || 0) + (memberReport.is_present ? 1 : 0)
+      const absentCount = (char.gl_absent_count || 0) + (memberReport.is_present ? 0 : 1)
 
-          await payload.update({
-            collection: 'characters',
-            id: charId,
-            data: {
-              gl_total_score: totalScore,
-              gl_present_count: presentCount,
-              gl_absent_count: absentCount,
-            },
-          })
-        })
-      );
+      await payload.update({
+        collection: 'characters',
+        id: charId,
+        data: {
+          gl_total_score: totalScore,
+          gl_present_count: presentCount,
+          gl_absent_count: absentCount,
+        },
+      })
     }
 
     // 4. Update party setup: remove absent players from parties
