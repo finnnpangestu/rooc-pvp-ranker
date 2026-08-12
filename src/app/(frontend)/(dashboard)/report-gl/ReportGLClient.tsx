@@ -253,7 +253,23 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
     }))
 
     const reportPayload = { ...activeReport, member_reports: memberReports }
-    const res = await saveReportGL(guild.id, initialSetup.id, reportPayload, localSetup)
+
+    // Clean up relations for Payload to drastically reduce request size and prevent timeouts
+    const cleanParties = (parties: any[]) => parties.map((p: any) => ({
+      ...p,
+      slots: p.slots.map((s: any) => ({
+        required_job: s.required_job,
+        assigned_character: s.assigned_character ? (s.assigned_character.id || s.assigned_character) : null,
+      })),
+    }));
+
+    const payloadSetup = localSetup ? {
+      ...localSetup,
+      elite_parties: localSetup.elite_parties ? cleanParties(localSetup.elite_parties) : [],
+      sub_parties: localSetup.sub_parties ? cleanParties(localSetup.sub_parties) : [],
+    } : null;
+
+    const res = await saveReportGL(guild.id, initialSetup.id, reportPayload, payloadSetup)
 
     if (res.success) {
       alert('Report berhasil disimpan!')

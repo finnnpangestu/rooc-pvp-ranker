@@ -212,7 +212,23 @@ export function ReportWoeClient({ guild, initialSetup, historyReports }: ReportW
     }))
 
     const reportPayload = { ...activeReport, member_reports: memberReports }
-    const res = await saveReportWoe(guild.id, initialSetup.id, reportPayload, localSetup)
+    
+    // Clean up relations for Payload to drastically reduce request size and prevent timeouts
+    const payloadSetup = localSetup ? {
+      ...localSetup,
+      raids: localSetup.raids.map((raid: any) => ({
+        ...raid,
+        parties: raid.parties.map((party: any) => ({
+          ...party,
+          slots: party.slots.map((slot: any) => ({
+            required_job: slot.required_job,
+            assigned_character: slot.assigned_character ? (slot.assigned_character.id || slot.assigned_character) : null,
+          })),
+        })),
+      })),
+    } : null;
+
+    const res = await saveReportWoe(guild.id, initialSetup.id, reportPayload, payloadSetup)
 
     if (res.success) {
       alert('Report WoE berhasil disimpan!')
