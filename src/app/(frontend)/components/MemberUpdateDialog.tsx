@@ -62,7 +62,8 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
         payloadData.guild_id = String(payloadData.guild_id)
       }
 
-      const res = await updateCharacterStats(character.id, payloadData)
+      // GM updates auto-verify the character
+      const res = await updateCharacterStats(character.id, payloadData, true)
       if (!res.success) throw new Error(res.message)
 
       alert('Berhasil memperbarui karakter!')

@@ -224,38 +224,16 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
     const { member, sourceRaidIdx, sourcePartyIdx, sourceSlotIdx } = draggedMember
     const newRaids = clone(raids)
     const targetSlot = newRaids[targetRaidIdx].parties[targetPartyIdx].slots[targetSlotIdx]
-    const targetRequiredJob = targetSlot.required_job
-
-    if (targetRequiredJob !== 'any' && member.job !== targetRequiredJob) {
-      alert(`Slot ini khusus untuk job ${JOB_LABELS[targetRequiredJob as keyof typeof JOB_LABELS]}`)
-      setDraggedMember(null)
-      return
-    }
-
     const targetExistingMember = targetSlot.assigned_character
 
     if (sourceRaidIdx !== null && sourcePartyIdx !== null && sourceSlotIdx !== null) {
       const sourceSlot = newRaids[sourceRaidIdx].parties[sourcePartyIdx].slots[sourceSlotIdx]
-      if (targetExistingMember) {
-        if (
-          sourceSlot.required_job !== 'any' &&
-          targetExistingMember.job !== sourceSlot.required_job
-        ) {
-          alert('Member yang digantikan tidak sesuai dengan required job di slot asal.')
-          setDraggedMember(null)
-          return
-        }
-      }
       sourceSlot.assigned_character = targetExistingMember
-      if (targetExistingMember) {
-        sourceSlot.required_job = targetExistingMember.job
-      } else {
-        sourceSlot.required_job = 'any'
-      }
+      sourceSlot.required_job = 'any'
     }
 
     targetSlot.assigned_character = member
-    targetSlot.required_job = member.job
+    targetSlot.required_job = 'any'
     setRaids(newRaids)
     setDraggedMember(null)
   }
@@ -288,8 +266,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
     newRaids[selectedRaidIndex].parties[selectedPartyIndex].slots[
       selectedSlotIndex
     ].assigned_character = member
-    newRaids[selectedRaidIndex].parties[selectedPartyIndex].slots[selectedSlotIndex].required_job =
-      member.job
+    newRaids[selectedRaidIndex].parties[selectedPartyIndex].slots[selectedSlotIndex].required_job = 'any'
     setRaids(newRaids)
     setIsAddMemberDialogOpen(false)
     setSelectedRaidIndex(null)
@@ -445,8 +422,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                               }}
                               className={`flex items-center p-2 rounded-xl border relative group transition-colors ${char ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}
                                 ${
-                                  draggedMember &&
-                                  (reqJob === 'any' || reqJob === draggedMember.member.job)
+                                  draggedMember
                                     ? 'border-emerald-500/50 bg-emerald-500/5'
                                     : ''
                                 }`}
@@ -463,33 +439,19 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                               }}
                             >
                               <div className="mr-3 pl-1 relative">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    if (
-                                      openDropdown?.raidIdx === raidIdx &&
-                                      openDropdown?.partyIdx === partyIdx &&
-                                      openDropdown?.slotIdx === slotIdx
-                                    ) {
-                                      setOpenDropdown(null)
-                                    } else {
-                                      setOpenDropdown({ raidIdx, partyIdx, slotIdx })
-                                    }
-                                  }}
-                                  className="w-10 h-10 rounded-xl cursor-pointer outline-none flex items-center justify-center transition-all"
+                                <div
+                                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
                                   style={{
                                     background: 'var(--bg-secondary)',
                                     boxShadow: 'var(--shadow-neumorph-inset)',
                                     border: 'none',
                                   }}
-                                  title="Pilih Required Job"
                                 >
-                                  {reqJob !== 'any' ? (
+                                  {char ? (
                                     <div className="relative w-9 h-9 rounded-lg overflow-hidden shrink-0">
                                       <Image
-                                        src={getJobIcon(reqJob)}
-                                        alt={reqJob}
+                                        src={getJobIcon(char.job)}
+                                        alt={char.job}
                                         fill
                                         sizes="36px"
                                         className="object-cover"
@@ -500,37 +462,10 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                                       className="text-[11px] font-bold opacity-60 uppercase"
                                       style={{ color: 'var(--text-muted)' }}
                                     >
-                                      All
+                                      -
                                     </span>
                                   )}
-                                </button>
-
-                                {openDropdown?.raidIdx === raidIdx &&
-                                  openDropdown?.partyIdx === partyIdx &&
-                                  openDropdown?.slotIdx === slotIdx && (
-                                    <div
-                                      className="absolute left-0 top-12 z-50 w-32 max-h-48 overflow-y-auto rounded-xl py-2 flex flex-col shadow-lg custom-scrollbar"
-                                      style={{
-                                        background: 'var(--bg-secondary)',
-                                        border: '1px solid var(--border-color)',
-                                      }}
-                                    >
-                                      {JOBS_OPTIONS.map((opt) => (
-                                        <button
-                                          key={opt.value}
-                                          className="text-left px-4 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                                          style={{ color: 'var(--text-primary)' }}
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            updateRequiredJob(raidIdx, partyIdx, slotIdx, opt.value)
-                                            setOpenDropdown(null)
-                                          }}
-                                        >
-                                          {opt.value === 'any' ? 'Any' : opt.label}
-                                        </button>
-                                      ))}
-                                    </div>
-                                  )}
+                                </div>
                               </div>
 
                               <div className="flex-1 min-w-0">

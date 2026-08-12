@@ -81,7 +81,21 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
   const assignedIds = getAssignedMemberIds()
   const benchMembers = localMembers.filter((m) => !assignedIds.includes(m.id))
-  const maxSubParties = Math.ceil(benchMembers.length / 5)
+  // Sub 1 harus full (40) dulu baru bisa bikin sub 2.
+  // Dan untuk bikin sub 2 (atau sub berikutnya), minimal sisa 5 orang.
+  const calculateMaxSubParties = (total: number) => {
+    if (total <= 40) return Math.ceil(total / 5)
+
+    const fullGroups = Math.floor(total / 40)
+    const leftover = total % 40
+
+    // Hanya bikin party ekstra di Sub 2/Sub 3 jika sisa member >= 5
+    const extraParties = leftover >= 5 ? Math.ceil(leftover / 5) : 0
+
+    return fullGroups * 8 + extraParties
+  }
+
+  const maxSubParties = calculateMaxSubParties(benchMembers.length)
 
   useEffect(() => {
     const needed = Math.max(1, maxSubParties)
@@ -163,7 +177,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     const parties = partyType === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
     if (!parties || !parties[partyIdx]) return
     parties[partyIdx].slots[slotIdx].assigned_character = null
-    parties[partyIdx].slots[slotIdx].required_job = 'any'
     setLocalSetup(newSetup)
   }
 
@@ -176,10 +189,8 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     if (selectedPartyType === 'elite') {
       newSetup.elite_parties[selectedPartyIndex].slots[selectedSlotIndex].assigned_character =
         member
-      newSetup.elite_parties[selectedPartyIndex].slots[selectedSlotIndex].required_job = member.job
     } else {
       newSetup.sub_parties[selectedPartyIndex].slots[selectedSlotIndex].assigned_character = member
-      newSetup.sub_parties[selectedPartyIndex].slots[selectedSlotIndex].required_job = member.job
     }
     setLocalSetup(newSetup)
     setIsAddMemberDialogOpen(false)
@@ -232,15 +243,9 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
         }
       }
       sourceSlot.assigned_character = targetExistingMember
-      if (targetExistingMember) {
-        sourceSlot.required_job = targetExistingMember.job
-      } else {
-        sourceSlot.required_job = 'any'
-      }
     }
 
     targetSlot.assigned_character = member
-    targetSlot.required_job = member.job
     setLocalSetup(newSetup)
     setDraggedMember(null)
   }
@@ -253,7 +258,6 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
       const sourceParties = sourceType === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
       const sourceSlot = sourceParties[sourcePartyIdx].slots[sourceSlotIdx]
       sourceSlot.assigned_character = null
-      sourceSlot.required_job = 'any'
       setLocalSetup(newSetup)
     }
     setDraggedMember(null)
@@ -447,7 +451,9 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             Atur formasi Guild League (Round-Robin Auto Assign). Total Verified Member:{' '}
-            <span className="font-semibold text-emerald-500">{localMembers.filter((m: any) => m.isVerified).length}</span>
+            <span className="font-semibold text-emerald-500">
+              {localMembers.filter((m: any) => m.isVerified).length}
+            </span>
           </p>
         </div>
 
@@ -898,7 +904,10 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                 parties.forEach((p: any) => {
                   p.slots.forEach((s: any) => {
                     if (s.assigned_character) {
-                      const updatedChar = updated.find((m: any) => m.id === s.assigned_character.id || m.id === s.assigned_character)
+                      const updatedChar = updated.find(
+                        (m: any) =>
+                          m.id === s.assigned_character.id || m.id === s.assigned_character,
+                      )
                       if (updatedChar) {
                         s.assigned_character = updatedChar
                         s.required_job = updatedChar.job

@@ -3,7 +3,7 @@
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
-export async function updateCharacterStats(id: string, payloadData: any) {
+export async function updateCharacterStats(id: string, payloadData: any, autoVerify: boolean = false) {
   try {
     const payload = await getPayload({ config: configPromise })
 
@@ -12,7 +12,7 @@ export async function updateCharacterStats(id: string, payloadData: any) {
       id,
       data: {
         ...payloadData,
-        isVerified: false,
+        isVerified: autoVerify,
       },
       overrideAccess: true,
     })
