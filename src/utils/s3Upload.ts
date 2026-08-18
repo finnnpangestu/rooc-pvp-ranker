@@ -1,7 +1,11 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 
 export const getS3Client = () => {
-  if (!process.env.S3_ENDPOINT || !process.env.S3_ACCESS_KEY_ID || !process.env.S3_SECRET_ACCESS_KEY) {
+  if (
+    !process.env.S3_ENDPOINT ||
+    !process.env.S3_ACCESS_KEY_ID ||
+    !process.env.S3_SECRET_ACCESS_KEY
+  ) {
     return null
   }
 
@@ -16,6 +20,18 @@ export const getS3Client = () => {
   })
 }
 
+export function getPublicUrl(key: string): string {
+  const bucket = process.env.S3_BUCKET || 'media'
+  const endpoint = process.env.S3_ENDPOINT || ''
+  const match = endpoint.match(/https?:\/\/([^\.]+)/)
+  const projectRef = match ? match[1] : null
+
+  if (projectRef && endpoint.includes('supabase.co')) {
+    return `https://${projectRef}.supabase.co/storage/v1/object/public/${bucket}/${key}`
+  }
+  return `${endpoint.replace(/\/$/, '')}/${bucket}/${key}`
+}
+
 export async function uploadToS3(
   fileBuffer: Buffer,
   fileName: string,
@@ -27,9 +43,9 @@ export async function uploadToS3(
     return null
   }
 
-  const bucket = process.env.S3_BUCKET || 'media'
   const sanitizedName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
   const key = `${Date.now()}-${sanitizedName}`
+  const bucket = process.env.S3_BUCKET || 'media'
 
   await s3.send(
     new PutObjectCommand({
@@ -40,17 +56,7 @@ export async function uploadToS3(
     }),
   )
 
-  const endpoint = process.env.S3_ENDPOINT || ''
-  // Extract project ref from supabase endpoint if available
-  const match = endpoint.match(/https?:\/\/([^\.]+)/)
-  const projectRef = match ? match[1] : null
-
-  let publicUrl = ''
-  if (projectRef && endpoint.includes('supabase.co')) {
-    publicUrl = `https://${projectRef}.supabase.co/storage/v1/object/public/${bucket}/${key}`
-  } else {
-    publicUrl = `${endpoint.replace(/\/$/, '')}/${bucket}/${key}`
-  }
+  const publicUrl = getPublicUrl(key)
 
   return { key, url: publicUrl }
 }

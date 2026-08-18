@@ -7,6 +7,14 @@ const __filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: '/api/media/file/:filename',
+        destination: 'https://tbbatenjyalbmhosxnha.supabase.co/storage/v1/object/public/media/:filename',
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {

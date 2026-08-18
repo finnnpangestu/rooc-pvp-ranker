@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { uploadToS3, deleteFromS3 } from '@/utils/s3Upload'
+import { uploadToS3, deleteFromS3, getPublicUrl } from '@/utils/s3Upload'
 
 export const Media: CollectionConfig = {
   slug: 'media',
