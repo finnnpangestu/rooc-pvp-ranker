@@ -19,9 +19,10 @@ export const Media: CollectionConfig = {
           const res = await uploadToS3(req.file.data, req.file.name, req.file.mimetype)
           if (res) {
             data.url = res.url
+            data.thumbnailURL = res.url
             data.filename = res.key
-            data.mimeType = req.file.mimetype
-            data.filesize = req.file.size
+            data.mimeType = req.file.mimetype || 'image/jpeg'
+            data.filesize = req.file.data.length || req.file.size || 0
           }
         }
         return data
