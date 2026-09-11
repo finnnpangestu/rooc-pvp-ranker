@@ -53,19 +53,33 @@ export async function verifySessionToken(token: string): Promise<SessionUser | n
       email: payload.email as string,
       role: (payload.role as 'super_admin' | 'guild_master') || 'guild_master',
     }
-  } catch {
+  } catch (error) {
+    console.warn('[auth] Gagal memverifikasi session token:', error)
     return null
   }
 }
 
 export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies()
+
+  // Jangan paksa secure: true jika diakses via HTTP (misal IP publik http://161.118.204.57)
+  // Browser akan menolak/membuang cookie berflag 'Secure' jika koneksinya adalah HTTP biasa!
+  let isSecure = false
+  if (process.env.COOKIE_SECURE === 'true') {
+    isSecure = true
+  } else if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.NEXT_PUBLIC_APP_URL?.startsWith('https://')
+  ) {
+    isSecure = true
+  }
+
   cookieStore.set({
     name: AUTH_COOKIE_NAME,
     value: token,
     path: '/',
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecure,
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60, // 7 days
   })

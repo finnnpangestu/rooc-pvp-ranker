@@ -43,8 +43,7 @@ function LoginFormContent() {
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false)
-    router.push('/')
-    router.refresh()
+    window.location.href = '/'
   }
 
   return (
