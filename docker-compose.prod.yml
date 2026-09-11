@@ -1,0 +1,17 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        AUTH_SECRET: ${AUTH_SECRET:-fbb13c9ca6222a138fc674a4}
+        DATABASE_URL: ${DATABASE_URL}
+    restart: always
+    ports:
+      - '80:3000'
+      - '3000:3000'
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000

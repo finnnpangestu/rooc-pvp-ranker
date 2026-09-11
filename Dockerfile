@@ -9,9 +9,8 @@ WORKDIR /app
 # Install dependencies based on the lockfile present
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+  if [ -f yarn.lock ]; then yarn; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i; \
   else npm install; \
   fi
 
@@ -25,8 +24,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # Dummy fallback jika env tidak di-pass saat build time
 ARG PAYLOAD_SECRET=dummy_secret_for_docker_build_only
+ARG AUTH_SECRET=dummy_secret_for_docker_build_only
 ARG DATABASE_URL=""
 ENV PAYLOAD_SECRET=${PAYLOAD_SECRET}
+ENV AUTH_SECRET=${AUTH_SECRET}
 ENV DATABASE_URL=${DATABASE_URL}
 
 RUN \
