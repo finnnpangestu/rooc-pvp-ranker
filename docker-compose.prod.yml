@@ -1,3 +1,5 @@
+name: rooc-pvp
+
 services:
   web:
     build:
@@ -38,3 +40,4 @@ services:
 
 volumes:
   pgdata:
+    name: app_pgdata
