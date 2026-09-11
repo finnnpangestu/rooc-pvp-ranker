@@ -1,17 +1,17 @@
 'use client'
 
 import React, { useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { GlobalDialog } from '../components/GlobalDialog'
 import { loginUser } from '@/actions/auth/loginUser'
 import { formatErrorMessage } from '@/types'
 
 function LoginFormContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const reason = searchParams.get('reason')
-  const isSessionExpired = reason === 'session_expired' || searchParams.get('error') === 'jwt_expired'
+  const isSessionExpired =
+    reason === 'session_expired' || searchParams.get('error') === 'jwt_expired'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
