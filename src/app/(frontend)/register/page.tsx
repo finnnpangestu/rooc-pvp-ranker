@@ -5,11 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { GlobalDialog } from '../components/GlobalDialog'
 import { registerUser } from '@/actions/auth/registerUser'
-import { useTheme } from '../components/ThemeProvider'
+import { formatErrorMessage } from '@/types'
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { theme } = useTheme()
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -29,8 +28,8 @@ export default function RegisterPage() {
       } else {
         setError(result.error || 'Terjadi kesalahan')
       }
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(formatErrorMessage(err))
     } finally {
       setIsLoading(false)
     }

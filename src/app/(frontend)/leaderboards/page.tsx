@@ -27,12 +27,12 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
   )
 
   const charactersWithGuild = charactersRes.map((char) => {
-    const gId = typeof char.guild_id === 'object' ? (char.guild_id as any).id : char.guild_id
+    const gId = String(char.guild_id || '')
 
     return {
       ...char,
       guild_id: gId,
-      guild_name: guildMap[String(gId)] || 'Tanpa Guild',
+      guild_name: guildMap[gId] || 'Tanpa Guild',
     }
   })
 

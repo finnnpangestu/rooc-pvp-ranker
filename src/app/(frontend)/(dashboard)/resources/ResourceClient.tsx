@@ -13,15 +13,22 @@ import { updateDistributionStatus } from '@/actions/resources/updateDistribution
 import { bulkUpdateDistributionStatus } from '@/actions/resources/bulkUpdateDistributionStatus'
 import { updateDistributionDetails } from '@/actions/resources/updateDistributionDetails'
 import { useRouter } from 'next/navigation'
-import { useTheme } from '../../components/ThemeProvider'
 import { Pagination } from '../../components/Pagination'
+import { handleAuthError } from '../../components/SessionExpiredDialog'
 import { updateResource } from '@/actions/resources/updateResource'
+import type {
+  Guild,
+  PopulatedResource,
+  ResourceDistributionWithRelations,
+  Character,
+  PopulatedMember,
+} from '@/types'
 
 interface ResourceClientProps {
-  guild: any
-  resources: any[]
-  distributions: any[]
-  members: any[]
+  guild: Guild
+  resources: PopulatedResource[]
+  distributions: ResourceDistributionWithRelations[]
+  members: Character[]
 }
 
 const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
@@ -29,7 +36,6 @@ const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
 const DISTRIBUTION_LIMIT = 10
 
 export function ResourceClient({ guild, resources, distributions, members }: ResourceClientProps) {
-  const { theme } = useTheme()
   const router = useRouter()
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -38,7 +44,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
   const [resourceName, setResourceName] = useState('')
   const [resourceQuantity, setResourceQuantity] = useState(0)
 
-  const [viewedMember, setViewedMember] = useState<any | null>(null)
+  const [viewedMember, setViewedMember] = useState<Character | PopulatedMember | null>(null)
   const [distributeMemberId, setDistributeMemberId] = useState('')
   const [distributeItems, setDistributeItems] = useState<
     { resource_id: string; quantity: number }[]
@@ -114,6 +120,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         setSelectionMode(null)
         router.refresh()
       } else {
+        if (handleAuthError(res)) return
         alert('Gagal: ' + res.message)
       }
     })
@@ -142,6 +149,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         setEditAddQuantity(0)
         router.refresh()
       } else {
+        if (handleAuthError(res)) return
         alert('Gagal: ' + res.message)
       }
       setActionResourceId(null)
@@ -162,6 +170,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         setIsCreateModalOpen(false)
         router.refresh()
       } else {
+        if (handleAuthError(res)) return
         alert('Gagal: ' + res.message)
       }
     })
@@ -174,7 +183,10 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
     startDeleteTransition(async () => {
       const res = await deleteResource(resourceId)
       if (res.success) router.refresh()
-      else alert('Gagal: ' + res.message)
+      else {
+        if (handleAuthError(res)) return
+        alert('Gagal: ' + res.message)
+      }
       setActionResourceId(null)
     })
   }
@@ -201,6 +213,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         setIsDistributeModalOpen(false)
         router.refresh()
       } else {
+        if (handleAuthError(res)) return
         alert('Gagal: ' + res.message)
       }
     })
@@ -211,7 +224,10 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
     startUpdateStatusTransition(async () => {
       const res = await updateDistributionStatus(distId, status)
       if (res.success) router.refresh()
-      else alert('Gagal: ' + res.message)
+      else {
+        if (handleAuthError(res)) return
+        alert('Gagal: ' + res.message)
+      }
       setActionDistId(null)
     })
   }
@@ -222,7 +238,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
 
     setActionDistId(editDistId)
     startEditDistTransition(async () => {
-      const payload: any = {}
+      const payload: { member_id?: string; quantity?: number } = {}
       if (editDistType === 'member') payload.member_id = editDistMemberId
       if (editDistType === 'quantity') payload.quantity = editDistQuantity
 
@@ -231,6 +247,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         setIsEditDistModalOpen(false)
         router.refresh()
       } else {
+        if (handleAuthError(res)) return
         alert(res.message)
       }
       setActionDistId(null)
@@ -291,7 +308,10 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         </div>
       </div>
 
-      <div id="tour-resource-list" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div
+        id="tour-resource-list"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+      >
         {resources.length === 0 ? (
           <div
             className="col-span-4 rounded-lg p-8 text-center border"
@@ -474,285 +494,303 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
             const isAllSelected = selectedIds.length > 0 && selectedIds.length === selectableCount
             const isIndeterminate = selectedIds.length > 0 && selectedIds.length < selectableCount
 
-            const tableContent = useMemo(() => (
-              <>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-sm">
-                    <thead>
-                      <tr
-                        className="border-b"
-                        style={{
-                          borderColor: 'var(--border-color)',
-                          background: 'var(--bg-primary)',
-                        }}
-                      >
-                        <th className="p-3 w-12 text-center">
-                          <div className="flex justify-center items-center">
-                            <div
-                              onClick={handleSelectAll}
-                              className="w-5 h-5 rounded-md flex items-center justify-center transition-all cursor-pointer"
-                              style={{
-                                background:
-                                  selectedIds.length > 0 ? 'var(--bg-card)' : 'var(--bg-secondary)',
-                                boxShadow:
-                                  selectedIds.length > 0
-                                    ? 'var(--shadow-neumorph-sm)'
-                                    : 'var(--shadow-neumorph-inset)',
-                                border:
-                                  selectedIds.length > 0
-                                    ? '1px solid rgba(129, 140, 248, 0.5)'
-                                    : '1px solid var(--border-color)',
-                              }}
-                            >
-                              {isAllSelected && (
-                                <svg
-                                  width="12"
-                                  height="12"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="#818cf8"
-                                  strokeWidth="3"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                              )}
-                              {isIndeterminate && (
-                                <svg
-                                  width="12"
-                                  height="12"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="#818cf8"
-                                  strokeWidth="3"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <line x1="5" y1="12" x2="19" y2="12" />
-                                </svg>
-                              )}
-                            </div>
-                          </div>
-                        </th>
-                        <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
-                          Tanggal
-                        </th>
-                        <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
-                          Resource
-                        </th>
-                        <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
-                          Member
-                        </th>
-                        <th className="p-3 text-right" style={{ color: 'var(--text-muted)' }}>
-                          Jumlah
-                        </th>
-                        <th className="p-3 text-center" style={{ color: 'var(--text-muted)' }}>
-                          Status
-                        </th>
-                        <th className="p-3 text-center" style={{ color: 'var(--text-muted)' }}>
-                          Aksi
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedDistributions.map((dist) => {
-                        const isDisabled =
-                          dist.status === 'claimed' ||
-                          (selectionMode !== null && selectionMode !== dist.status)
-                        const isChecked = selectedIds.includes(dist.id)
-
-                        return (
-                          <tr
-                            key={dist.id}
-                            className={`border-b transition-all ${isDisabled ? 'opacity-50' : 'hover:bg-white/5'} ${isChecked ? 'bg-indigo-500/5' : ''}`}
-                            style={{ borderColor: 'var(--border-color)' }}
-                          >
-                            <td className="p-3">
-                              <div className="flex justify-center items-center">
-                                <div
-                                  onClick={() => {
-                                    if (!isDisabled) handleToggleRow(dist.id, dist.status)
-                                  }}
-                                  className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                                  style={{
-                                    background: isChecked
+            const tableContent = useMemo(
+              () => (
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-sm">
+                      <thead>
+                        <tr
+                          className="border-b"
+                          style={{
+                            borderColor: 'var(--border-color)',
+                            background: 'var(--bg-primary)',
+                          }}
+                        >
+                          <th className="p-3 w-12 text-center">
+                            <div className="flex justify-center items-center">
+                              <div
+                                onClick={handleSelectAll}
+                                className="w-5 h-5 rounded-md flex items-center justify-center transition-all cursor-pointer"
+                                style={{
+                                  background:
+                                    selectedIds.length > 0
                                       ? 'var(--bg-card)'
                                       : 'var(--bg-secondary)',
-                                    boxShadow: isChecked
+                                  boxShadow:
+                                    selectedIds.length > 0
                                       ? 'var(--shadow-neumorph-sm)'
                                       : 'var(--shadow-neumorph-inset)',
-                                    border: isChecked
+                                  border:
+                                    selectedIds.length > 0
                                       ? '1px solid rgba(129, 140, 248, 0.5)'
                                       : '1px solid var(--border-color)',
-                                    opacity: isDisabled ? 0.5 : 1,
-                                  }}
+                                }}
+                              >
+                                {isAllSelected && (
+                                  <svg
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="#818cf8"
+                                    strokeWidth="3"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                )}
+                                {isIndeterminate && (
+                                  <svg
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="#818cf8"
+                                    strokeWidth="3"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
+                          </th>
+                          <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
+                            Tanggal
+                          </th>
+                          <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
+                            Resource
+                          </th>
+                          <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
+                            Member
+                          </th>
+                          <th className="p-3 text-right" style={{ color: 'var(--text-muted)' }}>
+                            Jumlah
+                          </th>
+                          <th className="p-3 text-center" style={{ color: 'var(--text-muted)' }}>
+                            Status
+                          </th>
+                          <th className="p-3 text-center" style={{ color: 'var(--text-muted)' }}>
+                            Aksi
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginatedDistributions.map((dist) => {
+                          const isDisabled =
+                            dist.status === 'claimed' ||
+                            (selectionMode !== null && selectionMode !== dist.status)
+                          const isChecked = selectedIds.includes(dist.id)
+
+                          return (
+                            <tr
+                              key={dist.id}
+                              className={`border-b transition-all ${isDisabled ? 'opacity-50' : 'hover:bg-white/5'} ${isChecked ? 'bg-indigo-500/5' : ''}`}
+                              style={{ borderColor: 'var(--border-color)' }}
+                            >
+                              <td className="p-3">
+                                <div className="flex justify-center items-center">
+                                  <div
+                                    onClick={() => {
+                                      if (!isDisabled) handleToggleRow(dist.id, dist.status)
+                                    }}
+                                    className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                    style={{
+                                      background: isChecked
+                                        ? 'var(--bg-card)'
+                                        : 'var(--bg-secondary)',
+                                      boxShadow: isChecked
+                                        ? 'var(--shadow-neumorph-sm)'
+                                        : 'var(--shadow-neumorph-inset)',
+                                      border: isChecked
+                                        ? '1px solid rgba(129, 140, 248, 0.5)'
+                                        : '1px solid var(--border-color)',
+                                      opacity: isDisabled ? 0.5 : 1,
+                                    }}
+                                  >
+                                    {isChecked && (
+                                      <svg
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="#818cf8"
+                                        strokeWidth="3"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <polyline points="20 6 9 17 4 12" />
+                                      </svg>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="p-3" style={{ color: 'var(--text-secondary)' }}>
+                                {dist.bid_date
+                                  ? new Date(dist.bid_date).toLocaleDateString('id-ID')
+                                  : '-'}
+                              </td>
+                              <td className="p-3" style={{ color: 'var(--text-primary)' }}>
+                                {dist.resource_id?.name || 'Unknown'}
+                              </td>
+                              <td
+                                className="p-4 flex items-center gap-2 cursor-pointer hover:bg-white/5 transition-colors"
+                                onClick={() => setViewedMember(dist.member_id || null)}
+                              >
+                                <Image
+                                  src={getJobIcon(dist.member_id?.job || '')}
+                                  alt=""
+                                  width={20}
+                                  height={20}
+                                  className="object-cover rounded"
+                                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                                />
+                                <span style={{ color: 'var(--text-primary)' }}>
+                                  {dist.member_id?.name || 'Unknown'}
+                                </span>
+                              </td>
+                              <td className="p-3 text-right font-bold" style={{ color: '#f59e0b' }}>
+                                {dist.quantity}
+                              </td>
+                              <td className="p-3 text-center">
+                                <Badge
+                                  variant={
+                                    dist.status === 'claimed'
+                                      ? 'success'
+                                      : dist.status === 'approved'
+                                        ? 'info'
+                                        : 'warning'
+                                  }
                                 >
-                                  {isChecked && (
-                                    <svg
-                                      width="12"
-                                      height="12"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="#818cf8"
-                                      strokeWidth="3"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    >
-                                      <polyline points="20 6 9 17 4 12" />
-                                    </svg>
+                                  {dist.status === 'claimed'
+                                    ? 'Claimed'
+                                    : dist.status === 'approved'
+                                      ? 'Approved'
+                                      : 'Pending'}
+                                </Badge>
+                              </td>
+                              <td className="p-3 text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                  {dist.status === 'pending' && (
+                                    <>
+                                      {renderLoadingButton(
+                                        () => {
+                                          setEditDistId(dist.id)
+                                          setEditDistType('member')
+                                          setEditDistMemberId(
+                                            typeof dist.member_id === 'object' && dist.member_id
+                                              ? dist.member_id.id
+                                              : String(dist.member_id || ''),
+                                          )
+                                          setIsEditDistModalOpen(true)
+                                        },
+                                        isEditingDist && actionDistId === dist.id,
+                                        <svg
+                                          width="14"
+                                          height="14"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                        >
+                                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                        </svg>,
+                                        'ghost',
+                                        'sm',
+                                        '',
+                                        (isUpdatingStatus || isEditingDist) &&
+                                          actionDistId !== dist.id,
+                                      )}
+                                      {renderLoadingButton(
+                                        () => handleUpdateStatus(dist.id, 'approved'),
+                                        isUpdatingStatus && actionDistId === dist.id,
+                                        'Approve',
+                                        'success',
+                                        'sm',
+                                        '',
+                                        (isUpdatingStatus || isEditingDist) &&
+                                          actionDistId !== dist.id,
+                                      )}
+                                    </>
+                                  )}
+                                  {dist.status === 'approved' && (
+                                    <>
+                                      {renderLoadingButton(
+                                        () => {
+                                          setEditDistId(dist.id)
+                                          setEditDistType('quantity')
+                                          setEditDistQuantity(Number(dist.quantity) || 0)
+                                          setIsEditDistModalOpen(true)
+                                        },
+                                        isEditingDist && actionDistId === dist.id,
+                                        <svg
+                                          width="14"
+                                          height="14"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                        >
+                                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                        </svg>,
+                                        'ghost',
+                                        'sm',
+                                        '',
+                                        (isUpdatingStatus || isEditingDist) &&
+                                          actionDistId !== dist.id,
+                                      )}
+                                      {renderLoadingButton(
+                                        () => handleUpdateStatus(dist.id, 'claimed'),
+                                        isUpdatingStatus && actionDistId === dist.id,
+                                        'Claim',
+                                        'primary',
+                                        'sm',
+                                        '',
+                                        (isUpdatingStatus || isEditingDist) &&
+                                          actionDistId !== dist.id,
+                                      )}
+                                    </>
+                                  )}
+                                  {dist.status === 'claimed' && (
+                                    <span className="text-xs text-emerald-400 font-semibold mt-1 block">
+                                      ✓ Selesai
+                                    </span>
                                   )}
                                 </div>
-                              </div>
-                            </td>
-                            <td className="p-3" style={{ color: 'var(--text-secondary)' }}>
-                              {new Date(dist.bid_date).toLocaleDateString('id-ID')}
-                            </td>
-                            <td className="p-3" style={{ color: 'var(--text-primary)' }}>
-                              {dist.resource_id?.name || 'Unknown'}
-                            </td>
-                            <td
-                              className="p-4 flex items-center gap-2 cursor-pointer hover:bg-white/5 transition-colors"
-                              onClick={() => setViewedMember(dist.member_id)}
-                            >
-                              <Image
-                                src={getJobIcon(dist.member_id?.job || '')}
-                                alt=""
-                                width={20}
-                                height={20}
-                                className="object-cover rounded"
-                                onError={(e) => (e.currentTarget.style.display = 'none')}
-                              />
-                              <span style={{ color: 'var(--text-primary)' }}>
-                                {dist.member_id?.name || 'Unknown'}
-                              </span>
-                            </td>
-                            <td className="p-3 text-right font-bold" style={{ color: '#f59e0b' }}>
-                              {dist.quantity}
-                            </td>
-                            <td className="p-3 text-center">
-                              <Badge
-                                variant={
-                                  dist.status === 'claimed'
-                                    ? 'success'
-                                    : dist.status === 'approved'
-                                      ? 'info'
-                                      : 'warning'
-                                }
-                              >
-                                {dist.status === 'claimed'
-                                  ? 'Claimed'
-                                  : dist.status === 'approved'
-                                    ? 'Approved'
-                                    : 'Pending'}
-                              </Badge>
-                            </td>
-                            <td className="p-3 text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                {dist.status === 'pending' && (
-                                  <>
-                                    {renderLoadingButton(
-                                      () => {
-                                        setEditDistId(dist.id)
-                                        setEditDistType('member')
-                                        setEditDistMemberId(
-                                          typeof dist.member_id === 'object'
-                                            ? dist.member_id.id
-                                            : dist.member_id,
-                                        )
-                                        setIsEditDistModalOpen(true)
-                                      },
-                                      isEditingDist && actionDistId === dist.id,
-                                      <svg
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                      >
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                      </svg>,
-                                      'ghost',
-                                      'sm',
-                                      '',
-                                      (isUpdatingStatus || isEditingDist) &&
-                                        actionDistId !== dist.id,
-                                    )}
-                                    {renderLoadingButton(
-                                      () => handleUpdateStatus(dist.id, 'approved'),
-                                      isUpdatingStatus && actionDistId === dist.id,
-                                      'Approve',
-                                      'success',
-                                      'sm',
-                                      '',
-                                      (isUpdatingStatus || isEditingDist) &&
-                                        actionDistId !== dist.id,
-                                    )}
-                                  </>
-                                )}
-                                {dist.status === 'approved' && (
-                                  <>
-                                    {renderLoadingButton(
-                                      () => {
-                                        setEditDistId(dist.id)
-                                        setEditDistType('quantity')
-                                        setEditDistQuantity(dist.quantity)
-                                        setIsEditDistModalOpen(true)
-                                      },
-                                      isEditingDist && actionDistId === dist.id,
-                                      <svg
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                      >
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                      </svg>,
-                                      'ghost',
-                                      'sm',
-                                      '',
-                                      (isUpdatingStatus || isEditingDist) &&
-                                        actionDistId !== dist.id,
-                                    )}
-                                    {renderLoadingButton(
-                                      () => handleUpdateStatus(dist.id, 'claimed'),
-                                      isUpdatingStatus && actionDistId === dist.id,
-                                      'Claim',
-                                      'primary',
-                                      'sm',
-                                      '',
-                                      (isUpdatingStatus || isEditingDist) &&
-                                        actionDistId !== dist.id,
-                                    )}
-                                  </>
-                                )}
-                                {dist.status === 'claimed' && (
-                                  <span className="text-xs text-emerald-400 font-semibold mt-1 block">
-                                    ✓ Selesai
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="mt-4">
-                  <Pagination
-                    currentPage={distPage}
-                    totalPages={totalDistPages}
-                    onPageChange={setDistPage}
-                  />
-                </div>
-              </>
-            ), [paginatedDistributions, selectedIds, selectionMode, isAllSelected, isIndeterminate, distPage, totalDistPages, isUpdatingStatus, isEditingDist, actionDistId])
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mt-4">
+                    <Pagination
+                      currentPage={distPage}
+                      totalPages={totalDistPages}
+                      onPageChange={setDistPage}
+                    />
+                  </div>
+                </>
+              ),
+              [
+                paginatedDistributions,
+                selectedIds,
+                selectionMode,
+                isAllSelected,
+                isIndeterminate,
+                distPage,
+                totalDistPages,
+                isUpdatingStatus,
+                isEditingDist,
+                actionDistId,
+              ],
+            )
             return tableContent
           })()
         )}
@@ -892,7 +930,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                 >
                   <option value="">-- Pilih Resource --</option>
                   {resources
-                    .filter((r) => r.remaining_quantity > 0)
+                    .filter((r) => Number(r.remaining_quantity) > 0)
                     .map((r) => (
                       <option key={r.id} value={r.id}>
                         {r.name} (Sisa: {r.remaining_quantity})
@@ -1126,7 +1164,11 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
       </GlobalDialog>
 
       <CharacterDetailModal
-        member={typeof viewedMember === 'object' ? viewedMember : members.find((m) => m.id === viewedMember) || viewedMember}
+        member={
+          typeof viewedMember === 'object'
+            ? viewedMember
+            : members.find((m) => m.id === viewedMember) || viewedMember
+        }
         isOpen={!!viewedMember}
         onClose={(isUpdated) => {
           setViewedMember(null)

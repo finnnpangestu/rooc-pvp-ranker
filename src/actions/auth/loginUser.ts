@@ -1,8 +1,9 @@
 'use server'
 
-import { getPayload } from 'payload'
-import config from '@payload-config'
-import { cookies } from 'next/headers'
+import { db } from '@/db'
+import { users } from '@/db/schema'
+import { eq } from 'drizzle-orm'
+import { verifyPassword, createSessionToken, setSessionCookie } from '@/lib/auth'
 
 export async function loginUser(formData: FormData) {
   const email = formData.get('email') as string
@@ -13,31 +14,35 @@ export async function loginUser(formData: FormData) {
   }
 
   try {
-    const payload = await getPayload({ config })
-
-    const result = await payload.login({
-      collection: 'users',
-      data: {
-        email,
-        password,
-      },
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.email, email.toLowerCase().trim()),
     })
 
-    if (result.token) {
-      const cookieStore = await cookies()
-
-      cookieStore.set({
-        name: 'payload-token',
-        value: result.token,
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-      })
+    if (!existingUser) {
+      return { success: false, message: 'Email atau password salah' }
     }
 
-    return { success: true, user: result.user }
-  } catch (error: any) {
-    return { success: false, message: error.message || 'Login failed' }
+    const isValid = await verifyPassword(password, existingUser.password)
+    if (!isValid) {
+      return { success: false, message: 'Email atau password salah' }
+    }
+
+    const sessionUser = {
+      id: existingUser.id,
+      name: existingUser.name,
+      email: existingUser.email,
+      role: existingUser.role,
+    }
+
+    const token = await createSessionToken(sessionUser)
+    await setSessionCookie(token)
+
+    return { success: true, user: sessionUser }
+  } catch (error: unknown) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Login failed',
+      error: error instanceof Error ? error.message : 'Login failed',
+    }
   }
 }

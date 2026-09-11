@@ -6,34 +6,38 @@ import { GlobalDialog } from '../../components/GlobalDialog'
 import { CharacterDetailModal } from '../../components/CharacterDetailModal'
 import { Button } from '../../components/Button'
 import { Pagination } from '../../components/Pagination'
+import { handleAuthError } from '../../components/SessionExpiredDialog'
 import { saveReportGL } from '@/actions/guild/saveReportGL'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
 import { useRouter } from 'next/navigation'
+import type { Guild, PartySetup, ReportGl, Party, PartySlot, PartySlotCharacter, MemberMatchReport, Character } from '@/types'
 
 interface ReportGLClientProps {
-  guild: any
-  initialSetup: any | null
-  historyReports: any[]
+  guild: Guild
+  initialSetup: PartySetup | null
+  historyReports: ReportGl[]
+  members?: Character[]
 }
 
 const getJobIcon = (jobValue: string) => `/icons/jobs/${jobValue}.png`
-const clone = (obj: any) => JSON.parse(JSON.stringify(obj))
+const clone = <T,>(obj: T): T => JSON.parse(JSON.stringify(obj))
 
 const REPORT_LIMIT = 14
 const RANKING_LIMIT = 10
 
-export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGLClientProps) {
+export function ReportGLClient({ guild, initialSetup, historyReports, members = [] }: ReportGLClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [activeReport, setActiveReport] = useState<any | null>(null)
-  const [viewReport, setViewReport] = useState<any | null>(null)
-  const [viewedMember, setViewedMember] = useState<any | null>(null)
+  const [activeReport, setActiveReport] = useState<Partial<ReportGl> | null>(null)
+  const [viewReport, setViewReport] = useState<ReportGl | null>(null)
+  const [localMembers, setLocalMembers] = useState<Character[]>(members)
+  const [viewedMember, setViewedMember] = useState<Character | null>(null)
   const router = useRouter()
 
   const [reportName, setReportName] = useState('')
   const [matchStatus, setMatchStatus] = useState<'win' | 'loss'>('win')
   const [matchScore, setMatchScore] = useState<number | null>(null)
 
-  const [localSetup, setLocalSetup] = useState<any | null>(null)
+  const [localSetup, setLocalSetup] = useState<PartySetup | null>(null)
   const [memberData, setMemberData] = useState<
     Record<string, { is_present: boolean; actual_score: number | null }>
   >({})
@@ -49,31 +53,44 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
 
   // Ranking members dari seluruh history reports
   const rankingMembers = useMemo(() => {
-    const rankMap: Record<string, { name: string; job: string; total: number; charObj: any }> = {}
+    const rankMap: Record<
+      string,
+      { name: string; job: string; total: number; charObj: Character | null }
+    > = {}
     historyReports.forEach((report) => {
-      ;(report.member_reports || []).forEach((mr: any) => {
-        const charId = mr.character_id?.id || mr.character_id
+      ;(report.member_reports || []).forEach((mr: MemberMatchReport) => {
+        const charId =
+          typeof mr.character_id === 'string'
+            ? mr.character_id
+            : mr.character_id?.id
         if (!charId) return
         if (!rankMap[charId]) {
+          const resolved = localMembers.find((m) => m.id === charId) || null
+          const charName =
+            resolved?.name ||
+            (typeof mr.character_id === 'object' && mr.character_id?.name ? mr.character_id.name : 'Unknown')
+          const charJob =
+            resolved?.job ||
+            (typeof mr.character_id === 'object' && mr.character_id?.job ? mr.character_id.job : '')
           rankMap[charId] = {
-            name: mr.character_id?.name || 'Unknown',
-            job: mr.character_id?.job || '',
+            name: charName,
+            job: charJob,
             total: 0,
-            charObj: mr.character_id,
+            charObj: resolved,
           }
         }
-        rankMap[charId].total += mr.actual_score || 0
+        rankMap[charId].total += Number(mr.actual_score || mr.score || 0)
       })
     })
     return Object.values(rankMap)
       .filter((m) => m.total > 0)
       .sort((a, b) => b.total - a.total)
-  }, [historyReports])
+  }, [historyReports, localMembers])
 
   // Paginate reports (newest first)
   const sortedReports = useMemo(() => {
     return [...historyReports].sort(
-      (a, b) => new Date(b.match_date).getTime() - new Date(a.match_date).getTime(),
+      (a, b) => new Date(b.match_date || '').getTime() - new Date(a.match_date || '').getTime(),
     )
   }, [historyReports])
 
@@ -97,11 +114,17 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
     const setupClone = clone(initialSetup)
     const initialMemberData: Record<string, { is_present: boolean; actual_score: number }> = {}
 
-    const initData = (parties: any[]) => {
+    const initData = (parties: Party[]) => {
       parties.forEach((p) =>
-        p.slots.forEach((s: any) => {
+        p.slots.forEach((s) => {
           if (s.assigned_character) {
-            initialMemberData[s.assigned_character.id] = { is_present: false, actual_score: 0 }
+            const charId =
+              typeof s.assigned_character === 'object'
+                ? s.assigned_character.id
+                : s.assigned_character
+            if (charId) {
+              initialMemberData[charId] = { is_present: false, actual_score: 0 }
+            }
           }
         }),
       )
@@ -112,24 +135,34 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
 
     setMemberData(initialMemberData)
     setLocalSetup(setupClone)
-    setActiveReport({ report_name: reportName, match_status: matchStatus, match_score: matchScore })
+    setActiveReport({
+      report_name: reportName,
+      match_status: matchStatus,
+      match_score: matchScore != null ? String(matchScore) : '0',
+    })
     setIsModalOpen(false)
   }
 
   const flattenedMembers = useMemo(() => {
     if (!localSetup) return []
-    const members: any[] = []
+    const members: {
+      char: PartySlotCharacter
+      partyType: 'elite' | 'sub'
+      pIdx: number
+      sIdx: number
+      partyName: string
+    }[] = []
 
-    const extract = (parties: any[], type: 'elite' | 'sub') => {
-      parties.forEach((p: any, pIdx: number) => {
-        p.slots.forEach((s: any, sIdx: number) => {
-          if (s.assigned_character) {
+    const extract = (parties: Party[], type: 'elite' | 'sub') => {
+      parties.forEach((p, pIdx) => {
+        p.slots.forEach((s, sIdx) => {
+          if (s.assigned_character && typeof s.assigned_character === 'object') {
             members.push({
               char: s.assigned_character,
               partyType: type,
               pIdx,
               sIdx,
-              partyName: p.party_name,
+              partyName: p.name || p.party_name || '',
             })
           }
         })
@@ -149,26 +182,26 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
       type: 'elite' | 'sub'
       pIdx: number
       memberCount: number
-      slots: any[]
+      slots: PartySlot[]
     }[] = []
 
-    localSetup.elite_parties?.forEach((p: any, pIdx: number) => {
+    localSetup.elite_parties?.forEach((p: Party, pIdx: number) => {
       parties.push({
         id: `elite-${pIdx}`,
-        name: p.party_name,
+        name: p.name || p.party_name || `Elite ${pIdx + 1}`,
         type: 'elite',
         pIdx,
-        memberCount: p.slots.filter((s: any) => s.assigned_character).length,
+        memberCount: p.slots.filter((s: PartySlot) => s.assigned_character).length,
         slots: p.slots,
       })
     })
-    localSetup.sub_parties?.forEach((p: any, pIdx: number) => {
+    localSetup.sub_parties?.forEach((p: Party, pIdx: number) => {
       parties.push({
         id: `sub-${pIdx}`,
-        name: p.party_name,
+        name: p.name || p.party_name || `Sub ${pIdx + 1}`,
         type: 'sub',
         pIdx,
-        memberCount: p.slots.filter((s: any) => s.assigned_character).length,
+        memberCount: p.slots.filter((s: PartySlot) => s.assigned_character).length,
         slots: p.slots,
       })
     })
@@ -190,15 +223,17 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
     setIsDropdownLoading((prev) => ({ ...prev, [sourceCharId]: true }))
 
     setTimeout(() => {
+      if (!localSetup) return
       const newSetup = clone(localSetup)
       const sParties = sourcePartyType === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
       const tParties = targetParty.type === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
+      if (!sParties || !tParties) return
 
       const sourceChar = sParties[sourcePIdx].slots[sourceSIdx].assigned_character
 
       if (targetParty.memberCount < 5) {
         const emptySlotIdx = tParties[targetParty.pIdx].slots.findIndex(
-          (s: any) => !s.assigned_character,
+          (s: PartySlot) => !s.assigned_character,
         )
         tParties[targetParty.pIdx].slots[emptySlotIdx].assigned_character = sourceChar
         sParties[sourcePIdx].slots[sourceSIdx].assigned_character = null
@@ -210,7 +245,13 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
         }
 
         const targetSlotIdx = tParties[targetParty.pIdx].slots.findIndex(
-          (s: any) => s.assigned_character?.id === targetCharId,
+          (s: PartySlot) => {
+            const id =
+              typeof s.assigned_character === 'string'
+                ? s.assigned_character
+                : s.assigned_character?.id
+            return id === targetCharId
+          },
         )
         const targetChar = tParties[targetParty.pIdx].slots[targetSlotIdx].assigned_character
 
@@ -244,6 +285,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
   }
 
   const handleSave = async () => {
+    if (!initialSetup) return
     setIsSaving(true)
     const memberReports = flattenedMembers.map((m) => ({
       character_id: m.char.id,
@@ -252,22 +294,34 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
       party_assigned: m.partyName,
     }))
 
-    const reportPayload = { ...activeReport, member_reports: memberReports }
+    const reportPayload = {
+      report_name: reportName || activeReport?.report_name || 'Report GL',
+      match_status: matchStatus,
+      match_score: matchScore ?? 0,
+      member_reports: memberReports,
+    }
 
     // Clean up relations for Payload to drastically reduce request size and prevent timeouts
-    const cleanParties = (parties: any[]) => parties.map((p: any) => ({
-      ...p,
-      slots: p.slots.map((s: any) => ({
-        required_job: s.required_job,
-        assigned_character: s.assigned_character ? (s.assigned_character.id || s.assigned_character) : null,
-      })),
-    }));
+    const cleanParties = (parties: Party[]) =>
+      parties.map((p: Party) => ({
+        ...p,
+        slots: p.slots.map((s: PartySlot) => ({
+          required_job: s.required_job,
+          assigned_character: s.assigned_character
+            ? typeof s.assigned_character === 'string'
+              ? s.assigned_character
+              : s.assigned_character.id
+            : null,
+        })),
+      }))
 
-    const payloadSetup = localSetup ? {
-      ...localSetup,
-      elite_parties: localSetup.elite_parties ? cleanParties(localSetup.elite_parties) : [],
-      sub_parties: localSetup.sub_parties ? cleanParties(localSetup.sub_parties) : [],
-    } : null;
+    const payloadSetup = localSetup
+      ? {
+          ...localSetup,
+          elite_parties: localSetup.elite_parties ? cleanParties(localSetup.elite_parties) : [],
+          sub_parties: localSetup.sub_parties ? cleanParties(localSetup.sub_parties) : [],
+        }
+      : {}
 
     const res = await saveReportGL(guild.id, initialSetup.id, reportPayload, payloadSetup)
 
@@ -279,12 +333,13 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
       setMatchScore(null)
       setLocalSetup(null)
     } else {
+      if (handleAuthError(res)) return
       alert('Gagal: ' + res.message)
     }
     setIsSaving(false)
   }
 
-  const handleViewReport = (report: any) => {
+  const handleViewReport = (report: ReportGl) => {
     setViewReport(report)
   }
 
@@ -355,7 +410,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
                           <Image
-                            src={getJobIcon(m.char.job)}
+                            src={getJobIcon(m.char.job || '')}
                             alt=""
                             width={32}
                             height={32}
@@ -369,7 +424,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                               {m.char.name}
                             </div>
                             <div className="text-[11px] text-amber-400 font-semibold mt-0.5">
-                              PvP Score: {Math.round(m.char.pvp_score || 0).toLocaleString('id-ID')}
+                              PvP Score: {Math.round(Number(m.char.pvp_score) || 0).toLocaleString('id-ID')}
                             </div>
                           </div>
                         </div>
@@ -492,16 +547,18 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                                 }}
                               >
                                 <option value="">-- Pilih Target Swap --</option>
-                                {targetParty?.slots.map((s: any) =>
-                                  s.assigned_character ? (
-                                    <option
-                                      key={s.assigned_character.id}
-                                      value={s.assigned_character.id}
-                                    >
-                                      {s.assigned_character.name}
+                                {targetParty?.slots.map((s: PartySlot) => {
+                                  const char =
+                                    typeof s.assigned_character === 'object'
+                                      ? s.assigned_character
+                                      : null
+                                  if (!char) return null
+                                  return (
+                                    <option key={char.id} value={char.id}>
+                                      {char.name}
                                     </option>
-                                  ) : null,
-                                )}
+                                  )
+                                })}
                               </select>
                             )}
 
@@ -563,7 +620,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                       }}
                     >
                       <Image
-                        src={getJobIcon(m.char.job)}
+                        src={getJobIcon(m.char.job || '')}
                         alt=""
                         width={24}
                         height={24}
@@ -648,7 +705,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                           <line x1="8" y1="2" x2="8" y2="6" />
                           <line x1="3" y1="10" x2="21" y2="10" />
                         </svg>
-                        {new Date(report.match_date).toLocaleDateString('id-ID')}
+                        {report.match_date ? new Date(report.match_date).toLocaleDateString('id-ID') : '-'}
                       </span>
                       <span
                         className={`font-semibold py-0.5 px-2 rounded text-[10px] ${
@@ -908,11 +965,13 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                   <line x1="8" y1="2" x2="8" y2="6" />
                   <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
-                {new Date(viewReport.match_date).toLocaleDateString('id-ID', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
+                {viewReport.match_date
+                  ? new Date(viewReport.match_date).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })
+                  : '-'}
               </span>
               <span
                 className={`flex items-center gap-2 font-semibold px-3 py-1 rounded-full text-xs ${
@@ -951,8 +1010,8 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
             </div>
 
             {(() => {
-              const groups: Record<string, any[]> = {}
-              ;(viewReport.member_reports || []).forEach((mr: any) => {
+              const groups: Record<string, MemberMatchReport[]> = {}
+              ;(viewReport.member_reports || []).forEach((mr: MemberMatchReport) => {
                 const party = mr.party_assigned || 'Unassigned'
                 if (!groups[party]) groups[party] = []
                 groups[party].push(mr)
@@ -960,7 +1019,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
 
               return Object.entries(groups).map(([partyName, members]) => {
                 const sorted = [...members].sort(
-                  (a, b) => (b.actual_score || 0) - (a.actual_score || 0),
+                  (a, b) => Number(b.actual_score || 0) - Number(a.actual_score || 0),
                 )
                 return (
                   <div key={partyName} className="mb-5">
@@ -988,15 +1047,23 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                     </div>
 
                     <div className="grid grid-cols-5 gap-3">
-                      {sorted.map((mr: any, idx: number) => {
-                        const char = mr.character_id
-                        const isPresent = mr.is_present
-                        const score = Math.round(mr.actual_score || 0)
+                      {sorted.map((mr: MemberMatchReport, idx: number) => {
+                        const char =
+                          typeof mr.character_id === 'object' ? mr.character_id : null
+                        const charId =
+                          typeof mr.character_id === 'string'
+                            ? mr.character_id
+                            : mr.character_id?.id
+                        const resolvedChar = localMembers.find((m: Character) => m.id === charId) || null
+                        const isPresent = Boolean(mr.is_present || mr.status === 'present')
+                        const score = Math.round(Number(mr.actual_score || mr.score) || 0)
                         return (
                           <div
                             key={idx}
                             className="flex flex-col items-center p-3 rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer hover:bg-white/5"
-                            onClick={() => setViewedMember(char)}
+                            onClick={() => {
+                              if (resolvedChar) setViewedMember(resolvedChar)
+                            }}
                             style={{
                               background: isPresent ? 'var(--bg-card)' : 'var(--bg-primary)',
                               borderColor: isPresent
@@ -1010,7 +1077,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                           >
                             <div className="relative mb-1.5">
                               <img
-                                src={getJobIcon(char?.job || '')}
+                                src={getJobIcon(resolvedChar?.job || char?.job || '')}
                                 alt=""
                                 className="w-10 h-10 object-cover rounded-lg shadow-sm"
                                 style={{ border: '1px solid var(--border-color)' }}
@@ -1034,7 +1101,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
                               className="text-xs font-medium truncate w-full text-center flex-1"
                               style={{ color: 'var(--text-primary)' }}
                             >
-                              {char?.name || 'Unknown'}
+                              {resolvedChar?.name || char?.name || 'Unknown'}
                             </span>
                             <span
                               className="text-sm font-bold mt-0.5"
@@ -1086,14 +1153,26 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
           setViewedMember(null)
           if (isUpdated) {
             const updated = await getCharactersDashboard(guild.id)
+            setLocalMembers(updated)
             if (localSetup) {
               const newSetup = clone(localSetup)
-              const updateParties = (parties: any[]) => {
-                parties.forEach((p: any) => {
-                  p.slots.forEach((s: any) => {
+              const updateParties = (parties: Party[]) => {
+                parties.forEach((p: Party) => {
+                  p.slots.forEach((s: PartySlot) => {
                     if (s.assigned_character) {
-                      const newChar = updated.find((m: any) => m.id === s.assigned_character.id || m.id === s.assigned_character)
-                      if (newChar) s.assigned_character = newChar
+                      const assignedId =
+                        typeof s.assigned_character === 'string'
+                          ? s.assigned_character
+                          : s.assigned_character.id
+                      const newChar = updated.find((m: Character) => m.id === assignedId)
+                      if (newChar) {
+                        s.assigned_character = {
+                          id: newChar.id,
+                          name: newChar.name,
+                          job: newChar.job,
+                          pvp_score: newChar.pvp_score,
+                        }
+                      }
                     }
                   })
                 })
@@ -1104,10 +1183,21 @@ export function ReportGLClient({ guild, initialSetup, historyReports }: ReportGL
             }
             if (viewReport) {
               const newReport = clone(viewReport)
-              newReport.member_reports.forEach((mr: any) => {
+              newReport.member_reports?.forEach((mr: MemberMatchReport) => {
                 if (mr.character_id) {
-                  const newChar = updated.find((m: any) => m.id === mr.character_id.id || m.id === mr.character_id)
-                  if (newChar) mr.character_id = newChar
+                  const charId =
+                    typeof mr.character_id === 'string'
+                      ? mr.character_id
+                      : mr.character_id.id
+                  const newChar = updated.find((m: Character) => m.id === charId)
+                  if (newChar) {
+                    mr.character_id = {
+                      id: newChar.id,
+                      name: newChar.name,
+                      job: newChar.job,
+                      pvp_score: newChar.pvp_score,
+                    }
+                  }
                 }
               })
               setViewReport(newReport)

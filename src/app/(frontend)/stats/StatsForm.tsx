@@ -9,6 +9,8 @@ import { GENERAL_STATS, QUASI_STATS, SPECIAL_STATS } from '@/const/StatsLabels'
 import { updateCharacterStats } from '@/actions/stats/updateCharacter'
 import clsx from 'clsx'
 import { useTheme } from '../components/ThemeProvider'
+import type { Character, CharacterStatsInput } from '@/types'
+import { formatErrorMessage } from '@/types'
 
 interface Guild {
   id: string
@@ -17,10 +19,10 @@ interface Guild {
 
 interface StatsFormProps {
   guilds: Guild[]
-  characters: any[]
+  characters: Character[]
 }
 
-const DEFAULT_FORM = {
+const DEFAULT_FORM: CharacterStatsInput = {
   name: '',
   job: '',
   guild_id: '',
@@ -30,7 +32,7 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const router = useRouter()
-  const [formData, setFormData] = useState<any>({ ...DEFAULT_FORM })
+  const [formData, setFormData] = useState<CharacterStatsInput>({ ...DEFAULT_FORM })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [dialogResult, setDialogResult] = useState<{ isOpen: boolean; score: number | null }>({
     isOpen: false,
@@ -69,7 +71,7 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
     if (formMode === 'update' && selectedUpdateId) {
       const char = characters.find((c) => String(c.id) === selectedUpdateId)
       if (char) {
-        setFormData((prev: any) => ({
+        setFormData((prev: CharacterStatsInput) => ({
           ...prev,
           ...char,
           guild_id: String(char.guild_id),
@@ -80,7 +82,7 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
-    setFormData((prev: any) => ({
+    setFormData((prev: CharacterStatsInput) => ({
       ...prev,
       [name]: type === 'number' ? (value ? Number(value) : undefined) : value,
     }))
@@ -91,12 +93,12 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
     setIsSubmitting(true)
 
     try {
-      const payloadData = { ...formData }
+      const payloadData: CharacterStatsInput = { ...formData }
       if (payloadData.guild_id) {
         payloadData.guild_id = String(payloadData.guild_id)
       }
 
-      let resDoc = null
+      let resDoc: Character | null = null
 
       if (formMode === 'add') {
         const res = await fetch('/api/characters', {
@@ -108,7 +110,7 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
         if (!res.ok)
           throw new Error(
             json.errors
-              ? json.errors.map((err: any) => err.message).join(', ')
+              ? json.errors.map((err: { message: string }) => err.message).join(', ')
               : 'Gagal mengirim data baru',
           )
         resDoc = json.doc
@@ -116,19 +118,19 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
         if (!selectedUpdateId) throw new Error('Harap pilih karakter yang ingin diupdate!')
         const res = await updateCharacterStats(selectedUpdateId, payloadData)
         if (!res.success) throw new Error(res.message)
-        resDoc = res.doc
+        resDoc = res.data?.doc || null
       }
 
       setDialogResult({
         isOpen: true,
-        score: resDoc.pvp_score,
+        score: resDoc ? Number(resDoc.pvp_score) : null,
       })
       setFormData({ ...DEFAULT_FORM })
       setSelectedUpdateId('')
       setActiveTab('info')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      alert(err.message || 'Terjadi kesalahan jaringan.')
+      alert(formatErrorMessage(err))
     } finally {
       setIsSubmitting(false)
     }
@@ -164,7 +166,7 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
               color: 'var(--text-primary)',
               border: 'none',
             }}
-            value={formData[field.name] ?? ''}
+            value={String(formData[field.name as keyof CharacterStatsInput] ?? '')}
             onChange={handleChange}
             required={field.required}
             placeholder="0"

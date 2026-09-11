@@ -1,23 +1,21 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { db } from '@/db'
+import { resources, resourceDistributions } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
 export async function deleteResource(resourceId: string) {
   try {
-    const payload = await getPayload({ config: configPromise })
-
-    await payload.delete({
-      collection: 'resources',
-      id: resourceId,
-    })
+    await db.delete(resourceDistributions).where(eq(resourceDistributions.resource_id, resourceId))
+    await db.delete(resources).where(eq(resources.id, resourceId))
 
     revalidatePath('/resources')
     revalidatePath('/')
 
     return { success: true }
-  } catch (error: any) {
-    return { success: false, message: error.message }
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : 'Gagal menghapus resource'
+    return { success: false, message: errorMsg, error: errorMsg }
   }
 }

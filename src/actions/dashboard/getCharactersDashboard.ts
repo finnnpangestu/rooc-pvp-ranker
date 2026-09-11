@@ -1,23 +1,17 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { db } from '@/db'
+import { characters } from '@/db/schema'
+import { eq, desc } from 'drizzle-orm'
 
 export async function getCharactersDashboard(guildId: string) {
   try {
-    const payload = await getPayload({ config: configPromise })
-
-    const result = await payload.find({
-      collection: 'characters',
-      where: {
-        guild_id: { equals: guildId },
-      },
-      depth: 0,
-      limit: 1000,
-      pagination: false,
+    const result = await db.query.characters.findMany({
+      where: eq(characters.guild_id, guildId),
+      orderBy: [desc(characters.created_at)],
     })
 
-    return result.docs
+    return result
   } catch (error) {
     console.error('Error fetching characters:', error)
     return []

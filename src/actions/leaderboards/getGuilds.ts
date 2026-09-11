@@ -1,20 +1,16 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { db } from '@/db'
+import { guilds } from '@/db/schema'
+import { desc, sql } from 'drizzle-orm'
 
 export async function getGuilds() {
   try {
-    const payload = await getPayload({ config: configPromise })
-
-    const guildsRes = await payload.find({
-      collection: 'guilds',
-      limit: 1000,
-      pagination: false,
-      sort: '-total_pvp_score',
+    const guildsRes = await db.query.guilds.findMany({
+      orderBy: [desc(sql`CAST(${guilds.total_pvp_score} AS numeric)`)],
     })
 
-    return guildsRes.docs
+    return guildsRes
   } catch (error) {
     console.error('Error fetching guilds:', error)
     return []

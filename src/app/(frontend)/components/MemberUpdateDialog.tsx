@@ -2,19 +2,22 @@
 
 import React, { useState, useEffect } from 'react'
 import { GlobalDialog } from './GlobalDialog'
+import { handleAuthError } from './SessionExpiredDialog'
 import { GENERAL_STATS, QUASI_STATS, SPECIAL_STATS } from '@/const/StatsLabels'
 import { updateCharacterStats } from '@/actions/stats/updateCharacter'
 import { JOBS } from '@/const/JobLabels'
 import clsx from 'clsx'
+import type { Character, PopulatedMember, CharacterStatsInput } from '@/types'
+import { formatErrorMessage } from '@/types'
 
 interface MemberUpdateDialogProps {
   isOpen: boolean
   onClose: (isUpdated?: boolean) => void
-  character: any | null
+  character: Character | PopulatedMember | null
 }
 
 export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateDialogProps) {
-  const [formData, setFormData] = useState<any>({})
+  const [formData, setFormData] = useState<CharacterStatsInput>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState('general')
 
@@ -22,10 +25,8 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
     if (character && isOpen) {
       setFormData({
         ...character,
-        guild_id:
-          typeof character.guild_id === 'object' && character.guild_id?.id
-            ? String(character.guild_id.id)
-            : String(character.guild_id || ''),
+        pvp_score: character.pvp_score != null ? String(character.pvp_score) : null,
+        guild_id: String(character.guild_id || ''),
       })
       setActiveTab('general')
     }
@@ -35,7 +36,7 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
-    setFormData((prev: any) => ({
+    setFormData((prev: CharacterStatsInput) => ({
       ...prev,
       [name]: type === 'number' ? (value ? Number(value) : undefined) : value,
     }))
@@ -43,20 +44,13 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!character) return
+
     setIsSubmitting(true)
 
     try {
-      const payloadData = { ...formData }
-
-      // Remove read-only/system fields to prevent SQL update errors
-      delete payloadData.id
-      delete payloadData.createdAt
-      delete payloadData.updatedAt
-      delete payloadData.gl_present_count
-      delete payloadData.gl_absent_count
-      delete payloadData.woe_present_count
-      delete payloadData.woe_absent_count
-      delete payloadData.total_resources
+      // Format payload Data
+      const payloadData: Record<string, unknown> = { ...formData }
 
       if (payloadData.guild_id) {
         payloadData.guild_id = String(payloadData.guild_id)
@@ -64,13 +58,16 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
 
       // GM updates auto-verify the character
       const res = await updateCharacterStats(character.id, payloadData, true)
-      if (!res.success) throw new Error(res.message)
+      if (!res.success) {
+        if (handleAuthError(res)) return
+        throw new Error(res.message)
+      }
 
       alert('Berhasil memperbarui karakter!')
       onClose(true)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      alert(err.message || 'Terjadi kesalahan jaringan.')
+      alert(formatErrorMessage(err))
     } finally {
       setIsSubmitting(false)
     }
@@ -105,7 +102,7 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
               color: 'var(--text-primary)',
               border: 'none',
             }}
-            value={formData[field.name] ?? ''}
+            value={String(formData[field.name as keyof CharacterStatsInput] ?? '')}
             onChange={handleChange}
             required={field.required}
             placeholder="0"

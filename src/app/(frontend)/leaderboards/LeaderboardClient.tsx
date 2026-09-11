@@ -4,13 +4,13 @@ import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { JOB_LABELS } from '@/const/JobLabels'
-import { TabBar, TabButton } from '../components/TabBar'
 import clsx from 'clsx'
 import { useTheme } from '../components/ThemeProvider'
+import type { Guild, CharacterWithGuild } from '@/types'
 
 interface LeaderboardClientProps {
-  allGuilds: any[]
-  allCharacters: any[]
+  allGuilds: Guild[]
+  allCharacters: CharacterWithGuild[]
   selectedGuildId: string
 }
 
@@ -282,7 +282,7 @@ export function LeaderboardClient({
                       }}
                     >
                       <span style={{ color: rank === 1 ? '#fbbf24' : 'var(--text-primary)' }}>
-                        {Math.round(guild.total_pvp_score ?? 0).toLocaleString()}
+                        {Math.round(Number(guild.total_pvp_score) || 0).toLocaleString()}
                       </span>
                     </td>
                   </tr>
@@ -568,7 +568,7 @@ export function LeaderboardClient({
                           }}
                         >
                           <span style={{ color: rank <= 3 ? '#fbbf24' : 'var(--text-primary)' }}>
-                            {Math.round(char.pvp_score ?? 0).toLocaleString()}
+                            {Math.round(Number(char.pvp_score) || 0).toLocaleString()}
                           </span>
                         </td>
                       </tr>

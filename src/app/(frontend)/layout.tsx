@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import './styles.css'
 import { ThemeProvider } from './components/ThemeProvider'
+import { SessionExpiredDialog } from './components/SessionExpiredDialog'
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -28,7 +29,10 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
     <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable}`}>
       <body>
         <main>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {children}
+            <SessionExpiredDialog />
+          </ThemeProvider>
         </main>
 
         <Analytics />

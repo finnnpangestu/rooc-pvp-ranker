@@ -1,7 +1,6 @@
 import React from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
 import { StatsForm } from './StatsForm'
+import { db } from '@/db'
 
 export const metadata = {
   title: 'Submit Character Stats | ROOC PvP Ranker',
@@ -11,33 +10,24 @@ export const metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function StatsPage() {
-  const payload = await getPayload({ config: configPromise })
-
   const [guildsRes, charsRes] = await Promise.all([
-    payload.find({
-      collection: 'guilds',
-      limit: 1000,
-      pagination: false,
-      select: {
+    db.query.guilds.findMany({
+      columns: {
+        id: true,
         name: true,
       },
     }),
-    payload.find({
-      collection: 'characters',
-      limit: 5000,
-      pagination: false,
-      depth: 0,
-    })
+    db.query.characters.findMany(),
   ])
 
-  const guilds = guildsRes.docs.map((g) => ({
+  const formattedGuilds = guildsRes.map((g) => ({
     id: String(g.id),
     name: g.name,
   }))
 
   return (
     <main className="min-h-screen py-4 px-4" style={{ background: 'var(--bg-primary)' }}>
-      <StatsForm guilds={guilds} characters={charsRes.docs} />
+      <StatsForm guilds={formattedGuilds} characters={charsRes} />
     </main>
   )
 }

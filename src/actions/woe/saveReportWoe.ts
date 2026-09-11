@@ -1,80 +1,93 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { db } from '@/db'
+import { characters, reportsWoe, woeSetups } from '@/db/schema'
+import { eq, inArray } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+import type { WoeRaid, WoeSetup, MemberMatchReport, ActionResult } from '@/types'
+import { actionError, actionSuccess, formatErrorMessage } from '@/types'
+
+export interface WoeMemberReportInput {
+  character_id: string
+  is_present: boolean
+  [key: string]: unknown
+}
+
+export interface WoeReportDataInput {
+  report_name: string
+  match_rank?: number | string | null
+  member_reports?: WoeMemberReportInput[]
+}
 
 export async function saveReportWoe(
   guildId: string,
   setupId: string,
-  reportData: any,
-  updatedSetupData: any,
-) {
+  reportData: WoeReportDataInput,
+  updatedSetupData: Partial<WoeSetup>,
+): Promise<ActionResult<{ reportId: string }> & { reportId?: string }> {
   try {
-    const payload = await getPayload({ config: configPromise })
-
     // 1. Simpan report
-    const newReport = await payload.create({
-      collection: 'reports_woe',
-      data: {
-        guild_id: guildId,
-        report_name: reportData.report_name,
-        match_rank: reportData.match_rank,
-        member_reports: reportData.member_reports,
-        match_date: new Date().toISOString(),
-      },
+    const newReportId = crypto.randomUUID()
+    const memberReportsToSave: MemberMatchReport[] = (reportData.member_reports || []).map((mr) => ({
+      character_id: mr.character_id,
+      status: mr.is_present ? 'present' : 'absent',
+    }))
+
+    await db.insert(reportsWoe).values({
+      id: newReportId,
+      guild_id: guildId,
+      report_name: reportData.report_name,
+      match_rank: reportData.match_rank ? String(reportData.match_rank) : null,
+      member_reports: memberReportsToSave,
+      match_date: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
 
-    // 2. Bulk fetch characters to avoid sequential DB lookups
-    const charIds = reportData.member_reports.map((mr: any) => mr.character_id)
-    const charactersRes = await payload.find({
-      collection: 'characters',
-      where: { id: { in: charIds } },
-      limit: 1000,
-    })
+    // 2. Fetch characters
+    const charIds = (reportData.member_reports || []).map((mr) => mr.character_id).filter(Boolean)
+    if (charIds.length > 0) {
+      const chars = await db.query.characters.findMany({
+        where: inArray(characters.id, charIds),
+      })
 
-    const charMap = new Map()
-    charactersRes.docs.forEach((doc) => charMap.set(doc.id, doc))
+      const charMap = new Map<string, typeof chars[number]>()
+      chars.forEach((c) => charMap.set(c.id, c))
 
-    // Process updates in chunks to speed up without overwhelming Postgres connection pool
-    // (Supabase session pool limit is 15, we use 3 to be extremely safe but still 3x faster than sequential)
-    const CHUNK_SIZE = 3;
-    for (let i = 0; i < reportData.member_reports.length; i += CHUNK_SIZE) {
-      const chunk = reportData.member_reports.slice(i, i + CHUNK_SIZE);
-      await Promise.all(
-        chunk.map(async (memberReport: any) => {
-          const charId = memberReport.character_id
-          const char = charMap.get(charId)
-          if (!char) return
+      for (const mr of reportData.member_reports || []) {
+        const char = charMap.get(mr.character_id)
+        if (!char) continue
 
-          const presentCount = (char.woe_present_count || 0) + (memberReport.is_present ? 1 : 0)
-          const absentCount = (char.woe_absent_count || 0) + (memberReport.is_present ? 0 : 1)
+        const presentCount = (Number(char.woe_present_count) || 0) + (mr.is_present ? 1 : 0)
+        const absentCount = (Number(char.woe_absent_count) || 0) + (mr.is_present ? 0 : 1)
 
-          await payload.update({
-            collection: 'characters',
-            id: charId,
-            data: {
-              woe_present_count: presentCount,
-              woe_absent_count: absentCount,
-            },
+        await db
+          .update(characters)
+          .set({
+            woe_present_count: String(presentCount),
+            woe_absent_count: String(absentCount),
+            updated_at: new Date().toISOString(),
           })
-        })
-      );
+          .where(eq(characters.id, mr.character_id))
+      }
     }
 
     // 3. Update party setup: remove absent players from parties and update swaps
     if (setupId && updatedSetupData) {
-      const absentCharIds = reportData.member_reports
-        .filter((mr: { is_present: any }) => !mr.is_present)
-        .map((mr: { character_id: any }) => mr.character_id)
+      const absentCharIds = (reportData.member_reports || [])
+        .filter((mr) => !mr.is_present)
+        .map((mr) => mr.character_id)
 
-      const newSetup = JSON.parse(JSON.stringify(updatedSetupData))
+      const newSetup: Partial<WoeSetup> = JSON.parse(JSON.stringify(updatedSetupData))
 
-      const removeAbsent = (raids: any[]) => {
-        raids.forEach((raid: any) => {
-          raid.parties.forEach((party: any) => {
-            party.slots.forEach((slot: any) => {
-              const assignedId = slot.assigned_character?.id || slot.assigned_character
+      const removeAbsent = (raids: WoeRaid[]) => {
+        raids.forEach((raid) => {
+          raid.parties.forEach((party) => {
+            party.slots.forEach((slot) => {
+              const assignedId =
+                typeof slot.assigned_character === 'object' && slot.assigned_character
+                  ? slot.assigned_character.id
+                  : slot.assigned_character
               if (assignedId && absentCharIds.includes(assignedId)) {
                 slot.assigned_character = null
               }
@@ -85,22 +98,23 @@ export async function saveReportWoe(
 
       if (newSetup.raids) removeAbsent(newSetup.raids)
 
-      await payload.update({
-        collection: 'woe_setups',
-        id: setupId,
-        data: {
+      await db
+        .update(woeSetups)
+        .set({
           raids: newSetup.raids,
-        },
-      })
+          updated_at: new Date().toISOString(),
+        })
+        .where(eq(woeSetups.id, setupId))
     }
 
     revalidatePath('/')
     revalidatePath('/report-woe')
     revalidatePath('/dashboard')
 
-    return { success: true, reportId: newReport.id }
-  } catch (error: any) {
+    const resSuccess = actionSuccess({ reportId: newReportId }, 'Laporan WoE berhasil disimpan')
+    return { ...resSuccess, reportId: newReportId }
+  } catch (error: unknown) {
     console.error('Error saving WoE report:', error)
-    return { success: false, message: error.message }
+    return actionError(formatErrorMessage(error))
   }
 }

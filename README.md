@@ -1,67 +1,106 @@
-# Payload Blank Template
+# ROOC PvP Ranker & Guild Manager
 
-This template comes configured with the bare minimum to get started on anything you need.
+Guild management and PvP-ranking tool for a Ragnarok Online private server ("ROOC"). Guild
+masters register characters and combat stats; the app computes a weighted PvP score per
+character, rolls it up per guild, and tracks War of Emperium (WoE) and Guild League (GL)
+attendance/results, loot distribution, and party formation.
 
-## Quick start
+Built on **Next.js 16** (App Router) + **Drizzle ORM** + **PostgreSQL** + **Docker / VPS**.
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+> For architecture, data model, and coding conventions, see [`docs/`](./docs/) — start with
+> [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md). That folder is the reference for both humans
+> and AI assistants working on this codebase; keep it current when you change things.
 
-## Quick Start - local setup
+## Tech stack
 
-To spin up this template locally, follow these steps:
+- **Framework**: Next.js 16 (Turbopack, Standalone Output)
+- **Backend & ORM**: Drizzle ORM (`drizzle-orm`, `postgres.js`)
+- **Database**: PostgreSQL (self-hosted Docker container or managed PostgreSQL)
+- **Authentication**: Native JWT (`jose`) + `bcryptjs` via secure `payload-token` httpOnly cookie
+- **File storage**: S3-compatible storage (Supabase Storage / MinIO) via `@aws-sdk/client-s3`
+- **UI**: React 19, Tailwind CSS 4
+- **Testing**: Vitest (integration), Playwright (e2e)
+- **Deployment**: Multi-stage Dockerfile optimized for VPS / Cloud VM (Oracle Cloud Always Free ARM/x86)
 
-### Clone
+## Local setup
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+1. Clone the repo, then copy the environment template:
 
-### Development
+   ```bash
+   cp .env.example .env
+   ```
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URL` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
+2. Fill in `.env`:
+   - `DATABASE_URL` — PostgreSQL connection string:
+     - Local Docker: `postgresql://postgres:postgres@localhost:5432/guild-management`
+     - Or remote PostgreSQL instance.
+   - `PAYLOAD_SECRET` (or `AUTH_SECRET`) — Any random secret string for signing JWT tokens.
+   - `S3_ENDPOINT`, `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` — S3 credentials for screenshot uploads.
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+3. Push schema to the database:
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+   ```bash
+   npm run db:push
+   ```
 
-#### Docker (Optional)
+4. Install dependencies and start the dev server:
 
-If you prefer to use Docker for local development instead of a local MongoDB instance, the provided docker-compose.yml file can be used.
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-To do so, follow these steps:
+5. Open `http://localhost:3000`. Register a new guild master account at `/register` or log in at `/login`.
 
-- Modify the `MONGODB_URL` in your `.env` file to `mongodb://127.0.0.1/<dbname>`
-- Modify the `docker-compose.yml` file's `MONGODB_URL` to match the above `<dbname>`
-- Run `docker-compose up` to start the database, optionally pass `-d` to run in the background.
+### Running with Docker
 
-## How it works
+Start both PostgreSQL and the Next.js application container with:
 
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
+```bash
+docker compose up -d
+```
 
-### Collections
+To view logs:
+```bash
+docker compose logs -f app
+```
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
+## Scripts
 
-- #### Users (Authentication)
+| Command              | Purpose                                                      |
+| -------------------- | ------------------------------------------------------------ |
+| `npm run dev`        | Start Next.js development server with Turbopack              |
+| `npm run build`      | Production build (generates `.next/standalone`)              |
+| `npm run start`      | Run the built standalone production server                   |
+| `npm run lint`       | Lint codebase with ESLint 9 Flat Config                      |
+| `npm run db:push`    | Push Drizzle schema directly to PostgreSQL                   |
+| `npm run db:generate`| Generate Drizzle SQL migration files                         |
+| `npm run test:int`   | Run Vitest integration tests against the database            |
+| `npm run test:e2e`   | Run Playwright browser tests                                 |
+| `npm run test`       | Run all tests                                                |
 
-  Users are auth-enabled collections that have access to the admin panel.
+## Project structure
 
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/3.x/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
+```text
+src/
+├─ actions/       Server Actions — the app's API layer (auth, dashboard, guild, woe, etc.)
+├─ app/           Next.js App Router
+│  └─ (frontend)/ Public site + authenticated guild-master dashboard
+├─ const/         Shared enums/labels (job classes, stat labels)
+├─ db/            Drizzle ORM schema & postgres.js client singleton
+├─ lib/           Authentication helpers (JWT session, bcrypt)
+└─ utils/         Pure helpers (PvP score calculation, S3 upload, guild statistics)
+```
 
-- #### Media
+Full breakdown, data model diagram, and request-flow explanation:
+[`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
-  This is the uploads enabled collection. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
+## Working on this repo
 
-### Docker
+- Coding conventions, naming, and server action rules:
+  [`docs/CODE_STANDARDS.md`](./docs/CODE_STANDARDS.md).
+- Known improvements and technical debt:
+  [`docs/IMPROVEMENTS.md`](./docs/IMPROVEMENTS.md).
+- Knowledge graph guidelines:
+  [`docs/SKILLS.md`](./docs/SKILLS.md).
 
-Alternatively, you can use [Docker](https://www.docker.com) to spin up this template locally. To do so, follow these steps:
-
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
-
-That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
-
-## Questions
-
-If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).

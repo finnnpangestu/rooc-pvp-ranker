@@ -5,15 +5,18 @@ import { GlobalDialog } from './GlobalDialog'
 import { TabBar, TabButton } from './TabBar'
 import { StatCard } from './StatCard'
 import { Button } from './Button'
+import { handleAuthError } from './SessionExpiredDialog'
 import { MemberUpdateDialog } from './MemberUpdateDialog'
 import { toggleVerifyMember } from '@/actions/dashboard/toggleVerifyMember'
 import { deleteCharacter } from '@/actions/dashboard/deleteCharacter'
 import { JOB_LABELS } from '@/const/JobLabels'
+import type { Character, PopulatedMember } from '@/types'
+import Image from 'next/image'
 
 const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
 
 interface CharacterDetailModalProps {
-  member: any | null
+  member: Character | PopulatedMember | null
   isOpen: boolean
   onClose: (isUpdated?: boolean) => void
   footerActions?: React.ReactNode
@@ -30,8 +33,9 @@ export function CharacterDetailModal({
   const [isPending, startTransition] = useTransition()
 
   const handleToggleVerify = () => {
+    if (!member) return
     startTransition(async () => {
-      const res = await toggleVerifyMember(member.id, member.isVerified)
+      const res = await toggleVerifyMember(member.id, Boolean(member.isVerified))
       if (res.success) {
         onClose(true)
       }
@@ -39,6 +43,7 @@ export function CharacterDetailModal({
   }
 
   const handleDelete = () => {
+    if (!member) return
     if (!confirm('Yakin ingin menghapus karakter ini permanen?')) return
     startTransition(async () => {
       const res = await deleteCharacter(member.id)
@@ -46,6 +51,7 @@ export function CharacterDetailModal({
         alert('Karakter berhasil dihapus!')
         onClose(true)
       } else {
+        if (handleAuthError(res)) return
         alert('Gagal menghapus: ' + String(res.error))
       }
     })
@@ -72,7 +78,7 @@ export function CharacterDetailModal({
         >
           {/* Bagian Kiri: Info Utama */}
           <div className="flex items-center gap-4">
-            <img
+            <Image
               src={getJobIcon(member.job)}
               alt=""
               className="w-12 h-12 object-cover rounded-lg shadow-sm border"
@@ -94,7 +100,7 @@ export function CharacterDetailModal({
                 >
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
-                PvP Score: {Math.round(member.pvp_score || 0).toLocaleString('id-ID')}
+                PvP Score: {Math.round(Number(member?.pvp_score || 0)).toLocaleString('id-ID')}
               </div>
             </div>
           </div>

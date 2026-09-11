@@ -2,40 +2,28 @@
 
 import { revalidatePath } from 'next/cache'
 import { getAuthUser } from '../auth/authUser'
+import { db } from '@/db'
+import { characters, guilds, partySetups, reportsGl, reportsWoe, resources, resourceDistributions, woeSetups } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 
 export async function deleteGuild(guildId: string) {
-  const { user, payload } = await getAuthUser()
+  const { user } = await getAuthUser()
   if (!user) return { success: false, error: 'Unauthorized' }
 
   try {
-    const members = await payload.find({
-      collection: 'characters',
-      where: { guild_id: { equals: guildId } },
-      limit: 1000,
-      overrideAccess: true,
-    })
-
-    for (const member of members.docs) {
-      await payload.update({
-        collection: 'characters',
-        id: member.id,
-        data: {
-          guild_id: null as any,
-          isVerified: false,
-        },
-        overrideAccess: true,
-      })
-    }
-
-    await payload.delete({
-      collection: 'guilds',
-      id: guildId,
-      overrideAccess: true,
-    })
+    await db.delete(resourceDistributions).where(eq(resourceDistributions.guild_id, guildId))
+    await db.delete(resources).where(eq(resources.guild_id, guildId))
+    await db.delete(reportsGl).where(eq(reportsGl.guild_id, guildId))
+    await db.delete(reportsWoe).where(eq(reportsWoe.guild_id, guildId))
+    await db.delete(partySetups).where(eq(partySetups.guild_id, guildId))
+    await db.delete(woeSetups).where(eq(woeSetups.guild_id, guildId))
+    await db.delete(characters).where(eq(characters.guild_id, guildId))
+    await db.delete(guilds).where(eq(guilds.id, guildId))
 
     revalidatePath('/')
     return { success: true }
-  } catch (err: any) {
-    return { success: false, error: err.message || 'Gagal menghapus guild' }
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : 'Gagal menghapus guild'
+    return { success: false, error: errorMsg, message: errorMsg }
   }
 }

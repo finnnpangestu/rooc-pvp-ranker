@@ -1,4 +1,3 @@
-import { withPayload } from '@payloadcms/next/withPayload'
 import type { NextConfig } from 'next'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -6,12 +5,19 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(__filename)
 
+const s3EndpointMatch = (process.env.S3_ENDPOINT || '').match(/https?:\/\/([^.]+)/)
+const supabaseProjectRef = s3EndpointMatch ? s3EndpointMatch[1] : null
+const s3Bucket = process.env.S3_BUCKET || 'media'
+
 const nextConfig: NextConfig = {
+  output: 'standalone',
   async rewrites() {
+    if (!supabaseProjectRef) return []
+
     return [
       {
         source: '/api/media/file/:filename',
-        destination: 'https://tbbatenjyalbmhosxnha.supabase.co/storage/v1/object/public/media/:filename',
+        destination: `https://${supabaseProjectRef}.supabase.co/storage/v1/object/public/${s3Bucket}/:filename`,
       },
     ]
   },
@@ -45,4 +51,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withPayload(nextConfig, { devBundleServerPackages: false })
+export default nextConfig

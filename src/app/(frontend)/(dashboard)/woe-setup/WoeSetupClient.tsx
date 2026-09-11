@@ -2,39 +2,36 @@
 
 import React, { useState, useEffect, useTransition } from 'react'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
 import { GlobalDialog } from '../../components/GlobalDialog'
 import { CharacterDetailModal } from '../../components/CharacterDetailModal'
 import { CharacterCard } from '../../components/CharacterCard'
 import { Button } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
-import { JOBS, JOB_LABELS, JOBS_OPTIONS } from '@/const/JobLabels'
+import { handleAuthError } from '../../components/SessionExpiredDialog'
+import { JOB_LABELS } from '@/const/JobLabels'
 import { saveWoeSetup } from '@/actions/woe/saveWoeSetup'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
-import { useTheme } from '../../components/ThemeProvider'
+
+import type { Guild, Character, WoeSetup, WoeRaid, PartySlotCharacter } from '@/types'
 
 interface WoeSetupClientProps {
-  guild: any
-  members: any[]
-  initialSetup: any | null
+  guild: Guild
+  members: Character[]
+  initialSetup: WoeSetup | null
 }
 
 const getJobIcon = (jobValue: string) => `/icons/jobs/${jobValue}.png`
-const clone = (obj: any) => JSON.parse(JSON.stringify(obj))
+const clone = <T,>(obj: T): T => JSON.parse(JSON.stringify(obj))
 
 export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientProps) {
-  const router = useRouter()
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-
   const [localMembers, setLocalMembers] = useState(members)
-  const [raids, setRaids] = useState<any[]>([])
+  const [raids, setRaids] = useState<WoeRaid[]>([])
   const [isPending, startTransition] = useTransition()
   const [saveStatus, setSaveStatus] = useState<string | null>(null)
 
   // Drag and drop state
   const [draggedMember, setDraggedMember] = useState<{
-    member: any
+    member: Character | PartySlotCharacter
     sourceRaidIdx: number | null
     sourcePartyIdx: number | null
     sourceSlotIdx: number | null
@@ -47,17 +44,6 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null)
 
   const [viewedMemberId, setViewedMemberId] = useState<string | null>(null)
-  const [openDropdown, setOpenDropdown] = useState<{
-    raidIdx: number
-    partyIdx: number
-    slotIdx: number
-  } | null>(null)
-
-  useEffect(() => {
-    const handleOutsideClick = () => setOpenDropdown(null)
-    window.addEventListener('click', handleOutsideClick)
-    return () => window.removeEventListener('click', handleOutsideClick)
-  }, [])
 
   // Initialize
   useEffect(() => {
@@ -69,17 +55,18 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
     }
   }, [initialSetup])
 
-  const createNewRaid = (name: string) => {
+  const createNewRaid = (name: string): WoeRaid => {
     const parties = []
     for (let i = 0; i < 8; i++) {
       parties.push({
+        name: `Party ${i + 1}`,
         party_name: `Party ${i + 1}`,
         slots: Array(5)
           .fill(null)
           .map(() => ({ required_job: 'any', assigned_character: null })),
       })
     }
-    return { raid_name: name, parties }
+    return { name, raid_name: name, parties }
   }
 
   const handleAddRaid = () => {
@@ -97,10 +84,14 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
     const assignedIds = new Set<string>()
     raids.forEach((raid, rIdx) => {
       if (rIdx !== raidIdx) {
-        raid.parties.forEach((party: any) => {
-          party.slots.forEach((slot: any) => {
+        raid.parties.forEach((party) => {
+          party.slots.forEach((slot) => {
             if (slot.assigned_character) {
-              assignedIds.add(slot.assigned_character.id)
+              const charId =
+                typeof slot.assigned_character === 'object'
+                  ? slot.assigned_character.id
+                  : slot.assigned_character
+              if (charId) assignedIds.add(charId)
             }
           })
         })
@@ -109,14 +100,14 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
 
     const availableMembers = localMembers
       .filter((m) => !assignedIds.has(m.id))
-      .sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
+      .sort((a, b) => (Number(b.pvp_score) || 0) - (Number(a.pvp_score) || 0))
 
     const newRaids = clone(raids)
     const targetRaid = newRaids[raidIdx]
 
     // Clear existing assignments in this raid
-    targetRaid.parties.forEach((party: any) => {
-      party.slots.forEach((slot: any) => {
+    targetRaid.parties.forEach((party) => {
+      party.slots.forEach((slot) => {
         slot.assigned_character = null
       })
     })
@@ -155,11 +146,14 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
       // Clean up relations for Payload
       const payloadRaids = raids.map((raid) => ({
         ...raid,
-        parties: raid.parties.map((party: any) => ({
+        parties: raid.parties.map((party) => ({
           ...party,
-          slots: party.slots.map((slot: any) => ({
+          slots: party.slots.map((slot) => ({
             required_job: slot.required_job,
-            assigned_character: slot.assigned_character ? slot.assigned_character.id : null,
+            assigned_character:
+              typeof slot.assigned_character === 'object' && slot.assigned_character
+                ? slot.assigned_character.id
+                : (slot.assigned_character ?? null),
           })),
         })),
       }))
@@ -170,29 +164,17 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
         setTimeout(() => setSaveStatus(null), 3000)
       } else {
         setSaveStatus('error')
+        if (handleAuthError(res)) return
         alert('Gagal menyimpan: ' + res.message)
       }
     })
   }
 
-  const updateRequiredJob = (raidIdx: number, partyIdx: number, slotIdx: number, val: string) => {
-    const newRaids = clone(raids)
-    newRaids[raidIdx].parties[partyIdx].slots[slotIdx].required_job = val
-    if (
-      newRaids[raidIdx].parties[partyIdx].slots[slotIdx].assigned_character &&
-      val !== 'any' &&
-      newRaids[raidIdx].parties[partyIdx].slots[slotIdx].assigned_character.job !== val
-    ) {
-      newRaids[raidIdx].parties[partyIdx].slots[slotIdx].assigned_character = null
-    }
-    setRaids(newRaids)
-  }
-
   const clearRaid = (raidIdx: number) => {
     if (!confirm('Kosongkan semua anggota dan reset job blueprint di Raid ini?')) return
     const newRaids = clone(raids)
-    newRaids[raidIdx].parties.forEach((party: any) => {
-      party.slots.forEach((slot: any) => {
+    newRaids[raidIdx].parties.forEach((party) => {
+      party.slots.forEach((slot) => {
         slot.assigned_character = null
         slot.required_job = 'any'
       })
@@ -208,7 +190,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
   }
 
   const handleDragStart = (
-    member: any,
+    member: Character | PartySlotCharacter,
     sourceRaidIdx: number | null,
     sourcePartyIdx: number | null,
     sourceSlotIdx: number | null,
@@ -279,10 +261,14 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
   // Derived state
   const assignedMemberIds = new Set<string>()
   raids.forEach((raid) => {
-    raid.parties.forEach((party: any) => {
-      party.slots.forEach((slot: any) => {
+    raid.parties.forEach((party) => {
+      party.slots.forEach((slot) => {
         if (slot.assigned_character) {
-          assignedMemberIds.add(slot.assigned_character.id)
+          const id =
+            typeof slot.assigned_character === 'object'
+              ? slot.assigned_character.id
+              : slot.assigned_character
+          if (id) assignedMemberIds.add(id)
         }
       })
     })
@@ -291,7 +277,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
   let requiredJobForSlot = 'any'
   if (selectedRaidIndex !== null && selectedPartyIndex !== null && selectedSlotIndex !== null) {
     requiredJobForSlot =
-      raids[selectedRaidIndex].parties[selectedPartyIndex].slots[selectedSlotIndex].required_job
+      raids[selectedRaidIndex]?.parties[selectedPartyIndex]?.slots[selectedSlotIndex]?.required_job || 'any'
   }
 
   const dialogAvailableMembers = members
@@ -300,11 +286,11 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
       if (requiredJobForSlot !== 'any') return m.job === requiredJobForSlot
       return true
     })
-    .sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
+    .sort((a, b) => Number(b.pvp_score || 0) - Number(a.pvp_score || 0))
 
   const benchedMembers = members
     .filter((m) => !assignedMemberIds.has(m.id))
-    .sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
+    .sort((a, b) => Number(b.pvp_score || 0) - Number(a.pvp_score || 0))
 
   const totalVerifiedMembers = members.filter((m) => m.isVerified).length
 
@@ -346,14 +332,14 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
             >
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                  {raid.raid_name}
+                  {raid.raid_name || raid.name}
                 </h2>
                 <div className="flex gap-2">
                   <Button variant="amber" size="sm" onClick={() => clearRaid(raidIdx)}>
                     Clear
                   </Button>
                   <Button variant="danger" size="sm" onClick={() => generateRaid(raidIdx)}>
-                    Generate {raid.raid_name}
+                    Generate {raid.raid_name || raid.name}
                   </Button>
                   {raidIdx > 0 && (
                     <Button variant="danger" size="sm" onClick={() => handleDeleteRaid(raidIdx)}>
@@ -364,12 +350,16 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
               </div>
 
               <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 auto-rows-fr">
-                {raid.parties.map((party: any, partyIdx: number) => {
+                {raid.parties.map((party, partyIdx: number) => {
                   const totalScore = party.slots.reduce(
-                    (sum: number, slot: any) => sum + (slot.assigned_character?.pvp_score || 0),
+                    (sum: number, slot) =>
+                      sum +
+                      (typeof slot.assigned_character === 'object' && slot.assigned_character
+                        ? Number(slot.assigned_character.pvp_score) || 0
+                        : 0),
                     0,
                   )
-                  const filledSlots = party.slots.filter((s: any) => s.assigned_character).length
+                  const filledSlots = party.slots.filter((s) => s.assigned_character).length
 
                   return (
                     <div
@@ -382,7 +372,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                     >
                       <div className="flex justify-between items-start mb-3">
                         <h3 className="text-[18px] font-semibold m-0" style={{ color: '#0ea5e9' }}>
-                          {party.party_name}
+                          {party.name}
                           <span
                             className="text-[13px] ml-2 font-normal"
                             style={{ color: 'var(--text-muted)' }}
@@ -407,8 +397,11 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                       </div>
 
                       <div className="flex flex-col gap-2.5 flex-1">
-                        {party.slots.map((slot: any, slotIdx: number) => {
-                          const char = slot.assigned_character
+                        {party.slots.map((slot, slotIdx: number) => {
+                          const char =
+                            typeof slot.assigned_character === 'object' && slot.assigned_character
+                              ? slot.assigned_character
+                              : null
                           return (
                             <div
                               key={slotIdx}
@@ -561,7 +554,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                     {m.name}
                   </div>
                   <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    {JOB_LABELS[m.job as keyof typeof JOB_LABELS]} • Lv {m.base_level}
+                    {JOB_LABELS[m.job as keyof typeof JOB_LABELS] || m.job}
                   </div>
                 </div>
               </div>
@@ -594,12 +587,16 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
 
             // Sync characters inside raids
             setRaids((prev) => {
-              const newRaids = clone(prev)
-              newRaids.forEach((r: any) => {
-                r.parties.forEach((p: any) => {
-                  p.slots.forEach((s: any) => {
+              const newRaids: WoeRaid[] = clone(prev)
+              newRaids.forEach((r) => {
+                r.parties.forEach((p) => {
+                  p.slots.forEach((s) => {
                     if (s.assigned_character) {
-                      const updatedChar = updated.find((m: any) => m.id === s.assigned_character.id)
+                      const assignedId =
+                        typeof s.assigned_character === 'object'
+                          ? s.assigned_character.id
+                          : s.assigned_character
+                      const updatedChar = updated.find((m) => m.id === assignedId)
                       if (updatedChar) {
                         s.assigned_character = updatedChar
                         s.required_job = updatedChar.job

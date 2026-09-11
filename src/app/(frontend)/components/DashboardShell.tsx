@@ -7,8 +7,15 @@ import { Badge } from './Badge'
 import { logoutUser } from '@/actions/auth/logoutUser'
 import { ThemeProvider, useTheme } from './ThemeProvider'
 import { TourProvider, useTour } from './TourProvider'
+import type { Guild } from '@/types'
 
-function DashboardShellContent({ children, guild }: { children: React.ReactNode; guild: any }) {
+function DashboardShellContent({
+  children,
+  guild,
+}: {
+  children: React.ReactNode
+  guild: Guild | null | undefined
+}) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'Party Setup': true,
@@ -514,7 +521,13 @@ function DashboardShellContent({ children, guild }: { children: React.ReactNode;
 }
 
 // Wrapper dengan ThemeProvider
-export function DashboardShell({ children, guild }: { children: React.ReactNode; guild: any }) {
+export function DashboardShell({
+  children,
+  guild,
+}: {
+  children: React.ReactNode
+  guild: Guild | null | undefined
+}) {
   return (
     <ThemeProvider>
       <TourProvider>

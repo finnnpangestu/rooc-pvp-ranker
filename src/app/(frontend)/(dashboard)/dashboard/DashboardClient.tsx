@@ -2,15 +2,10 @@
 
 import React, { useState, useTransition, useEffect } from 'react'
 import Image from 'next/image'
-import { GlobalDialog } from '../../components/GlobalDialog'
 import { CharacterDetailModal } from '../../components/CharacterDetailModal'
-import { Badge } from '../../components/Badge'
 import { Button } from '../../components/Button'
 import { Pagination } from '../../components/Pagination'
-import { TabBar, TabButton } from '../../components/TabBar'
 import { JobFilterDropdown } from '../../components/JobFilterDropdown'
-import { StatCard } from '../../components/StatCard'
-import { JOB_LABELS } from '@/const/JobLabels'
 import { createGuild } from '@/actions/dashboard/createGuild'
 import { toggleVerifyMember } from '@/actions/dashboard/toggleVerifyMember'
 import { deleteCharacter } from '@/actions/dashboard/deleteCharacter'
@@ -27,12 +22,14 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
+import type { Guild, Character, PartySetup, PopulatedResource, ReportWoe } from '@/types'
+
 interface DashboardClientProps {
-  guild: any | null
-  members: any[]
-  partySetup?: any | null
-  resources?: any[] // tambahan
-  woeReports?: any[]
+  guild: Guild | null
+  members: Character[]
+  partySetup?: PartySetup | null
+  resources?: PopulatedResource[]
+  woeReports?: ReportWoe[]
 }
 
 const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
@@ -48,7 +45,7 @@ export function DashboardClient({
   const isDark = theme === 'dark'
   const [isPending, startTransition] = useTransition()
   const [guildName, setGuildName] = useState('')
-  const [selectedMember, setSelectedMember] = useState<any | null>(null)
+  const [selectedMember, setSelectedMember] = useState<Character | null>(null)
   const [activeDetailTab, setActiveDetailTab] = useState('general')
   const [error, setError] = useState('')
   const router = useRouter()
@@ -78,34 +75,35 @@ export function DashboardClient({
   const safeMembers = members || []
 
   const sortedMembers = [...safeMembers].sort(
-    (a, b) => new Date(b?.createdAt).getTime() - new Date(a?.createdAt).getTime(),
+    (a, b) => new Date(b?.created_at || 0).getTime() - new Date(a?.created_at || 0).getTime(),
   )
 
-  const { filteredMembers, paginatedMembers, totalPages } = React.useMemo(() => {
+  React.useMemo(() => {
     const filtered = selectedRosterJob
       ? sortedMembers.filter((m) => m?.job === selectedRosterJob)
       : sortedMembers
     const pages = Math.ceil(filtered.length / memberLimit) || 1
-    const paginated = filtered.slice(
-      (currentPage - 1) * memberLimit,
-      currentPage * memberLimit,
-    )
+    const paginated = filtered.slice((currentPage - 1) * memberLimit, currentPage * memberLimit)
     return { filteredMembers: filtered, paginatedMembers: paginated, totalPages: pages }
   }, [sortedMembers, selectedRosterJob, memberLimit, currentPage])
 
-  const { sortedLeaderboard, paginatedLeaderboard, totalLeaderboardPages } = React.useMemo(() => {
+  const { paginatedLeaderboard, totalLeaderboardPages } = React.useMemo(() => {
     const verifiedMembers = safeMembers.filter((m) => m?.isVerified)
     const sorted = (
       selectedLeaderboardJob
         ? verifiedMembers.filter((m) => m?.job === selectedLeaderboardJob)
         : verifiedMembers
-    ).sort((a, b) => (b?.pvp_score || 0) - (a?.pvp_score || 0))
+    ).sort((a, b) => (Number(b?.pvp_score) || 0) - (Number(a?.pvp_score) || 0))
     const pages = Math.ceil(sorted.length / leaderboardLimit) || 1
     const paginated = sorted.slice(
       (leaderboardPage - 1) * leaderboardLimit,
       leaderboardPage * leaderboardLimit,
     )
-    return { sortedLeaderboard: sorted, paginatedLeaderboard: paginated, totalLeaderboardPages: pages }
+    return {
+      sortedLeaderboard: sorted,
+      paginatedLeaderboard: paginated,
+      totalLeaderboardPages: pages,
+    }
   }, [safeMembers, selectedLeaderboardJob, leaderboardLimit, leaderboardPage])
 
   const rosterShouldScroll = memberLimit > 5
@@ -118,12 +116,12 @@ export function DashboardClient({
     if (!woeReports || woeReports.length === 0) return []
     return woeReports.map((report, idx) => ({
       name: `Match ${idx + 1}`,
-      rank: report?.match_rank || 0,
-      date: new Date(report?.match_date).toLocaleDateString('id-ID', {
+      rank: Number(report?.match_rank) || 0,
+      date: new Date(report?.match_date || new Date()).toLocaleDateString('id-ID', {
         day: '2-digit',
         month: 'short',
       }),
-      tooltipTitle: report?.report_name || `Match ${idx + 1}`
+      tooltipTitle: report?.report_name || `Match ${idx + 1}`,
     }))
   }, [woeReports])
 
@@ -210,11 +208,11 @@ export function DashboardClient({
     )
   }
 
-  const handleToggleVerify = (char: any) => {
+  const handleToggleVerify = (char: Character) => {
     startTransition(async () => {
-      const res = await toggleVerifyMember(char.id, char.isVerified)
+      const res = await toggleVerifyMember(char.id, Boolean(char.isVerified))
       if (res.success) {
-        setSelectedMember((prev: any) => (prev ? { ...prev, isVerified: !prev.isVerified } : null))
+        setSelectedMember((prev) => (prev ? { ...prev, isVerified: !prev.isVerified } : null))
         router.refresh()
       }
     })
@@ -286,7 +284,7 @@ export function DashboardClient({
               TOTAL PVP SCORE GUILD
             </div>
             <div className="text-2xl font-bold" style={{ color: '#f59e0b' }}>
-              {Math.round(guild.total_pvp_score || 0).toLocaleString('id-ID')}
+              {Math.round(Number(guild.total_pvp_score) || 0).toLocaleString('id-ID')}
             </div>
           </div>
         </div>
@@ -492,7 +490,7 @@ export function DashboardClient({
 
               const rankedMembers = verifiedMembers
                 .map((m) => {
-                  const totalGLScore = m.gl_total_score || 0
+                  const totalGLScore = Number(m.gl_total_score) || 0
                   return { ...m, calculatedGLScore: totalGLScore }
                 })
                 .sort((a, b) => b.calculatedGLScore - a.calculatedGLScore)
@@ -569,11 +567,11 @@ export function DashboardClient({
                   >
                     {char.name}{' '}
                     <span className="text-amber-500">
-                      ({Math.round(char.pvp_score || 0).toLocaleString('id-ID')})
+                      ({Math.round(Number(char.pvp_score) || 0).toLocaleString('id-ID')})
                     </span>
                   </div>
                   <div className="text-[18px] font-bold text-amber-400">
-                    {Math.round(char.calculatedGLScore).toLocaleString('id-ID')}
+                    {Math.round(Number(char.calculatedGLScore) || 0).toLocaleString('id-ID')}
                   </div>
                 </div>
               ))
@@ -601,43 +599,49 @@ export function DashboardClient({
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={woeChartData}
-                  margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                  <XAxis 
-                    dataKey="name" 
-                    stroke="var(--text-secondary)" 
-                    tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} 
-                    tickLine={false} 
-                    axisLine={false} 
+                <LineChart data={woeChartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="var(--border-color)"
+                    vertical={false}
                   />
-                  <YAxis 
+                  <XAxis
+                    dataKey="name"
+                    stroke="var(--text-secondary)"
+                    tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
                     reversed={true}
-                    stroke="var(--text-secondary)" 
-                    tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} 
-                    tickLine={false} 
-                    axisLine={false} 
+                    stroke="var(--text-secondary)"
+                    tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={false}
                     domain={[1, 'dataMax + 1']}
                     allowDecimals={false}
-                    ticks={Array.from({ length: Math.max(1, ...woeChartData.map((d: any) => d.rank)) + 1 }, (_, i) => i + 1)}
+                    ticks={Array.from(
+                      { length: Math.max(1, ...woeChartData.map((d) => Number(d.rank) || 0)) + 1 },
+                      (_, i) => i + 1,
+                    )}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'var(--bg-secondary)', 
-                      borderColor: 'var(--border-color)', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'var(--bg-secondary)',
+                      borderColor: 'var(--border-color)',
                       color: 'var(--text-primary)',
-                      borderRadius: '8px' 
+                      borderRadius: '8px',
                     }}
                     itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
-                    labelFormatter={(label, payload) => payload?.[0]?.payload?.tooltipTitle || label}
+                    labelFormatter={(label, payload) =>
+                      payload?.[0]?.payload?.tooltipTitle || label
+                    }
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="rank" 
-                    stroke="#10b981" 
-                    strokeWidth={4} 
+                  <Line
+                    type="monotone"
+                    dataKey="rank"
+                    stroke="#10b981"
+                    strokeWidth={4}
                     dot={{ fill: '#10b981', r: 6, strokeWidth: 2, stroke: 'var(--bg-card)' }}
                     activeDot={{ r: 8 }}
                   />
@@ -733,7 +737,7 @@ export function DashboardClient({
                         {char.name}
                       </td>
                       <td className="p-4 text-right font-semibold text-amber-400">
-                        {Math.round(char.pvp_score || 0).toLocaleString('id-ID')}
+                        {Math.round(Number(char.pvp_score) || 0).toLocaleString('id-ID')}
                       </td>
                     </tr>
                   ))

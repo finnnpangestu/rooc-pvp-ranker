@@ -1,44 +1,43 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { db } from '@/db'
+import { woeSetups } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+import type { WoeRaid, ActionResult } from '@/types'
+import { actionError, actionSuccess, formatErrorMessage } from '@/types'
 
-export async function saveWoeSetup(guildId: string, raids: any[]) {
+export async function saveWoeSetup(
+  guildId: string,
+  raids: WoeRaid[]
+): Promise<ActionResult> {
   try {
-    const payload = await getPayload({ config: configPromise })
-
-    // Find existing Woe Setup for this guild
-    const existing = await payload.find({
-      collection: 'woe_setups',
-      where: { guild_id: { equals: guildId } },
-      limit: 1,
+    const existing = await db.query.woeSetups.findFirst({
+      where: eq(woeSetups.guild_id, guildId),
     })
 
-    if (existing.docs.length > 0) {
-      // Update
-      await payload.update({
-        collection: 'woe_setups',
-        id: existing.docs[0].id,
-        data: {
+    if (existing) {
+      await db
+        .update(woeSetups)
+        .set({
           raids,
-        },
-      })
+          updated_at: new Date().toISOString(),
+        })
+        .where(eq(woeSetups.id, existing.id))
     } else {
-      // Create
-      await payload.create({
-        collection: 'woe_setups',
-        data: {
-          guild_id: guildId as any,
-          raids,
-        },
+      await db.insert(woeSetups).values({
+        id: crypto.randomUUID(),
+        guild_id: guildId,
+        raids,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
     }
 
     revalidatePath('/woe-setup')
-    return { success: true }
-  } catch (error: any) {
+    return actionSuccess(undefined, 'Pengaturan WoE berhasil disimpan')
+  } catch (error: unknown) {
     console.error('Error saving woe setup:', error)
-    return { success: false, message: error.message }
+    return actionError(formatErrorMessage(error))
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useTransition } from 'react'
+import React, { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { GlobalDialog } from '../../components/GlobalDialog'
@@ -8,32 +8,30 @@ import { CharacterDetailModal } from '../../components/CharacterDetailModal'
 import { CharacterCard } from '../../components/CharacterCard'
 import { Button } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
-import { JOBS, JOB_LABELS } from '@/const/JobLabels'
+import { handleAuthError } from '../../components/SessionExpiredDialog'
+import { JOB_LABELS } from '@/const/JobLabels'
 import { generateEliteParty } from '@/actions/guild/generateEliteParty'
 import { generateSubParty } from '@/actions/guild/generateSubParty'
 import { savePartySetup } from '@/actions/guild/savePartySetup'
 import { clearParties } from '@/actions/guild/clearParties'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
-import { useTheme } from '../../components/ThemeProvider'
+import type { Guild, Character, PartySetup, Party, PartySlotCharacter } from '@/types'
 
 interface GuildLeagueClientProps {
-  guild: any
-  members: any[]
-  initialSetup: any | null
+  guild: Guild
+  members: Character[]
+  initialSetup: PartySetup | null
 }
 
 const getJobIcon = (jobValue: string) => `/icons/jobs/${jobValue}.png`
-const clone = (obj: any) => JSON.parse(JSON.stringify(obj))
+const clone = <T,>(obj: T): T => JSON.parse(JSON.stringify(obj))
 
 export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueClientProps) {
   const router = useRouter()
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-
   const [localMembers, setLocalMembers] = useState(members)
 
   // local setup state
-  const [localSetup, setLocalSetup] = useState<any | null>(() => {
+  const [localSetup, setLocalSetup] = useState<PartySetup | null>(() => {
     if (initialSetup) {
       return clone(initialSetup)
     }
@@ -46,9 +44,9 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null)
   const [isSaveLoading, setIsSaveLoading] = useState(false)
   const [isClearing, startClearTransition] = useTransition()
-  const [viewedMember, setViewedMember] = useState<any | null>(null)
+  const [viewedMember, setViewedMember] = useState<Character | PartySlotCharacter | null>(null)
   const [draggedMember, setDraggedMember] = useState<{
-    member: any
+    member: Character | PartySlotCharacter
     sourceType: 'elite' | 'sub' | null
     sourcePartyIdx: number | null
     sourceSlotIdx: number | null
@@ -57,12 +55,24 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   const getAssignedMemberIds = () => {
     if (!localSetup) return []
     const eliteIds =
-      localSetup.elite_parties?.flatMap((p: any) =>
-        p.slots.map((s: any) => s.assigned_character?.id || s.assigned_character).filter(Boolean),
+      localSetup.elite_parties?.flatMap((p) =>
+        p.slots
+          .map((s) =>
+            typeof s.assigned_character === 'string'
+              ? s.assigned_character
+              : s.assigned_character?.id,
+          )
+          .filter((id): id is string => Boolean(id)),
       ) || []
     const subIds =
-      localSetup.sub_parties?.flatMap((p: any) =>
-        p.slots.map((s: any) => s.assigned_character?.id || s.assigned_character).filter(Boolean),
+      localSetup.sub_parties?.flatMap((p) =>
+        p.slots
+          .map((s) =>
+            typeof s.assigned_character === 'string'
+              ? s.assigned_character
+              : s.assigned_character?.id,
+          )
+          .filter((id): id is string => Boolean(id)),
       ) || []
     return [...eliteIds, ...subIds]
   }
@@ -93,14 +103,21 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
       .map(() => Array(5).fill('any'))
     const res = await generateEliteParty(guild.id, defaultBlueprint, localMembers)
     if (res.success) {
-      const newSetup = localSetup
+      const newSetup: PartySetup = localSetup
         ? clone(localSetup)
-        : { guild_id: guild.id, elite_parties: [], sub_parties: [] }
-      newSetup.elite_parties = res.parties
+        : {
+            id: '',
+            guild_id: guild.id,
+            elite_parties: [],
+            sub_parties: [],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }
+      newSetup.elite_parties = res.parties || []
       newSetup.sub_parties = []
       setLocalSetup(newSetup)
     } else {
-      alert('Gagal generate: ' + (res as any).message)
+      alert('Gagal generate: ' + (res.message || res.error))
     }
   }
 
@@ -113,10 +130,10 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     const res = await generateSubParty(guild.id, defaultBlueprint, benchMembers)
     if (res.success) {
       const newSetup = clone(localSetup)
-      newSetup.sub_parties = res.parties
+      newSetup.sub_parties = res.parties || []
       setLocalSetup(newSetup)
     } else {
-      alert('Gagal generate sub: ' + (res as any).message)
+      alert('Gagal generate sub: ' + (res.message || res.error))
     }
   }
 
@@ -128,6 +145,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     if (res.success) {
       alert('Setup berhasil disimpan!')
     } else {
+      if (handleAuthError(res)) return
       alert('Gagal menyimpan: ' + res.message)
     }
     setIsSaveLoading(false)
@@ -142,6 +160,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
       if (initialSetup?.id) {
         const res = await clearParties(initialSetup.id, mode)
         if (!res.success) {
+          if (handleAuthError(res)) return
           alert('Gagal clear: ' + res.message)
           return
         }
@@ -165,15 +184,20 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   }
 
   const addMemberToParty = (memberId: string) => {
-    if (selectedPartyType === null || selectedPartyIndex === null || selectedSlotIndex === null)
+    if (
+      selectedPartyType === null ||
+      selectedPartyIndex === null ||
+      selectedSlotIndex === null ||
+      !localSetup
+    )
       return
     const member = members.find((m) => m.id === memberId)
     if (!member) return
     const newSetup = clone(localSetup)
-    if (selectedPartyType === 'elite') {
+    if (selectedPartyType === 'elite' && newSetup.elite_parties) {
       newSetup.elite_parties[selectedPartyIndex].slots[selectedSlotIndex].assigned_character =
         member
-    } else {
+    } else if (newSetup.sub_parties) {
       newSetup.sub_parties[selectedPartyIndex].slots[selectedSlotIndex].assigned_character = member
     }
     setLocalSetup(newSetup)
@@ -184,7 +208,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   }
 
   const handleDragStart = (
-    member: any,
+    member: Character | PartySlotCharacter,
     sourceType: 'elite' | 'sub' | null,
     sourcePartyIdx: number | null,
     sourceSlotIdx: number | null,
@@ -202,14 +226,17 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     const newSetup = clone(localSetup)
 
     const targetParties = targetType === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
+    if (!targetParties) return
     const targetSlot = targetParties[targetPartyIdx].slots[targetSlotIdx]
     const targetExistingMember = targetSlot.assigned_character
 
     if (sourceType !== null && sourcePartyIdx !== null && sourceSlotIdx !== null) {
       const sourceParties = sourceType === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
-      const sourceSlot = sourceParties[sourcePartyIdx].slots[sourceSlotIdx]
-      sourceSlot.assigned_character = targetExistingMember
-      sourceSlot.required_job = 'any'
+      if (sourceParties) {
+        const sourceSlot = sourceParties[sourcePartyIdx].slots[sourceSlotIdx]
+        sourceSlot.assigned_character = targetExistingMember
+        sourceSlot.required_job = 'any'
+      }
     }
 
     targetSlot.assigned_character = member
@@ -224,9 +251,11 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     if (sourceType !== null && sourcePartyIdx !== null && sourceSlotIdx !== null) {
       const newSetup = clone(localSetup)
       const sourceParties = sourceType === 'elite' ? newSetup.elite_parties : newSetup.sub_parties
-      const sourceSlot = sourceParties[sourcePartyIdx].slots[sourceSlotIdx]
-      sourceSlot.assigned_character = null
-      setLocalSetup(newSetup)
+      if (sourceParties) {
+        const sourceSlot = sourceParties[sourcePartyIdx].slots[sourceSlotIdx]
+        sourceSlot.assigned_character = null
+        setLocalSetup(newSetup)
+      }
     }
     setDraggedMember(null)
   }
@@ -243,41 +272,53 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   ) {
     if (selectedPartyType === 'elite' && localSetup.elite_parties?.[selectedPartyIndex]) {
       requiredJobForSlot =
-        localSetup.elite_parties[selectedPartyIndex].slots[selectedSlotIndex].required_job
+        localSetup.elite_parties[selectedPartyIndex].slots[selectedSlotIndex]?.required_job || 'any'
     } else if (selectedPartyType === 'sub' && localSetup.sub_parties?.[selectedPartyIndex]) {
       requiredJobForSlot =
-        localSetup.sub_parties[selectedPartyIndex].slots[selectedSlotIndex].required_job
+        localSetup.sub_parties[selectedPartyIndex].slots[selectedSlotIndex]?.required_job || 'any'
     }
   }
 
   const availableMembers = members
     .filter((m) => {
-      const isAssignedToElite = localSetup?.elite_parties?.some((p: any) =>
-        p.slots.some((s: any) => s.assigned_character?.id === m.id),
+      const isAssignedToElite = localSetup?.elite_parties?.some((p) =>
+        p.slots.some((s) => {
+          const id =
+            typeof s.assigned_character === 'string'
+              ? s.assigned_character
+              : s.assigned_character?.id
+          return id === m.id
+        }),
       )
-      const isAssignedToSub = localSetup?.sub_parties?.some((p: any) =>
-        p.slots.some((s: any) => s.assigned_character?.id === m.id),
+      const isAssignedToSub = localSetup?.sub_parties?.some((p) =>
+        p.slots.some((s) => {
+          const id =
+            typeof s.assigned_character === 'string'
+              ? s.assigned_character
+              : s.assigned_character?.id
+          return id === m.id
+        }),
       )
       if (isAssignedToElite || isAssignedToSub) return false
       if (requiredJobForSlot !== 'any') return m.job === requiredJobForSlot
       return true
     })
-    .sort((a, b) => (b.pvp_score || 0) - (a.pvp_score || 0))
+    .sort((a, b) => Number(b.pvp_score || 0) - Number(a.pvp_score || 0))
 
   const renderPartyCards = (
-    parties: any[],
+    parties: Party[],
     titleColor: string,
     type: 'elite' | 'sub',
     startIndexOffset: number = 0,
   ) => (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 mb-6 auto-rows-fr">
-      {parties.map((party: any, localIdx: number) => {
+      {parties.map((party, localIdx: number) => {
         const idx = startIndexOffset + localIdx
-        const totalScore = party.slots.reduce(
-          (sum: number, slot: any) => sum + (slot.assigned_character?.pvp_score || 0),
-          0,
-        )
-        const filledSlots = party.slots.filter((s: any) => s.assigned_character).length
+        const totalScore = party.slots.reduce((sum: number, slot) => {
+          const char = typeof slot.assigned_character === 'object' ? slot.assigned_character : null
+          return sum + Number(char?.pvp_score || 0)
+        }, 0)
+        const filledSlots = party.slots.filter((s) => s.assigned_character).length
 
         return (
           <div
@@ -315,25 +356,31 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
             </div>
 
             <div className="flex-1 flex flex-col gap-2">
-              {party.slots.map((slot: any, sIdx: number) => {
+              {party.slots.map((slot, sIdx: number) => {
                 const char = slot.assigned_character
+                const charObj =
+                  typeof char === 'object' && char !== null
+                    ? char
+                    : char
+                      ? members.find((m) => m.id === char) || null
+                      : null
                 return (
                   <div
                     key={sIdx}
-                    draggable={!!char}
+                    draggable={!!charObj}
                     onDragStart={(e) => {
-                      if (char) {
+                      if (charObj) {
                         e.stopPropagation()
-                        handleDragStart(char, type, idx, sIdx)
+                        handleDragStart(charObj, type, idx, sIdx)
                       } else {
                         e.preventDefault()
                       }
                     }}
-                    className={`flex items-center p-2.5 rounded-xl border relative group transition-colors ${char ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} hover:opacity-80 ${
+                    className={`flex items-center p-2.5 rounded-xl border relative group transition-colors ${charObj ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} hover:opacity-80 ${
                       draggedMember ? 'border-emerald-500/50 bg-emerald-500/5' : ''
                     }`}
                     onClick={() => {
-                      if (char) setViewedMember(char)
+                      if (charObj) setViewedMember(charObj)
                     }}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={() => handleDropToSlot(type, idx, sIdx)}
@@ -343,9 +390,9 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                       boxShadow: 'var(--shadow-neumorph-sm)',
                     }}
                   >
-                    {char ? (
+                    {charObj ? (
                       <CharacterCard
-                        character={char}
+                        character={charObj}
                         onRemove={(e) => {
                           e.stopPropagation()
                           removeMemberFromParty(type, idx, sIdx)
@@ -393,7 +440,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
           <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             Atur formasi Guild League (Round-Robin Auto Assign). Total Verified Member:{' '}
             <span className="font-semibold text-emerald-500">
-              {localMembers.filter((m: any) => m.isVerified).length}
+              {localMembers.filter((m) => m.isVerified).length}
             </span>
           </p>
         </div>
@@ -430,7 +477,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
             {!isEliteGenerated ? (
               <EmptyState message="Elite Party belum dibentuk. Klik tombol di atas untuk memulai rancangan." />
             ) : (
-              renderPartyCards(localSetup.elite_parties, '#fbbf24', 'elite')
+              renderPartyCards(localSetup.elite_parties || [], '#fbbf24', 'elite')
             )}
           </section>
         </div>
@@ -474,9 +521,9 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
               isEliteGenerated && <EmptyState message="Sub Party kosong atau belum di-generate." />
             ) : (
               <div className="flex flex-col gap-4">
-                {Array.from({ length: Math.ceil(localSetup.sub_parties.length / 8) }).map(
+                {Array.from({ length: Math.ceil((localSetup.sub_parties || []).length / 8) }).map(
                   (_, groupIdx) => {
-                    const groupParties = localSetup.sub_parties.slice(
+                    const groupParties = (localSetup.sub_parties || []).slice(
                       groupIdx * 8,
                       (groupIdx + 1) * 8,
                     )
@@ -626,7 +673,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                 />
                 <span className="truncate">{member.name}</span>
                 <span className="text-[14px] text-amber-400 font-bold ml-auto flex-shrink-0">
-                  {Math.round(member.pvp_score).toLocaleString()}
+                  {Math.round(Number(member.pvp_score) || 0).toLocaleString()}
                 </span>
               </button>
             ))}
@@ -635,7 +682,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
       </GlobalDialog>
 
       <CharacterDetailModal
-        member={localMembers.find((m: any) => m.id === viewedMember?.id) || viewedMember}
+        member={localMembers.find((m) => m.id === viewedMember?.id) || null}
         isOpen={!!viewedMember}
         onClose={async (isUpdated) => {
           setViewedMember(null)
@@ -645,14 +692,15 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
             if (localSetup) {
               const newSetup = clone(localSetup)
-              const updateParties = (parties: any[]) => {
-                parties.forEach((p: any) => {
-                  p.slots.forEach((s: any) => {
+              const updateParties = (parties: Party[]) => {
+                parties.forEach((p) => {
+                  p.slots.forEach((s) => {
                     if (s.assigned_character) {
-                      const updatedChar = updated.find(
-                        (m: any) =>
-                          m.id === s.assigned_character.id || m.id === s.assigned_character,
-                      )
+                      const assignedId =
+                        typeof s.assigned_character === 'string'
+                          ? s.assigned_character
+                          : s.assigned_character.id
+                      const updatedChar = updated.find((m) => m.id === assignedId)
                       if (updatedChar) {
                         s.assigned_character = updatedChar
                         s.required_job = 'any'

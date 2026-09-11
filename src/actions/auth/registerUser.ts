@@ -1,7 +1,9 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { db } from '@/db'
+import { users } from '@/db/schema'
+import { eq } from 'drizzle-orm'
+import { hashPassword } from '@/lib/auth'
 
 export async function registerUser(formData: FormData) {
   const email = formData.get('email') as string
@@ -13,31 +15,32 @@ export async function registerUser(formData: FormData) {
   }
 
   try {
-    const payload = await getPayload({ config: configPromise })
+    const cleanEmail = email.toLowerCase().trim()
 
-    const existingUsers = await payload.find({
-      collection: 'users',
-      where: { email: { equals: email } },
-      overrideAccess: true,
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.email, cleanEmail),
     })
 
-    if (existingUsers.totalDocs > 0) {
+    if (existingUser) {
       return { success: false, error: 'Email sudah digunakan' }
     }
 
-    await payload.create({
-      collection: 'users',
-      data: {
-        email,
-        password,
-        name,
-        role: 'guild_master',
-      },
-      overrideAccess: true,
+    const hashedPassword = await hashPassword(password)
+    const newUserId = crypto.randomUUID()
+
+    await db.insert(users).values({
+      id: newUserId,
+      email: cleanEmail,
+      password: hashedPassword,
+      name,
+      role: 'guild_master',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
 
     return { success: true }
-  } catch (err: any) {
-    return { success: false, error: err.message || 'Gagal mendaftar' }
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : 'Gagal mendaftar'
+    return { success: false, error: errorMsg, message: errorMsg }
   }
 }

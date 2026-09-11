@@ -1,3 +1,5 @@
+import type { CharacterStatsInput } from '@/types'
+
 type StatWeights = {
   hp_weight: number
   def_weight: number
@@ -174,48 +176,50 @@ const JOB_WEIGHTS: Record<string, StatWeights> = {
 const PVP_FLAT_CONVERSION = 180
 const GENERAL_FLAT_CONVERSION = 50
 
-export const calculatePvPScore = (data: any): number => {
-  const job = data.job || 'paladin'
+export const calculatePvPScore = (data: CharacterStatsInput): number => {
+  const job = (data.job || 'paladin') as string
   const weights = JOB_WEIGHTS[job] || JOB_WEIGHTS['paladin']
 
+  const num = (val: unknown): number => (val !== undefined && val !== null ? Number(val) || 0 : 0)
+
   // 1. HP stat
-  const totalHPValue = (data.max_hp ?? 0) / 1000
+  const totalHPValue = num(data.max_hp) / 1000
 
   // 2. Base stats (ATK, MATK, DEF, MDEF)
-  const patk = (data.patk || 0) / 100
-  const matk = (data.matk || 0) / 100
-  const pdef = (data.pdef || 0) / 100
-  const mdef = (data.mdef || 0) / 100
+  const patk = num(data.patk) / 100
+  const matk = num(data.matk) / 100
+  const pdef = num(data.pdef) / 100
+  const mdef = num(data.mdef) / 100
 
   // 3. Attack Stat
   const isMagicDps = ['high_wizard', 'professor', 'high_priest', 'summoner'].includes(job)
   const baseMainAtk = isMagicDps ? matk : patk
-  const refineAtk = isMagicDps ? data.refine_matk || 0 : data.refine_patk || 0
+  const refineAtk = isMagicDps ? num(data.refine_matk) : num(data.refine_patk)
   const mainAtk = baseMainAtk + refineAtk / GENERAL_FLAT_CONVERSION
 
   // Ignore PDEF/MDEF (Flat)
-  const rawPenetration = isMagicDps ? data.ignore_mdef || 0 : data.ignore_pdef || 0
+  const rawPenetration = isMagicDps ? num(data.ignore_mdef) : num(data.ignore_pdef)
   const mainPenetration = rawPenetration / GENERAL_FLAT_CONVERSION
 
-  const refineDef = ((data.refine_pdef || 0) + (data.refine_mdef || 0)) / GENERAL_FLAT_CONVERSION
+  const refineDef = (num(data.refine_pdef) + num(data.refine_mdef)) / GENERAL_FLAT_CONVERSION
   const totalDef = pdef + mdef + refineDef
 
   // 4. Damage Reduction
-  const pdmgRed = data.pdmg_reduction || 0
-  const mdmgRed = data.mdmg_reduction || 0
-  const dmgRedDemi = data.dmg_reduction_demi_human || 0
-  const dmgRedMed = data.dmg_reduction_medium || 0
-  const neutralRed = data.neutral_dmg_reduction || 0
-  const critDmgRed = data.critical_damage_reduction || 0
-  const flatPvPRed = (data.pvp_dmg_reduction || 0) / PVP_FLAT_CONVERSION
+  const pdmgRed = num(data.pdmg_reduction)
+  const mdmgRed = num(data.mdmg_reduction)
+  const dmgRedDemi = num(data.dmg_reduction_demi_human)
+  const dmgRedMed = num(data.dmg_reduction_medium)
+  const neutralRed = num(data.neutral_dmg_reduction)
+  const critDmgRed = num(data.critical_damage_reduction)
+  const flatPvPRed = num(data.pvp_dmg_reduction) / PVP_FLAT_CONVERSION
 
-  const fireRed = data.fire_dmg_reduction || 0
-  const waterRed = data.water_dmg_reduction || 0
-  const windRed = data.wind_dmg_reduction || 0
-  const earthRed = data.earth_dmg_reduction || 0
-  const ghostRed = data.ghost_dmg_reduction || 0
-  const holyRed = data.holy_dmg_reduction || 0
-  const poisonRed = data.poison_dmg_reduction || 0
+  const fireRed = num(data.fire_dmg_reduction)
+  const waterRed = num(data.water_dmg_reduction)
+  const windRed = num(data.wind_dmg_reduction)
+  const earthRed = num(data.earth_dmg_reduction)
+  const ghostRed = num(data.ghost_dmg_reduction)
+  const holyRed = num(data.holy_dmg_reduction)
+  const poisonRed = num(data.poison_dmg_reduction)
 
   const totalElementalRed =
     (fireRed + waterRed + windRed + earthRed + ghostRed + holyRed + poisonRed) / 4
@@ -231,21 +235,21 @@ export const calculatePvPScore = (data: any): number => {
     totalElementalRed
 
   // 5. Damage Bonus
-  const pdmgBonus = (data.pdmg_bonus || 0) / GENERAL_FLAT_CONVERSION
-  const mdmgBonus = (data.mdmg_bonus || 0) / GENERAL_FLAT_CONVERSION
-  const flatPvPBonus = (data.pvp_dmg_bonus || 0) / PVP_FLAT_CONVERSION
+  const pdmgBonus = num(data.pdmg_bonus) / GENERAL_FLAT_CONVERSION
+  const mdmgBonus = num(data.mdmg_bonus) / GENERAL_FLAT_CONVERSION
+  const flatPvPBonus = num(data.pvp_dmg_bonus) / PVP_FLAT_CONVERSION
 
-  const dmgVsDemi = data.dmg_vs_demi_human || 0
-  const dmgVsMed = data.dmg_vs_medium || 0
-  const neutralBonus = data.neutral_dmg_bonus || 0
+  const dmgVsDemi = num(data.dmg_vs_demi_human)
+  const dmgVsMed = num(data.dmg_vs_medium)
+  const neutralBonus = num(data.neutral_dmg_bonus)
 
-  const fireBonus = data.fire_dmg_bonus || 0
-  const waterBonus = data.water_dmg_bonus || 0
-  const windBonus = data.wind_dmg_bonus || 0
-  const earthBonus = data.earth_dmg_bonus || 0
-  const ghostBonus = data.ghost_dmg_bonus || 0
-  const holyBonus = data.holy_dmg_bonus || 0
-  const poisonBonus = data.poison_dmg_bonus || 0
+  const fireBonus = num(data.fire_dmg_bonus)
+  const waterBonus = num(data.water_dmg_bonus)
+  const windBonus = num(data.wind_dmg_bonus)
+  const earthBonus = num(data.earth_dmg_bonus)
+  const ghostBonus = num(data.ghost_dmg_bonus)
+  const holyBonus = num(data.holy_dmg_bonus)
+  const poisonBonus = num(data.poison_dmg_bonus)
 
   const maxElementalBonus = Math.max(
     fireBonus,
@@ -267,11 +271,11 @@ export const calculatePvPScore = (data: any): number => {
 
   // 6. Utility Score
   const utilityScore =
-    (data.healing_done || 0) +
-    (data.healing_taken || 0) +
-    (data.critical_reduction || 0) * 0.1 +
-    (data.variable_cast || 0) * 0.5 +
-    (data.aspd || 0) * 0.1
+    num(data.healing_done) +
+    num(data.healing_taken) +
+    num(data.critical_reduction) * 0.1 +
+    num(data.variable_cast) * 0.5 +
+    num(data.aspd) * 0.1
 
   // 7. Final Score
   const score =

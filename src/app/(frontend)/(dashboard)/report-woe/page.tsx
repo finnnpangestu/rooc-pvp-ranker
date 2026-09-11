@@ -1,53 +1,50 @@
 import React from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { ReportWoeClient } from './ReportWoeClient'
+import { getSessionUser } from '@/lib/auth'
+import { db } from '@/db'
+import { characters, guilds, woeSetups, reportsWoe } from '@/db/schema'
+import { eq, desc } from 'drizzle-orm'
 
 export const metadata = {
   title: 'Report WoE | ROOC PvP Ranker',
 }
 
 export default async function ReportWoePage() {
-  const reqHeaders = await headers()
-  const payload = await getPayload({ config: configPromise })
-
-  const { user } = await payload.auth({ headers: reqHeaders })
+  const user = await getSessionUser()
   if (!user) {
     redirect('/login')
   }
 
-  const guildRes = await payload.find({
-    collection: 'guilds',
-    where: { guild_master: { equals: user.id } },
-    limit: 1,
-  })
+  const currentGuild =
+    (await db.query.guilds.findFirst({
+      where: eq(guilds.guild_master_id, user.id),
+    })) || null
 
-  const currentGuild = guildRes.docs[0] || null
   if (!currentGuild) redirect('/')
 
-  const [setupRes, reportsRes] = await Promise.all([
-    payload.find({
-      collection: 'woe_setups',
-      where: { guild_id: { equals: currentGuild.id } },
-      limit: 1,
+  const [setupRes, reportsRes, membersRes] = await Promise.all([
+    db.query.woeSetups.findFirst({
+      where: eq(woeSetups.guild_id, currentGuild.id),
     }),
-    payload.find({
-      collection: 'reports_woe',
-      where: { guild_id: { equals: currentGuild.id } },
-      sort: '-match_date',
+    db.query.reportsWoe.findMany({
+      where: eq(reportsWoe.guild_id, currentGuild.id),
+      orderBy: [desc(reportsWoe.match_date)],
       limit: 50,
-    })
+    }),
+    db.query.characters.findMany({
+      where: eq(characters.guild_id, currentGuild.id),
+    }),
   ])
 
-  const currentSetup = setupRes.docs[0] || null
+  const currentSetup = setupRes || null
 
   return (
     <ReportWoeClient
       guild={currentGuild}
       initialSetup={currentSetup}
-      historyReports={reportsRes.docs}
+      historyReports={reportsRes}
+      members={membersRes}
     />
   )
 }

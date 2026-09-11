@@ -1,30 +1,21 @@
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { DashboardShell } from '../components/DashboardShell'
 import { Suspense } from 'react'
 import DashboardLoading from './loading'
+import { getSessionUser } from '@/lib/auth'
+import { db } from '@/db'
+import { guilds } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const reqHeaders = await headers()
-  const payload = await getPayload({ config: configPromise })
-
-  const { user } = await payload.auth({ headers: reqHeaders })
+  const user = await getSessionUser()
   if (!user) {
-    redirect('/login')
+    redirect('/login?reason=session_expired')
   }
 
-  const guildRes = await payload.find({
-    collection: 'guilds',
-    where: {
-      guild_master: { equals: user.id },
-    },
-    depth: 1,
-    limit: 1,
-  })
-
-  const currentGuild = guildRes.docs[0] || null
+  const currentGuild = (await db.query.guilds.findFirst({
+    where: eq(guilds.guild_master_id, user.id),
+  })) || null
 
   return (
     <DashboardShell guild={currentGuild}>

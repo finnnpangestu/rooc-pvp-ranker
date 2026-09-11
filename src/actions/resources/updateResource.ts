@@ -1,8 +1,11 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { db } from '@/db'
+import { resources } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+import type { Resource, ActionResult } from '@/types'
+import { actionError, actionSuccess, formatErrorMessage } from '@/types'
 
 export async function updateResource(
   resourceId: string,
@@ -11,46 +14,48 @@ export async function updateResource(
     total_quantity?: number
     add_quantity?: number
   },
-) {
+): Promise<ActionResult<{ doc: Resource }>> {
   try {
-    const payload = await getPayload({ config: configPromise })
-
-    const existing = await payload.findByID({
-      collection: 'resources',
-      id: resourceId,
+    const existing = await db.query.resources.findFirst({
+      where: eq(resources.id, resourceId),
     })
 
-    let updateData: any = {}
+    if (!existing) {
+      return actionError('Resource tidak ditemukan')
+    }
+
+    const updateData: Partial<typeof resources.$inferInsert> = {
+      updated_at: new Date().toISOString(),
+    }
 
     if (data.name) {
       updateData.name = data.name
     }
 
     if (data.add_quantity && data.add_quantity > 0) {
-      const newTotal = existing.total_quantity + data.add_quantity
-      updateData.total_quantity = newTotal
-
-      updateData.remaining_quantity = (existing.remaining_quantity ?? 0) + data.add_quantity
+      const newTotal = (Number(existing.total_quantity) || 0) + data.add_quantity
+      updateData.total_quantity = String(newTotal)
+      updateData.remaining_quantity = String((Number(existing.remaining_quantity) || 0) + data.add_quantity)
     } else if (data.total_quantity !== undefined && data.total_quantity > 0) {
-      updateData.total_quantity = data.total_quantity
+      updateData.total_quantity = String(data.total_quantity)
     }
 
-    if (Object.keys(updateData).length === 0) {
-      return { success: false, message: 'Tidak ada perubahan' }
+    if (Object.keys(updateData).length <= 1) {
+      return actionError('Tidak ada perubahan')
     }
 
-    const result = await payload.update({
-      collection: 'resources',
-      id: resourceId,
-      data: updateData,
-    })
+    const [result] = await db
+      .update(resources)
+      .set(updateData)
+      .where(eq(resources.id, resourceId))
+      .returning()
 
     revalidatePath('/resources')
     revalidatePath('/')
 
-    return { success: true, doc: result }
-  } catch (error: any) {
+    return actionSuccess({ doc: result }, 'Resource berhasil diperbarui')
+  } catch (error: unknown) {
     console.error('Update resource error:', error)
-    return { success: false, message: error.message }
+    return actionError(formatErrorMessage(error))
   }
 }

@@ -1,24 +1,17 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { db } from '@/db'
+import { characters } from '@/db/schema'
+import { eq, desc, sql } from 'drizzle-orm'
 
 export async function getCharacters() {
   try {
-    const payload = await getPayload({ config: configPromise })
-
-    const charsRes = await payload.find({
-      collection: 'characters',
-      limit: 1000,
-      pagination: false,
-      depth: 0,
-      where: {
-        isVerified: { equals: true },
-      },
-      sort: '-pvp_score',
+    const charsRes = await db.query.characters.findMany({
+      where: eq(characters.isVerified, true),
+      orderBy: [desc(sql`CAST(${characters.pvp_score} AS numeric)`)],
     })
 
-    return charsRes.docs
+    return charsRes
   } catch (error) {
     console.error('Error fetching characters:', error)
     return []

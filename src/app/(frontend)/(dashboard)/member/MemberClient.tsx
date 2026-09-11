@@ -11,10 +11,11 @@ import { JOB_LABELS } from '@/const/JobLabels'
 import { CharacterDetailModal } from '../../components/CharacterDetailModal'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
 import { useRouter } from 'next/navigation'
+import type { Guild, Character } from '@/types'
 
 interface MemberClientProps {
-  guild: any | null
-  members: any[]
+  guild: Guild | null
+  members: Character[]
 }
 
 const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
@@ -27,7 +28,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const router = useRouter()
 
-  const [selectedDetailMember, setSelectedDetailMember] = useState<any | null>(null)
+  const [selectedDetailMember, setSelectedDetailMember] = useState<Character | null>(null)
 
   useEffect(() => {
     setCurrentPage(1)
@@ -43,7 +44,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
 
   const { sortedMembers, filteredMembers, paginatedMembers, totalPages } = React.useMemo(() => {
     const sorted = [...localMembers].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     )
     const filtered = selectedJob ? sorted.filter((m) => m.job === selectedJob) : sorted
 
@@ -160,7 +161,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                       {JOB_LABELS[char.job] || char.job}
                     </td>
                     <td className="p-4 text-center font-semibold text-amber-400">
-                      {Math.round(char.pvp_score || 0).toLocaleString('id-ID')}
+                      {Math.round(Number(char.pvp_score) || 0).toLocaleString('id-ID')}
                     </td>
                     <td className="p-4 text-center">
                       <div className="flex items-center justify-center gap-1.5 text-xs font-semibold">

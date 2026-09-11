@@ -1,44 +1,38 @@
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { GuildLeagueClient } from './GuildLeagueClient'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
+import { getSessionUser } from '@/lib/auth'
+import { db } from '@/db'
+import { guilds, partySetups } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 
 export const metadata = {
   title: 'League Management | ROOC PvP Ranker',
 }
 
 export default async function GuildLeaguePage() {
-  const reqHeaders = await headers()
-  const payload = await getPayload({ config: configPromise })
-
-  const { user } = await payload.auth({ headers: reqHeaders })
+  const user = await getSessionUser()
   if (!user) redirect('/login')
 
-  const guildRes = await payload.find({
-    collection: 'guilds',
-    where: { guild_master: { equals: user.id } },
-    depth: 1,
-    limit: 1,
-  })
-  const currentGuild = guildRes.docs[0] || null
+  const currentGuild =
+    (await db.query.guilds.findFirst({
+      where: eq(guilds.guild_master_id, user.id),
+    })) || null
+
   if (!currentGuild) redirect('/')
 
   const charsRes = await getCharactersDashboard(currentGuild.id)
 
-  const setupRes = await payload.find({
-    collection: 'party_setups',
-    where: { guild_id: { equals: currentGuild.id } },
-    depth: 1,
-    limit: 1,
-  })
+  const initialSetup =
+    (await db.query.partySetups.findFirst({
+      where: eq(partySetups.guild_id, currentGuild.id),
+    })) || null
 
   return (
     <GuildLeagueClient
       guild={currentGuild}
       members={charsRes}
-      initialSetup={setupRes.docs[0] || null}
+      initialSetup={initialSetup}
     />
   )
 }

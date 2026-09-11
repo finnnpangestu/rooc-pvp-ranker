@@ -1,7 +1,8 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { db } from '@/db'
+import { characters, resources, resourceDistributions } from '@/db/schema'
+import { eq, inArray, and } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
 export async function updateDistributionDetails(
@@ -9,61 +10,72 @@ export async function updateDistributionDetails(
   data: { member_id?: string; quantity?: number },
 ) {
   try {
-    const payload = await getPayload({ config: configPromise })
-    const existing = await payload.findByID({
-      collection: 'resource_distributions',
-      id: distributionId,
+    const existing = await db.query.resourceDistributions.findFirst({
+      where: eq(resourceDistributions.id, distributionId),
     })
 
+    if (!existing) {
+      return { success: false, message: 'Distribusi tidak ditemukan' }
+    }
+
     if (existing.status === 'pending' && data.member_id) {
-      await payload.update({
-        collection: 'resource_distributions',
-        id: distributionId,
-        data: { member_id: data.member_id },
-      })
+      await db
+        .update(resourceDistributions)
+        .set({
+          member_id: data.member_id,
+          updated_at: new Date().toISOString(),
+        })
+        .where(eq(resourceDistributions.id, distributionId))
     } else if (existing.status === 'approved' && data.quantity !== undefined) {
-      const oldQuantity = existing.quantity
+      const oldQuantity = Number(existing.quantity) || 0
       const newQuantity = data.quantity
       const diff = newQuantity - oldQuantity
 
-      const resourceId =
-        typeof existing.resource_id === 'object' ? existing.resource_id.id : existing.resource_id
-      const resource = await payload.findByID({
-        collection: 'resources',
-        id: resourceId,
+      const resource = await db.query.resources.findFirst({
+        where: eq(resources.id, existing.resource_id),
       })
 
-      if (diff > 0 && (resource.remaining_quantity ?? 0) < diff) {
+      if (!resource) {
+        return { success: false, message: 'Resource tidak ditemukan' }
+      }
+
+      if (diff > 0 && (Number(resource.remaining_quantity) || 0) < diff) {
         return { success: false, message: 'Stok resource tidak mencukupi untuk penambahan ini.' }
       }
 
-      await payload.update({
-        collection: 'resource_distributions',
-        id: distributionId,
-        data: { quantity: newQuantity },
+      await db
+        .update(resourceDistributions)
+        .set({
+          quantity: String(newQuantity),
+          updated_at: new Date().toISOString(),
+        })
+        .where(eq(resourceDistributions.id, distributionId))
+
+      await db
+        .update(resources)
+        .set({
+          remaining_quantity: String((Number(resource.remaining_quantity) || 0) - diff),
+          updated_at: new Date().toISOString(),
+        })
+        .where(eq(resources.id, existing.resource_id))
+
+      const memberId = existing.member_id
+      const distributions = await db.query.resourceDistributions.findMany({
+        where: and(
+          eq(resourceDistributions.member_id, memberId),
+          inArray(resourceDistributions.status, ['approved', 'claimed']),
+        ),
       })
 
-      await payload.update({
-        collection: 'resources',
-        id: resourceId,
-        data: { remaining_quantity: (resource.remaining_quantity ?? 0) - diff },
-      })
+      const total = distributions.reduce((sum, d) => sum + (Number(d.quantity) || 0), 0)
 
-      const memberId =
-        typeof existing.member_id === 'object' ? existing.member_id.id : existing.member_id
-      const distributions = await payload.find({
-        collection: 'resource_distributions',
-        where: { member_id: { equals: memberId }, status: { in: ['approved', 'claimed'] } },
-        limit: 0,
-        pagination: false,
-      })
-      const total = distributions.docs.reduce((sum, d) => sum + d.quantity, 0)
-
-      await payload.update({
-        collection: 'characters',
-        id: memberId,
-        data: { total_resources: total },
-      })
+      await db
+        .update(characters)
+        .set({
+          total_resources: String(total),
+          updated_at: new Date().toISOString(),
+        })
+        .where(eq(characters.id, memberId))
     }
 
     revalidatePath('/resources')
@@ -71,7 +83,8 @@ export async function updateDistributionDetails(
     revalidatePath('/dashboard')
 
     return { success: true }
-  } catch (error: any) {
-    return { success: false, message: error.message }
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : 'Gagal memperbarui rincian distribusi'
+    return { success: false, message: errorMsg, error: errorMsg }
   }
 }

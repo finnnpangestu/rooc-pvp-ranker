@@ -1,64 +1,54 @@
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
 import { getResources } from '@/actions/resources/getResources'
 import { DashboardClient } from './dashboard/DashboardClient'
+import { getSessionUser } from '@/lib/auth'
+import { db } from '@/db'
+import { guilds, partySetups, reportsWoe } from '@/db/schema'
+import { eq, desc } from 'drizzle-orm'
+
+import type { Character, PartySetup, PopulatedResource, ReportWoe } from '@/types'
 
 export const metadata = {
   title: 'Dashboard Guild Master',
 }
 
 export default async function DashboardPage() {
-  const reqHeaders = await headers()
-  const payload = await getPayload({ config: configPromise })
-
-  const { user } = await payload.auth({ headers: reqHeaders })
+  const user = await getSessionUser()
   if (!user) {
     redirect('/login')
   }
 
-  const guildRes = await payload.find({
-    collection: 'guilds',
-    where: {
-      guild_master: { equals: user.id },
-    },
-    depth: 1,
-    limit: 1,
-  })
+  const currentGuild =
+    (await db.query.guilds.findFirst({
+      where: eq(guilds.guild_master_id, user.id),
+    })) || null
 
-  const currentGuild = guildRes.docs[0] || null
-  let guildMembers: any[] = []
-  let partySetup: any = null
-  let resources: any[] = []
-  let woeReports: any[] = []
+  let guildMembers: Character[] = []
+  let partySetup: PartySetup | null = null
+  let resources: PopulatedResource[] = []
+  let woeReports: ReportWoe[] = []
 
   if (currentGuild) {
-    const guildIdStr = currentGuild.id.toString()
+    const guildIdStr = currentGuild.id
 
     const [guildMembersRes, setupRes, resourcesRes, woeReportsRes] = await Promise.all([
       getCharactersDashboard(guildIdStr),
-      payload.find({
-        collection: 'party_setups',
-        where: { guild_id: { equals: currentGuild.id } },
-        depth: 1,
-        limit: 1,
+      db.query.partySetups.findFirst({
+        where: eq(partySetups.guild_id, currentGuild.id),
       }),
       getResources(guildIdStr),
-      payload.find({
-        collection: 'reports_woe',
-        where: { guild_id: { equals: currentGuild.id } },
-        sort: '-match_date',
+      db.query.reportsWoe.findMany({
+        where: eq(reportsWoe.guild_id, currentGuild.id),
+        orderBy: [desc(reportsWoe.match_date)],
         limit: 5,
-        depth: 0,
       }),
     ])
 
     guildMembers = guildMembersRes
-    partySetup = setupRes.docs[0] || null
+    partySetup = setupRes || null
     resources = resourcesRes
-    woeReports = woeReportsRes.docs.reverse() // reverse to show oldest first in graph
+    woeReports = [...woeReportsRes].reverse() // reverse to show oldest first in graph
   }
 
   return (

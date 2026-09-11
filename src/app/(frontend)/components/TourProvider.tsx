@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { driver } from 'driver.js'
+import { driver, type DriveStep } from 'driver.js'
 import 'driver.js/dist/driver.css'
 import { useTheme } from './ThemeProvider'
 
@@ -26,7 +26,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   const isDark = theme === 'dark'
 
   const startTour = () => {
-    let steps: any[] = []
+    let steps: DriveStep[] = []
 
     if (pathname === '/') {
       steps = [

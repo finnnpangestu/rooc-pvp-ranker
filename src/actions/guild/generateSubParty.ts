@@ -1,24 +1,28 @@
 'use server'
 
+import type { Character, Party, ActionResult } from '@/types'
+import { actionError, actionSuccess, formatErrorMessage } from '@/types'
+
 export async function generateSubParty(
   guildId: string,
   blueprint: string[][],
-  benchMembers: any[],
-) {
+  benchMembers: Character[],
+): Promise<ActionResult<{ parties: Party[] }> & { parties?: Party[] }> {
   try {
     const guildMembers = benchMembers.filter((m) => String(m.guild_id) === String(guildId))
 
     const availableMembers = [...guildMembers].sort(
-      (a, b) => (b.pvp_score || 0) - (a.pvp_score || 0),
+      (a, b) => Number(b.pvp_score || 0) - Number(a.pvp_score || 0),
     )
-    const subParties: any[] = []
+    const subParties: Party[] = []
     const totalSubParties = blueprint.length
 
     for (let i = 0; i < totalSubParties; i++) {
       const subPartyGroup = Math.floor(i / 8) + 1
       const partyInGroup = (i % 8) + 1
       subParties.push({
-        party_name: `Sub Party ${subPartyGroup} - P${partyInGroup}`,
+        name: `Sub Party ${subPartyGroup} - P${partyInGroup}`,
+        type: 'sub',
         slots: blueprint[i].map((job) => ({ required_job: job, assigned_character: null })),
       })
     }
@@ -43,8 +47,9 @@ export async function generateSubParty(
       }
     }
 
-    return { success: true as const, parties: subParties }
-  } catch (error: any) {
-    return { success: false as const, message: error.message }
+    const successRes = actionSuccess({ parties: subParties })
+    return { ...successRes, parties: subParties }
+  } catch (error: unknown) {
+    return actionError(formatErrorMessage(error))
   }
 }

@@ -1,68 +1,80 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { db } from '@/db'
+import { partySetups } from '@/db/schema'
+import { eq } from 'drizzle-orm'
+import type { Party, PartySetup, ActionResult } from '@/types'
+import { actionError, actionSuccess, formatErrorMessage } from '@/types'
 
 export async function savePartySetup(setup: {
   id?: string
   guild_id: string
-  elite_parties?: any[]
-  sub_parties?: any[]
-}) {
+  elite_parties?: Party[] | null
+  sub_parties?: Party[] | null
+}): Promise<ActionResult<{ doc: PartySetup }>> {
   try {
-    const payload = await getPayload({ config: configPromise })
-
-    // Normalise parties: replace full member objects with just their ID for DB storage
-    const normaliseParties = (parties: any[] = []) =>
-      parties.map((party) => ({
+    const normaliseParties = (parties: Party[] | null = []): Party[] =>
+      (parties || []).map((party) => ({
         ...party,
-        slots: party.slots.map((slot: any) => ({
+        slots: (party.slots || []).map((slot) => ({
           ...slot,
-          assigned_character: slot.assigned_character?.id ?? slot.assigned_character ?? null,
+          assigned_character:
+            typeof slot.assigned_character === 'object' && slot.assigned_character
+              ? (slot.assigned_character.id ?? null)
+              : (slot.assigned_character ?? null),
         })),
       }))
 
-    const data: any = {
-      guild_id: setup.guild_id,
-      elite_parties: normaliseParties(setup.elite_parties),
-      sub_parties: normaliseParties(setup.sub_parties),
-    }
+    const elitePartiesData = normaliseParties(setup.elite_parties)
+    const subPartiesData = normaliseParties(setup.sub_parties)
 
-    let result
+    let result: PartySetup
 
     if (setup.id) {
-      // Update existing setup
-      result = await payload.update({
-        collection: 'party_setups',
-        id: setup.id,
-        data,
-        depth: 1,
-      })
+      const [updated] = await db
+        .update(partySetups)
+        .set({
+          elite_parties: elitePartiesData,
+          sub_parties: subPartiesData,
+          updated_at: new Date().toISOString(),
+        })
+        .where(eq(partySetups.id, setup.id))
+        .returning()
+      result = updated
     } else {
-      // Check if setup already exists for this guild
-      const existing = await payload.find({
-        collection: 'party_setups',
-        where: { guild_id: { equals: setup.guild_id } },
+      const existing = await db.query.partySetups.findFirst({
+        where: eq(partySetups.guild_id, setup.guild_id),
       })
 
-      if (existing.docs.length > 0) {
-        result = await payload.update({
-          collection: 'party_setups',
-          id: existing.docs[0].id,
-          data,
-          depth: 1,
-        })
+      if (existing) {
+        const [updated] = await db
+          .update(partySetups)
+          .set({
+            elite_parties: elitePartiesData,
+            sub_parties: subPartiesData,
+            updated_at: new Date().toISOString(),
+          })
+          .where(eq(partySetups.id, existing.id))
+          .returning()
+        result = updated
       } else {
-        result = await payload.create({
-          collection: 'party_setups',
-          data,
-          depth: 1,
-        } as any)
+        const [created] = await db
+          .insert(partySetups)
+          .values({
+            id: crypto.randomUUID(),
+            guild_id: setup.guild_id,
+            elite_parties: elitePartiesData,
+            sub_parties: subPartiesData,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .returning()
+        result = created
       }
     }
 
-    return { success: true as const, doc: result }
-  } catch (error: any) {
-    return { success: false as const, message: error.message }
+    return actionSuccess({ doc: result })
+  } catch (error: unknown) {
+    return actionError(formatErrorMessage(error))
   }
 }

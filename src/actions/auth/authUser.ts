@@ -1,12 +1,8 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { headers } from 'next/headers'
+import { getSessionUser, type SessionUser } from '@/lib/auth'
 
-export async function getAuthUser() {
-  const reqHeaders = await headers()
-  const payload = await getPayload({ config: configPromise })
-  const { user } = await payload.auth({ headers: reqHeaders })
-  return { user, payload }
+export async function getAuthUser(): Promise<{ user: SessionUser | null; payload: unknown }> {
+  const user = await getSessionUser()
+  return { user, payload: null }
 }

@@ -1,14 +1,20 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { db } from '@/db'
+import { partySetups } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+import type { PartySetup, ActionResult } from '@/types'
+import { actionError, actionSuccess, formatErrorMessage } from '@/types'
 
-export async function clearParties(setupId: string, mode: 'all' | 'elite' | 'sub') {
+export async function clearParties(
+  setupId: string,
+  mode: 'all' | 'elite' | 'sub',
+): Promise<ActionResult<{ doc: PartySetup }>> {
   try {
-    const payload = await getPayload({ config: configPromise })
-
-    const updateData: any = {}
+    const updateData: Partial<typeof partySetups.$inferInsert> = {
+      updated_at: new Date().toISOString(),
+    }
     if (mode === 'all') {
       updateData.elite_parties = []
       updateData.sub_parties = []
@@ -18,18 +24,17 @@ export async function clearParties(setupId: string, mode: 'all' | 'elite' | 'sub
       updateData.sub_parties = []
     }
 
-    const updatedDoc = await payload.update({
-      collection: 'party_setups',
-      id: setupId,
-      data: updateData,
-      depth: 1,
-    })
+    const [updatedDoc] = await db
+      .update(partySetups)
+      .set(updateData)
+      .where(eq(partySetups.id, setupId))
+      .returning()
 
     revalidatePath('/guild-league')
     revalidatePath('/')
 
-    return { success: true, doc: updatedDoc }
-  } catch (error: any) {
-    return { success: false, message: error.message }
+    return actionSuccess({ doc: updatedDoc }, 'Parties berhasil di-reset')
+  } catch (error: unknown) {
+    return actionError(formatErrorMessage(error))
   }
 }

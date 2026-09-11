@@ -1,7 +1,8 @@
 'use server'
 
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { db } from '@/db'
+import { characters, resources, resourceDistributions } from '@/db/schema'
+import { eq, inArray, and } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
 export async function bulkUpdateDistributionStatus(
@@ -9,94 +10,81 @@ export async function bulkUpdateDistributionStatus(
   status: 'pending' | 'approved' | 'claimed',
 ) {
   try {
-    const payload = await getPayload({ config: configPromise })
+    if (distributionIds.length === 0) return { success: true }
 
     // 1. Fetch all selected distributions in one query
-    const distributions = await payload.find({
-      collection: 'resource_distributions',
-      where: {
-        id: { in: distributionIds },
-      },
-      limit: 0,
-      pagination: false,
+    const distributions = await db.query.resourceDistributions.findMany({
+      where: inArray(resourceDistributions.id, distributionIds),
     })
 
     const resourceDeductions: Record<string, number> = {}
     const memberIdsToUpdate = new Set<string>()
 
-    for (const doc of distributions.docs) {
+    for (const doc of distributions) {
       const isApproving =
         doc.status === 'pending' && (status === 'approved' || status === 'claimed')
 
-      if (isApproving) {
-        const resId = typeof doc.resource_id === 'object' ? doc.resource_id.id : doc.resource_id
-        if (resId) {
-          resourceDeductions[resId as string] =
-            (resourceDeductions[resId as string] || 0) + doc.quantity
-        }
+      if (isApproving && doc.resource_id) {
+        resourceDeductions[doc.resource_id] =
+          (resourceDeductions[doc.resource_id] || 0) + (Number(doc.quantity) || 0)
       }
 
-      const memId = typeof doc.member_id === 'object' ? doc.member_id.id : doc.member_id
-      if (memId) {
-        memberIdsToUpdate.add(memId as string)
+      if (doc.member_id) {
+        memberIdsToUpdate.add(doc.member_id)
       }
     }
 
     // 2. Bulk update distributions status
-    await payload.update({
-      collection: 'resource_distributions',
-      where: {
-        id: { in: distributionIds },
-      },
-      data: { status },
-    })
+    await db
+      .update(resourceDistributions)
+      .set({
+        status,
+        updated_at: new Date().toISOString(),
+      })
+      .where(inArray(resourceDistributions.id, distributionIds))
 
-    // 3. Process Resource Deductions (Unique resources only)
-    if (Object.keys(resourceDeductions).length > 0) {
-      for (const [resId, deduction] of Object.entries(resourceDeductions)) {
-        const resource = await payload.findByID({
-          collection: 'resources',
-          id: resId,
-        })
-        const newRemaining = (resource.remaining_quantity ?? 0) - deduction
-        await payload.update({
-          collection: 'resources',
-          id: resId,
-          data: {
-            remaining_quantity: Math.max(0, newRemaining),
-          },
-        })
+    // 3. Process Resource Deductions
+    for (const [resId, deduction] of Object.entries(resourceDeductions)) {
+      const resource = await db.query.resources.findFirst({
+        where: eq(resources.id, resId),
+      })
+      if (resource) {
+        const newRemaining = (Number(resource.remaining_quantity) || 0) - deduction
+        await db
+          .update(resources)
+          .set({
+            remaining_quantity: String(Math.max(0, newRemaining)),
+            updated_at: new Date().toISOString(),
+          })
+          .where(eq(resources.id, resId))
       }
     }
 
-    // 4. Recalculate member totals efficiently
+    // 4. Recalculate member totals
     if (memberIdsToUpdate.size > 0) {
-      const allMemberDistributions = await payload.find({
-        collection: 'resource_distributions',
-        where: {
-          member_id: { in: Array.from(memberIdsToUpdate) },
-          status: { in: ['approved', 'claimed'] },
-        },
-        limit: 0,
-        pagination: false,
+      const memberList = Array.from(memberIdsToUpdate)
+      const allMemberDistributions = await db.query.resourceDistributions.findMany({
+        where: and(
+          inArray(resourceDistributions.member_id, memberList),
+          inArray(resourceDistributions.status, ['approved', 'claimed']),
+        ),
       })
 
       const memberTotals: Record<string, number> = {}
-      for (const doc of allMemberDistributions.docs) {
-        const memId = typeof doc.member_id === 'object' ? doc.member_id.id : doc.member_id
-        if (memId) {
-          memberTotals[memId as string] = (memberTotals[memId as string] || 0) + doc.quantity
+      for (const doc of allMemberDistributions) {
+        if (doc.member_id) {
+          memberTotals[doc.member_id] = (memberTotals[doc.member_id] || 0) + (Number(doc.quantity) || 0)
         }
       }
 
-      for (const memId of Array.from(memberIdsToUpdate)) {
-        await payload.update({
-          collection: 'characters',
-          id: memId,
-          data: {
-            total_resources: memberTotals[memId] || 0,
-          },
-        })
+      for (const memId of memberList) {
+        await db
+          .update(characters)
+          .set({
+            total_resources: String(memberTotals[memId] || 0),
+            updated_at: new Date().toISOString(),
+          })
+          .where(eq(characters.id, memId))
       }
     }
 
@@ -105,8 +93,9 @@ export async function bulkUpdateDistributionStatus(
     revalidatePath('/dashboard')
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Bulk update distribution status error:', error)
-    return { success: false, message: error.message }
+    const errorMsg = error instanceof Error ? error.message : 'Gagal memperbarui status distribusi massal'
+    return { success: false, message: errorMsg, error: errorMsg }
   }
 }

@@ -1,8 +1,9 @@
 import Image from 'next/image'
 import { JOB_LABELS } from '@/const/JobLabels'
+import type { Character, PartySlotCharacter } from '@/types'
 
 interface CharacterCardProps {
-  character: any
+  character: Character | PartySlotCharacter
   onRemove?: (e: React.MouseEvent) => void
 }
 
@@ -44,7 +45,7 @@ export function CharacterCard({ character, onRemove }: CharacterCardProps) {
             {JOB_LABELS[character.job as keyof typeof JOB_LABELS] || character.job}
           </span>
           <span className="font-medium text-amber-400">
-            {Math.round(character.pvp_score || 0).toLocaleString()}
+            {Math.round(Number(character.pvp_score || 0)).toLocaleString()}
           </span>
         </div>
       </div>

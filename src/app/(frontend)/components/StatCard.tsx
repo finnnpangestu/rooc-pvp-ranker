@@ -2,7 +2,7 @@ import React from 'react'
 
 interface StatCardProps {
   label: string
-  value: any
+  value: string | number | null | undefined
   isPercent?: boolean
 }
 
