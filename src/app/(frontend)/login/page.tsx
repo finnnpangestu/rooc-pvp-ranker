@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useState, Suspense } from 'react'
+import React, { useState, Suspense, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { GlobalDialog } from '../components/GlobalDialog'
+import { Turnstile, TurnstileRef } from '../components/Turnstile'
 import { loginUser } from '@/actions/auth/loginUser'
 import { formatErrorMessage } from '@/types'
 
@@ -18,6 +19,7 @@ function LoginFormContent() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const turnstileRef = useRef<TurnstileRef>(null)
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -30,6 +32,7 @@ function LoginFormContent() {
       const res = await loginUser(formData)
 
       if (!res.success) {
+        turnstileRef.current?.reset()
         throw new Error(res.message)
       }
 
@@ -37,6 +40,7 @@ function LoginFormContent() {
       setIsLoading(false)
     } catch (err: unknown) {
       setError(formatErrorMessage(err))
+      turnstileRef.current?.reset()
       setIsLoading(false)
     }
   }
@@ -156,6 +160,9 @@ function LoginFormContent() {
               required
             />
           </div>
+
+          <Turnstile ref={turnstileRef} className="my-2" />
+
           <button
             type="submit"
             className="w-full rounded-lg p-[14px] font-semibold font-sans cursor-pointer mt-4 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"

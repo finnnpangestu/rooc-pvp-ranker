@@ -4,11 +4,18 @@ import { db } from '@/db'
 import { users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { hashPassword } from '@/lib/auth'
+import { verifyTurnstileToken } from '@/lib/turnstile'
 
 export async function registerUser(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const name = formData.get('name') as string
+  const turnstileToken = formData.get('cf-turnstile-response') as string
+
+  const isHuman = await verifyTurnstileToken(turnstileToken)
+  if (!isHuman) {
+    return { success: false, error: 'Verifikasi keamanan bot gagal. Silakan centang verifikasi.' }
+  }
 
   if (!email || !password || !name) {
     return { success: false, error: 'Semua field wajib diisi' }

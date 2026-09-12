@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { GlobalDialog } from '../components/GlobalDialog'
+import { Turnstile, TurnstileRef } from '../components/Turnstile'
 import { registerUser } from '@/actions/auth/registerUser'
 import { formatErrorMessage } from '@/types'
 
@@ -12,6 +13,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const turnstileRef = useRef<TurnstileRef>(null)
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -27,9 +29,11 @@ export default function RegisterPage() {
         setIsDialogOpen(true)
       } else {
         setError(result.error || 'Terjadi kesalahan')
+        turnstileRef.current?.reset()
       }
     } catch (err: unknown) {
       setError(formatErrorMessage(err))
+      turnstileRef.current?.reset()
     } finally {
       setIsLoading(false)
     }
@@ -136,6 +140,9 @@ export default function RegisterPage() {
               minLength={6}
             />
           </div>
+
+          <Turnstile ref={turnstileRef} className="my-2" />
+
           <button
             type="submit"
             className="w-full rounded-lg p-[14px] font-semibold font-sans cursor-pointer mt-4 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
