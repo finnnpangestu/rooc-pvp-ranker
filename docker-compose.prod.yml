@@ -9,9 +9,8 @@ services:
         AUTH_SECRET: ${AUTH_SECRET:-fbb13c9ca6222a138fc674a4}
         DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/guild-management}
     restart: always
-    ports:
-      - '80:3000'
-      - '3000:3000'
+    expose:
+      - '3000'
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,6 +37,21 @@ services:
       timeout: 5s
       retries: 5
 
+  caddy:
+    image: caddy:alpine
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
 volumes:
   pgdata:
     name: app_pgdata
+  caddy_data:
+  caddy_config:
