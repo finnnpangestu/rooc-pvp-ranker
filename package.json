@@ -12,6 +12,7 @@
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
+    "seed:chars": "tsx src/scripts/generateCharacters.ts",
     "lint": "eslint .",
     "start": "next start",
     "test": "npm run test:int && npm run test:e2e",
