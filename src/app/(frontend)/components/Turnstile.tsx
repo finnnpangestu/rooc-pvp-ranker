@@ -41,9 +41,11 @@ export const Turnstile = forwardRef<TurnstileRef, TurnstileProps>(function Turns
 ) {
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
+  const isDev = process.env.NODE_ENV === 'development'
 
   useImperativeHandle(ref, () => ({
     reset: () => {
+      if (isDev) return
       if (widgetIdRef.current && window.turnstile) {
         try {
           window.turnstile.reset(widgetIdRef.current)
@@ -55,6 +57,11 @@ export const Turnstile = forwardRef<TurnstileRef, TurnstileProps>(function Turns
   }))
 
   useEffect(() => {
+    if (isDev) {
+      if (onVerify) onVerify('dev-token-bypass')
+      return
+    }
+
     let isMounted = true
 
     const renderWidget = () => {
@@ -113,7 +120,20 @@ export const Turnstile = forwardRef<TurnstileRef, TurnstileProps>(function Turns
         widgetIdRef.current = null
       }
     }
-  }, [onVerify, onExpire, onError])
+  }, [isDev, onVerify, onExpire, onError])
+
+  if (isDev) {
+    return (
+      <div
+        className={`flex items-center justify-center my-2 text-[11px] py-1.5 px-3 rounded-lg border border-dashed border-amber-500/30 text-amber-500 bg-amber-500/5 ${
+          className || ''
+        }`}
+      >
+        <span>⚡ Cloudflare Turnstile Bypass (Dev Mode)</span>
+        <input type="hidden" name="cf-turnstile-response" value="dev-token-bypass" />
+      </div>
+    )
+  }
 
   return (
     <div className={`flex justify-center my-3 min-h-[65px] ${className || ''}`}>

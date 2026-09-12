@@ -1,13 +1,18 @@
 export async function verifyTurnstileToken(token: string | null | undefined): Promise<boolean> {
-  // Allow bypass in test environment or if explicitly skipped
-  if (process.env.NODE_ENV === 'test' || process.env.SKIP_TURNSTILE === 'true') {
+  // Di mode development atau test, bypass verifikasi Cloudflare Turnstile
+  if (
+    process.env.NODE_ENV === 'development' ||
+    process.env.NODE_ENV === 'test' ||
+    process.env.SKIP_TURNSTILE === 'true' ||
+    token === 'dev-token-bypass'
+  ) {
     return true
   }
 
   const secretKey =
     process.env.TURNSTILE_SECRET_KEY || '0x4AAAAAAExaPaawL7yEQrXvtMRHQY0J1qc'
 
-  // Jika token kosong, langsung tolak
+  // Jika token kosong di production, tolak request
   if (!token) {
     console.warn('[turnstile] No token provided in submission')
     return false
