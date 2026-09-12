@@ -1,3 +1,14 @@
 ragnatool.my.id, www.ragnatool.my.id {
+     header {
+        # Cegah website ditempel di iframe situs lain (Anti-Clickjacking)
+        X-Frame-Options "DENY"
+        # Cegah browser menebak-nebak tipe file berbahaya (Anti-MIME Sniffing)
+        X-Content-Type-Options "nosniff"
+        # Paksa koneksi selalu HTTPS (HSTS)
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # Sembunyikan informasi server dari hacker
+        -Server
+    }
+    
     reverse_proxy web:3000
 }
