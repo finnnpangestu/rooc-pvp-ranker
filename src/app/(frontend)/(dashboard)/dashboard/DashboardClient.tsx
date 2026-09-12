@@ -23,6 +23,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
+import { Icon } from '@iconify/react'
 
 import type {
   Guild,
@@ -380,35 +381,35 @@ export function DashboardClient({
       day: 'numeric',
     })
 
-    return `🛡️ **ROOC GUILD TACTICAL REPORT: ${guild.name.toUpperCase()}** 🛡️
-📅 *Update: ${dateStr}*
+    return `**ROOC GUILD TACTICAL REPORT: ${guild.name.toUpperCase()}**
+*Update: ${dateStr}*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📊 **RINGKASAN GUILD**
-• 👥 **Total Member:** ${guild.total_characters || 0} Karakter Terverifikasi
-• ⭐ **Total PvP Score:** ${Math.round(Number(guild.total_pvp_score) || 0).toLocaleString('id-ID')}
-• 📈 **Kehadiran Guild:** ${attendanceStats.averageRate}%
-• ⚔️ **GL Record:** ${guild.gl_wins || 0}W - ${guild.gl_losses || 0}L (Tren: ${guild.gl_trends || 'N/A'})
+**RINGKASAN GUILD**
+• Total Member: ${guild.total_characters || 0} Karakter Terverifikasi
+• Total PvP Score: ${Math.round(Number(guild.total_pvp_score) || 0).toLocaleString('id-ID')}
+• Kehadiran Guild: ${attendanceStats.averageRate}%
+• GL Record: ${guild.gl_wins || 0}W - ${guild.gl_losses || 0}L (Tren: ${guild.gl_trends || 'N/A'})
 
-⚔️ **WAR READINESS (KESIAPAN PERANG)**
-• 🛡️ **Guild League (8 Party Elite):** ${glStats.filled}/${glStats.total} Slot (${glStats.percent}%) ${glStats.isFull ? '✅ READY' : '⚠️ BUTUH SLOT'}${glStats.hasSub ? ` (Sub: ${glStats.subFilled}/${glStats.subTotal})` : ''}
-• 🏰 **WoE Raid (${woeStats.raidCount} Raid, ${woeStats.partyCount} Party):** ${woeStats.filled}/${woeStats.total} Slot (${woeStats.percent}%) ${woeStats.isFull ? '✅ READY' : '⚠️ BUTUH SLOT'}
+**WAR READINESS (KESIAPAN PERANG)**
+• Guild League (8 Party Elite): ${glStats.filled}/${glStats.total} Slot (${glStats.percent}%) [${glStats.isFull ? 'READY' : 'BUTUH SLOT'}]${glStats.hasSub ? ` (Sub: ${glStats.subFilled}/${glStats.subTotal})` : ''}
+• WoE Raid (${woeStats.raidCount} Raid, ${woeStats.partyCount} Party): ${woeStats.filled}/${woeStats.total} Slot (${woeStats.percent}%) [${woeStats.isFull ? 'READY' : 'BUTUH SLOT'}]
 
-👥 **KOMPOSISI ROLE & SINERGI**
-• 🛡️ **Tank:** ${classComposition.tanks.count} Member (${classComposition.tanks.pct}%)
-• ⚔️ **Physical DPS:** ${classComposition.physical.count} Member (${classComposition.physical.pct}%)
-• 🔮 **Magic DPS:** ${classComposition.magic.count} Member (${classComposition.magic.pct}%)
-• 💚 **Support/Healer:** ${classComposition.support.count} Member (${classComposition.support.pct}%)
+**KOMPOSISI ROLE & SINERGI**
+• Tank: ${classComposition.tanks.count} Member (${classComposition.tanks.pct}%)
+• Physical DPS: ${classComposition.physical.count} Member (${classComposition.physical.pct}%)
+• Magic DPS: ${classComposition.magic.count} Member (${classComposition.magic.pct}%)
+• Support/Healer: ${classComposition.support.count} Member (${classComposition.support.pct}%)
 ${classComposition.advice.map((adv) => `> ${adv}`).join('\n')}
 
-🏆 **TOP 5 RANKERS**
-${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — ⭐ ${Math.round(Number(c.pvp_score) || 0).toLocaleString('id-ID')}`).join('\n')}
+**TOP 5 RANKERS**
+${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — Score: ${Math.round(Number(c.pvp_score) || 0).toLocaleString('id-ID')}`).join('\n')}
 
-🎖️ **POWER TIER PYRAMID**
-• 🟡 **S-Tier (Score ≥3500):** ${powerTiers.s.count} Member (${powerTiers.s.pct}%)
-• 🟣 **A-Tier (2800-3499):** ${powerTiers.a.count} Member (${powerTiers.a.pct}%)
-• 🔵 **B-Tier (2000-2799):** ${powerTiers.b.count} Member (${powerTiers.b.pct}%)
-• ⚪ **C-Tier (<2000):** ${powerTiers.c.count} Member (${powerTiers.c.pct}%)
+**POWER TIER PYRAMID**
+• S-Tier (Score ≥3500): ${powerTiers.s.count} Member (${powerTiers.s.pct}%)
+• A-Tier (2800-3499): ${powerTiers.a.count} Member (${powerTiers.a.pct}%)
+• B-Tier (2000-2799): ${powerTiers.b.count} Member (${powerTiers.b.pct}%)
+• C-Tier (<2000): ${powerTiers.c.count} Member (${powerTiers.c.pct}%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 *Laporan otomatis diekspor dari RagnaTool Dashboard*`
@@ -784,7 +785,10 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
             }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-500">S-Tier (Core)</span>
+              <span className="text-xs font-bold text-amber-500 inline-flex items-center gap-1.5">
+                <Icon icon="fluent:star-24-filled" className="w-4 h-4 text-amber-500" />
+                S-Tier (Core)
+              </span>
               <span className="text-[11px] text-amber-400 font-semibold">{powerTiers.s.pct}%</span>
             </div>
             <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
@@ -800,7 +804,10 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
             }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-purple-400">A-Tier (Elite)</span>
+              <span className="text-xs font-bold text-purple-400 inline-flex items-center gap-1.5">
+                <Icon icon="fluent:ribbon-star-24-filled" className="w-4 h-4 text-purple-400" />
+                A-Tier (Elite)
+              </span>
               <span className="text-[11px] text-purple-300 font-semibold">{powerTiers.a.pct}%</span>
             </div>
             <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
@@ -816,7 +823,10 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
             }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-cyan-400">B-Tier (Main)</span>
+              <span className="text-xs font-bold text-cyan-400 inline-flex items-center gap-1.5">
+                <Icon icon="fluent:shield-24-filled" className="w-4 h-4 text-cyan-400" />
+                B-Tier (Main)
+              </span>
               <span className="text-[11px] text-cyan-300 font-semibold">{powerTiers.b.pct}%</span>
             </div>
             <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
@@ -832,7 +842,10 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
             }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">C-Tier (Cadet)</span>
+              <span className="text-xs font-bold text-slate-400 inline-flex items-center gap-1.5">
+                <Icon icon="fluent:shield-keyhole-24-filled" className="w-4 h-4 text-slate-400" />
+                C-Tier (Cadet)
+              </span>
               <span className="text-[11px] text-slate-300 font-semibold">{powerTiers.c.pct}%</span>
             </div>
             <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
@@ -856,6 +869,9 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-red-500/10 text-red-400 border border-red-500/20 shrink-0">
+                  <Icon icon="fluent:shield-badge-24-filled" className="w-5 h-5" />
+                </div>
                 <div>
                   <h2 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
                     Kesiapan Perang (War Readiness)
@@ -878,7 +894,8 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-xs" style={{ color: 'var(--text-primary)' }}>
+                  <span className="font-semibold text-xs inline-flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                    <Icon icon="fluent:trophy-24-filled" className="w-4 h-4 text-emerald-400" />
                     Guild League (8 Party Elite)
                   </span>
                   <span
@@ -936,7 +953,8 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-xs" style={{ color: 'var(--text-primary)' }}>
+                  <span className="font-semibold text-xs inline-flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                    <Icon icon="fluent:shield-globe-24-filled" className="w-4 h-4 text-amber-400" />
                     {woeStats.raidCount > 1
                       ? `WoE Raid (${woeStats.raidCount} Raid, ${woeStats.partyCount} Party)`
                       : 'WoE Raid (1 Raid, 8 Party)'}
@@ -993,6 +1011,9 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+                  <Icon icon="fluent:clipboard-checkmark-24-filled" className="w-5 h-5" />
+                </div>
                 <div>
                   <h2 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
                     Kehadiran & Keaktifan Member
@@ -1065,7 +1086,10 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                       }}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-red-400">⚠️ {m.name}</span>
+                        <span className="font-semibold text-red-400 inline-flex items-center gap-1.5">
+                          <Icon icon="fluent:warning-24-filled" className="w-3.5 h-3.5 text-red-400" />
+                          {m.name}
+                        </span>
                         <span
                           className="text-[10px] opacity-75 capitalize"
                           style={{ color: 'var(--text-muted)' }}
@@ -1123,6 +1147,9 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">
+              <Icon icon="fluent:people-team-24-filled" className="w-5 h-5" />
+            </div>
             <div>
               <h2 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
                 Komposisi Role & Sinergi Guild
@@ -1145,7 +1172,8 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
             }}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
+              <span className="text-xs font-bold inline-flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                <Icon icon="fluent:shield-24-filled" className="w-4 h-4 text-amber-400" />
                 Tanker / Frontline
               </span>
               <span className="text-xs font-bold text-amber-400">
@@ -1172,7 +1200,8 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
             }}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
+              <span className="text-xs font-bold inline-flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                <Icon icon="fluent:sword-24-filled" className="w-4 h-4 text-red-400" />
                 Physical DPS
               </span>
               <span className="text-xs font-bold text-red-400">
@@ -1199,7 +1228,8 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
             }}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
+              <span className="text-xs font-bold inline-flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                <Icon icon="fluent:sparkle-24-filled" className="w-4 h-4 text-cyan-400" />
                 Magic DPS
               </span>
               <span className="text-xs font-bold text-cyan-400">{classComposition.magic.pct}%</span>
@@ -1224,7 +1254,8 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
             }}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
+              <span className="text-xs font-bold inline-flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                <Icon icon="fluent:heart-pulse-24-filled" className="w-4 h-4 text-emerald-400" />
                 Support / Utility
               </span>
               <span className="text-xs font-bold text-emerald-400">
@@ -1286,11 +1317,13 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
           }}
         >
           <div className="flex items-center gap-2 text-xs font-bold text-blue-400">
+            <Icon icon="fluent:lightbulb-filament-24-filled" className="w-4 h-4 text-blue-400" />
             <span>Smart Synergy Advisor:</span>
           </div>
           <div className="flex flex-col gap-1.5 text-xs" style={{ color: 'var(--text-secondary)' }}>
             {classComposition.advice.map((adv, idx) => (
               <div key={idx} className="flex items-start gap-1.5">
+                <Icon icon="fluent:arrow-right-16-filled" className="w-3 h-3 text-blue-400 shrink-0 mt-0.5" />
                 <span>{adv}</span>
               </div>
             ))}
