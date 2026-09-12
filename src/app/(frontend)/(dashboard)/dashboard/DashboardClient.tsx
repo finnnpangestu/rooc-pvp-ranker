@@ -290,24 +290,29 @@ export function DashboardClient({
 
     const advice: string[] = []
     const hpCount = jobCounts['high_priest'] || 0
-    const palaCount = jobCounts['paladin'] || 0
-    const profCount = jobCounts['professor'] || 0
+    const palaCount = jobCounts['paladin'] || jobCounts['lord_knight'] || 0
+    const profCount = jobCounts['professor'] || jobCounts['high_wizard'] || 0
+    const bioCount = jobCounts['biochemist'] || 0
 
-    if (hpCount < 3) {
+    if (hpCount < 8) {
       advice.push(
-        `⚠️ Butuh tambahan High Priest (saat ini ${hpCount}, rekomendasi min. 3-4 untuk sustain party).`,
+        `Butuh tambahan High Priest (saat ini ${hpCount}, rekomendasi min. 8 untuk sustain party).`,
       )
     }
     if (palaCount < 2) {
-      advice.push(
-        `⚠️ Paladin minim (${palaCount}, rekomendasi min. 2-3 untuk Frontline & Sacrifice).`,
-      )
+      advice.push(`Paladin/Lord Knight minim (${palaCount}, rekomendasi min. 2-3 untuk Frontline).`)
     }
     if (profCount < 2) {
       advice.push(
-        `💡 Rekomendasi rekrut Professor (${profCount}, penting untuk Land Protector & Dispel).`,
+        `Rekomendasi rekrut Professor/High Wizard (${profCount}, penting untuk Land Protector & Dispel).`,
       )
     }
+    if (bioCount < 6) {
+      advice.push(
+        `Rekomendasi rekrut Biochemist (${bioCount}, penting untuk Anti Break Equipment).`,
+      )
+    }
+
     if (advice.length === 0 && verified.length >= 10) {
       advice.push('✅ Komposisi role guild sangat berimbang dan siap tempur!')
     }
