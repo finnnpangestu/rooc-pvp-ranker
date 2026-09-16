@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
-import html2canvas from 'html2canvas'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { toBlob, toPng } from 'html-to-image'
 import { Icon } from '@iconify/react'
 import { JOB_LABELS } from '@/const/JobLabels'
 import type { Character, Party, PartySlotCharacter, WoeRaid } from '@/types'
@@ -35,9 +35,10 @@ export function LineupExportModal({
   benchedMembers = [],
 }: LineupExportModalProps) {
   const [isDownloading, setIsDownloading] = useState(false)
+  const [downloadSuccess, setDownloadSuccess] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const exportRef = useRef<HTMLDivElement>(null)
-
-  if (!isOpen) return null
+  const isDownloadingRef = useRef(false)
 
   const resolveChar = (
     assigned: PartySlotCharacter | string | null | undefined,
@@ -47,35 +48,117 @@ export function LineupExportModal({
     return members.find((m) => m.id === assigned) || null
   }
 
-  const handleDownload = async () => {
-    if (!exportRef.current) return
+  const handleDownload = useCallback(async () => {
+    if (!exportRef.current || isDownloadingRef.current) return
+    isDownloadingRef.current = true
     setIsDownloading(true)
+    setErrorMessage(null)
+
     try {
+      // 1. Ensure fonts are loaded
       if (typeof document !== 'undefined' && document.fonts) {
         await document.fonts.ready
       }
-      const canvas = await html2canvas(exportRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#0d0e15',
-        logging: false,
-        windowWidth: 1540,
-      })
-      const dataUrl = canvas.toDataURL('image/png')
-      const link = document.createElement('a')
+
+      // 2. Ensure all images inside export container are fully loaded/decoded
+      if (exportRef.current) {
+        const imgElements = exportRef.current.querySelectorAll('img')
+        await Promise.all(
+          Array.from(imgElements).map((img) => {
+            if (img.complete) return Promise.resolve()
+            return new Promise<void>((resolve) => {
+              img.onload = () => resolve()
+              img.onerror = () => resolve()
+            })
+          }),
+        )
+      }
+
       const category = type === 'gl' ? 'Guild-League' : 'WoE'
-      const cleanGuild = guildName.replace(/[^a-zA-Z0-9_-]/g, '_')
+      const cleanGuild = (guildName || 'Guild').replace(/[^a-zA-Z0-9_-]/g, '_')
       const today = new Date().toISOString().slice(0, 10)
-      link.download = `Lineup-${category}-${cleanGuild}-${today}.png`
-      link.href = dataUrl
+      const fileName = `Lineup-${category}-${cleanGuild}-${today}.png`
+
+      // 3. Render HTML to Blob using html-to-image (supports modern CSS, lab, and oklch natively)
+      let blob: Blob | null = null
+      try {
+        blob = await toBlob(exportRef.current, {
+          pixelRatio: 2,
+          backgroundColor: '#0d0e15',
+          cacheBust: true,
+        })
+      } catch (embedErr: unknown) {
+        console.warn(
+          'html-to-image standard render failed, retrying with skipFonts: true',
+          embedErr,
+        )
+        blob = await toBlob(exportRef.current, {
+          pixelRatio: 2,
+          backgroundColor: '#0d0e15',
+          skipFonts: true,
+          cacheBust: true,
+        })
+      }
+
+      // 4. Fallback to toPng if toBlob returned null
+      if (!blob) {
+        const dataUrl = await toPng(exportRef.current, {
+          pixelRatio: 2,
+          backgroundColor: '#0d0e15',
+          cacheBust: true,
+        })
+        const res = await fetch(dataUrl)
+        blob = await res.blob()
+      }
+
+      if (!blob) {
+        throw new Error('Gagal mengonversi lineup menjadi gambar PNG.')
+      }
+
+      // 5. Trigger download via appended anchor tag
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.download = fileName
+      link.href = url
+      // Mandatory for Firefox and non-Chrome browsers
+      document.body.appendChild(link)
       link.click()
+      setTimeout(() => {
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+      }, 1000)
+
+      setDownloadSuccess(true)
     } catch (err: unknown) {
       console.error('Export PNG failed:', err)
-      alert('Terjadi kesalahan saat mengunduh gambar.')
+      setErrorMessage(
+        err instanceof Error ? err.message : 'Terjadi kesalahan saat mengunduh gambar lineup.',
+      )
     } finally {
+      isDownloadingRef.current = false
       setIsDownloading(false)
     }
-  }
+  }, [type, guildName])
+
+  // Reset status when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setDownloadSuccess(false)
+      setErrorMessage(null)
+    }
+  }, [isOpen])
+
+  // Escape key listener to close modal
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
+  if (!isOpen) return null
 
   // Statistics calculation
   const calculateTotalScore = (parties: Party[]) => {
@@ -200,7 +283,12 @@ export function LineupExportModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
       <div
         className="w-full max-w-6xl rounded-2xl flex flex-col border max-h-[90vh] overflow-hidden"
         style={{
@@ -214,11 +302,43 @@ export function LineupExportModal({
           className="p-4 sm:p-5 border-b flex items-center justify-between gap-3 flex-wrap"
           style={{ borderColor: 'var(--border-color)' }}
         >
-          <div className="flex items-center gap-2">
-            <Icon icon="fluent:image-24-filled" className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-base sm:text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-              Download Lineup Gambar PNG (4 Kolom)
-            </h2>
+          <div className="flex items-center gap-2.5">
+            <div>
+              <h2
+                className="text-base sm:text-lg font-bold m-0"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                Export Lineup Gambar PNG
+              </h2>
+              <div className="flex items-center gap-2 mt-0.5">
+                {isDownloading && (
+                  <span className="inline-flex items-center gap-1.5 text-xs text-indigo-400 font-medium animate-pulse">
+                    <Icon
+                      icon="fluent:spinner-ios-20-regular"
+                      className="w-3.5 h-3.5 animate-spin"
+                    />
+                    Memproses &amp; mengunduh gambar PNG...
+                  </span>
+                )}
+                {downloadSuccess && !isDownloading && (
+                  <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
+                    <Icon icon="fluent:checkmark-circle-20-filled" className="w-3.5 h-3.5" />
+                    Lineup berhasil diunduh ke perangkat Anda!
+                  </span>
+                )}
+                {errorMessage && !isDownloading && (
+                  <span className="inline-flex items-center gap-1.5 text-xs text-rose-400 font-medium">
+                    <Icon icon="fluent:error-circle-20-filled" className="w-3.5 h-3.5" />
+                    {errorMessage}
+                  </span>
+                )}
+                {!isDownloading && !downloadSuccess && !errorMessage && (
+                  <span className="text-xs text-gray-400">
+                    Preview tampilan lineup kualitas tinggi
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-2.5">
             <button
@@ -227,18 +347,28 @@ export function LineupExportModal({
               disabled={isDownloading}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white cursor-pointer transition-all shadow-md disabled:opacity-50"
               style={{
-                background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                background: downloadSuccess
+                  ? 'linear-gradient(135deg, #059669, #047857)'
+                  : 'linear-gradient(135deg, #6366f1, #4f46e5)',
               }}
             >
               <Icon
                 icon={
                   isDownloading
                     ? 'fluent:spinner-ios-20-regular'
-                    : 'fluent:arrow-download-20-filled'
+                    : downloadSuccess
+                      ? 'fluent:arrow-clockwise-20-filled'
+                      : 'fluent:arrow-download-20-filled'
                 }
                 className={`w-4 h-4 ${isDownloading ? 'animate-spin' : ''}`}
               />
-              <span>{isDownloading ? 'Memproses Gambar...' : 'Download PNG'}</span>
+              <span>
+                {isDownloading
+                  ? 'Memproses Gambar...'
+                  : downloadSuccess
+                    ? 'Download Ulang PNG'
+                    : 'Download PNG'}
+              </span>
             </button>
             <button
               type="button"
@@ -334,7 +464,13 @@ export function LineupExportModal({
                     <h3 className="text-lg font-bold text-amber-400 tracking-wide m-0">
                       Elite Parties (Top 40)
                     </h3>
-                    <div className="flex-1 h-px bg-gradient-to-r from-amber-400/30 to-transparent" />
+                    <div
+                      className="flex-1 h-px"
+                      style={{
+                        background:
+                          'linear-gradient(to right, rgba(251, 191, 36, 0.4), transparent)',
+                      }}
+                    />
                   </div>
                   {eliteParties.length === 0 ? (
                     <div className="p-4 rounded-xl border border-dashed border-white/10 text-center text-xs text-gray-500">
@@ -355,7 +491,13 @@ export function LineupExportModal({
                       <h3 className="text-lg font-bold text-indigo-400 tracking-wide m-0">
                         Sub Parties
                       </h3>
-                      <div className="flex-1 h-px bg-gradient-to-r from-indigo-400/30 to-transparent" />
+                      <div
+                        className="flex-1 h-px"
+                        style={{
+                          background:
+                            'linear-gradient(to right, rgba(129, 140, 248, 0.4), transparent)',
+                        }}
+                      />
                     </div>
                     <div className="grid grid-cols-4 gap-3">
                       {subParties.map((party, idx) =>
@@ -377,7 +519,13 @@ export function LineupExportModal({
                       <h3 className="text-lg font-bold text-rose-400 tracking-wide m-0">
                         {raid.raid_name || raid.name || `Raid ${raidIdx + 1}`}
                       </h3>
-                      <div className="flex-1 h-px bg-gradient-to-r from-rose-400/30 to-transparent" />
+                      <div
+                        className="flex-1 h-px"
+                        style={{
+                          background:
+                            'linear-gradient(to right, rgba(251, 113, 133, 0.4), transparent)',
+                        }}
+                      />
                     </div>
                     <div className="grid grid-cols-4 gap-3">
                       {(raid.parties as Party[]).map((party, pIdx) =>

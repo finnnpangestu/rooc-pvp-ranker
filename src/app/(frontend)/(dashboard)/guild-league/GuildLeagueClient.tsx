@@ -455,7 +455,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
             disabled={!isEliteGenerated && !isSubGenerated}
             onClick={() => setIsExportModalOpen(true)}
           >
-            <Icon icon="fluent:image-20-filled" className="w-4 h-4 text-indigo-400" />
+            <Icon icon="fluent:arrow-download-20-filled" className="w-4 h-4 text-indigo-400" />
             <span>Download Lineup PNG</span>
           </Button>
         </div>
