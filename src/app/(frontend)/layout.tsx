@@ -1,5 +1,5 @@
 import React from 'react'
-import { JetBrains_Mono, Outfit } from 'next/font/google'
+import { JetBrains_Mono, Outfit, Poppins } from 'next/font/google'
 
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
@@ -12,6 +12,12 @@ const outfit = Outfit({
   variable: '--font-outfit',
 })
 
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-poppins',
+})
+
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-jetbrains-mono',
@@ -19,14 +25,15 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata = {
   title: 'ROO PvP Ranker & Guild Manager',
-  description: 'Sistem manajemen formasi dan pelacakan performa War of Emperium (WoE) serta Guild League.',
+  description:
+    'Sistem manajemen formasi dan pelacakan performa War of Emperium (WoE) serta Guild League.',
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
 
   return (
-    <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${outfit.variable} ${poppins.variable} ${jetbrainsMono.variable}`}>
       <body>
         <main>
           <ThemeProvider>

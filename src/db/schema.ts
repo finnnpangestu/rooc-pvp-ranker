@@ -89,6 +89,18 @@ export interface CharacterGlReport {
   attendance?: 'present' | 'absent'
 }
 
+export interface CharacterStatHistory {
+  date: string
+  pvp_score: number
+  job: string
+  note?: string
+  hp?: number
+  patk?: number
+  matk?: number
+  pdef?: number
+  mdef?: number
+}
+
 // Users
 export const users = pgTable('users', {
   id: varchar('id').primaryKey(),
@@ -190,6 +202,7 @@ export const characters = pgTable('characters', {
   pvp_score: numeric('pvp_score').default('0'),
   gl_total_score: numeric('gl_total_score').default('0'),
   gl_reports: jsonb('gl_reports').$type<CharacterGlReport[]>().default([]),
+  stat_history: jsonb('stat_history').$type<CharacterStatHistory[]>().default([]),
   woe_present_count: numeric('woe_present_count').default('0'),
   woe_absent_count: numeric('woe_absent_count').default('0'),
   gl_present_count: numeric('gl_present_count').default('0'),

@@ -462,7 +462,7 @@ function DashboardShellContent({
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => router.push('/stats')}
+                onClick={() => router.push(`/stats?guildId=${guild.id}`)}
                 className="!py-2 !px-4"
               >
                 <svg

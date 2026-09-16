@@ -292,26 +292,38 @@ export function DashboardClient({
 
     const advice: string[] = []
     const hpCount = jobCounts['high_priest'] || 0
-    const palaCount = jobCounts['paladin'] || jobCounts['lord_knight'] || 0
-    const profCount = jobCounts['professor'] || jobCounts['high_wizard'] || 0
+    const palaCount = jobCounts['paladin'] + jobCounts['lord_knight'] || 0
+    const performer = jobCounts['minstrell'] + jobCounts['gypsy'] || 0
+    const profCount = jobCounts['professor'] + jobCounts['high_wizard'] || 0
     const bioCount = jobCounts['biochemist'] || 0
 
     if (hpCount < 8) {
       advice.push(
-        `Butuh tambahan High Priest (saat ini ${hpCount}, rekomendasi min. 8 untuk sustain party).`,
+        `Butuh tambahan High Priest (saat ini ${hpCount}, rekomendasi min. 8 untuk support party).`,
       )
     }
+
     if (palaCount < 2) {
-      advice.push(`Paladin/Lord Knight minim (${palaCount}, rekomendasi min. 2-3 untuk Frontline).`)
+      advice.push(
+        `Paladin/Lord Knight minim (saat ini ${palaCount}, rekomendasi min. 2-3 untuk Frontline).`,
+      )
     }
+
     if (profCount < 2) {
       advice.push(
-        `Rekomendasi rekrut Professor/High Wizard (${profCount}, penting untuk Land Protector & Dispel).`,
+        `Rekomendasi rekrut Professor/High Wizard (saat ini ${profCount}, penting untuk Land Protector & Dispel).`,
       )
     }
+
+    if (performer < 8) {
+      advice.push(
+        `Rekomendasi rekrut Minstrell/Gypsy (saat ini ${performer}, rekomendasi min. 8 untuk support party).`,
+      )
+    }
+
     if (bioCount < 6) {
       advice.push(
-        `Rekomendasi rekrut Biochemist (${bioCount}, penting untuk Anti Break Equipment).`,
+        `Rekomendasi rekrut Biochemist (saat ini ${bioCount}, penting untuk Anti Break Equipment).`,
       )
     }
 
@@ -1614,7 +1626,11 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={woeChartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                <LineChart
+                  data={woeChartData}
+                  accessibilityLayer={false}
+                  margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                >
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="var(--border-color)"

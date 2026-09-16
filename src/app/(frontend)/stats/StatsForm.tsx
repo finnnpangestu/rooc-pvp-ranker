@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -7,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { JOBS } from '@/const/JobLabels'
 import { GENERAL_STATS, QUASI_STATS, SPECIAL_STATS } from '@/const/StatsLabels'
 import { updateCharacterStats } from '@/actions/stats/updateCharacter'
+import { Icon } from '@iconify/react'
 import clsx from 'clsx'
 import { useTheme } from '../components/ThemeProvider'
 import type { Character, CharacterStatsInput } from '@/types'
@@ -18,7 +20,7 @@ interface Guild {
 }
 
 interface StatsFormProps {
-  guilds: Guild[]
+  guild: Guild
   characters: Character[]
 }
 
@@ -28,12 +30,16 @@ const DEFAULT_FORM: CharacterStatsInput = {
   guild_id: '',
 }
 
-export function StatsForm({ guilds, characters }: StatsFormProps) {
+export function StatsForm({ guild, characters }: StatsFormProps) {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const router = useRouter()
-  const [formData, setFormData] = useState<CharacterStatsInput>({ ...DEFAULT_FORM })
+  const [formData, setFormData] = useState<CharacterStatsInput>({
+    ...DEFAULT_FORM,
+    guild_id: guild.id,
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [copiedLink, setCopiedLink] = useState(false)
   const [dialogResult, setDialogResult] = useState<{ isOpen: boolean; score: number | null }>({
     isOpen: false,
     score: null,
@@ -42,12 +48,20 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
   const [formMode, setFormMode] = useState<'add' | 'update'>('add')
   const [selectedUpdateId, setSelectedUpdateId] = useState('')
 
+  const handleCopyLink = () => {
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(window.location.href)
+      setCopiedLink(true)
+      setTimeout(() => setCopiedLink(false), 2000)
+    }
+  }
+
   const handleModeChange = (mode: 'add' | 'update') => {
     if (mode === 'update') {
       router.refresh()
     }
     setFormMode(mode)
-    setFormData({ ...DEFAULT_FORM })
+    setFormData({ ...DEFAULT_FORM, guild_id: guild.id })
     setSelectedUpdateId('')
     setActiveTab('info')
   }
@@ -59,11 +73,11 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
       setSelectedUpdateId(charId)
       setFormData({
         ...char,
-        guild_id: String(char.guild_id),
+        guild_id: guild.id,
       })
     } else {
       setSelectedUpdateId('')
-      setFormData({ ...DEFAULT_FORM, guild_id: formData.guild_id })
+      setFormData({ ...DEFAULT_FORM, guild_id: guild.id })
     }
   }
 
@@ -74,11 +88,11 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
         setFormData((prev: CharacterStatsInput) => ({
           ...prev,
           ...char,
-          guild_id: String(char.guild_id),
+          guild_id: guild.id,
         }))
       }
     }
-  }, [characters, selectedUpdateId, formMode])
+  }, [characters, selectedUpdateId, formMode, guild.id])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -125,7 +139,7 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
         isOpen: true,
         score: resDoc ? Number(resDoc.pvp_score) : null,
       })
-      setFormData({ ...DEFAULT_FORM })
+      setFormData({ ...DEFAULT_FORM, guild_id: guild.id })
       setSelectedUpdateId('')
       setActiveTab('info')
     } catch (err: unknown) {
@@ -137,7 +151,7 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
   }
 
   const filteredCharactersForUpdate = characters.filter(
-    (c) => String(c.guild_id) === String(formData.guild_id),
+    (c) => String(c.guild_id) === String(guild.id),
   )
 
   const TABS = [
@@ -203,6 +217,38 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
             Submit Stats
           </h1>
 
+          <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+            <span
+              className="inline-flex items-center gap-1.5 py-1 px-3.5 rounded-full text-xs font-semibold border"
+              style={{
+                background: 'rgba(99, 102, 241, 0.1)',
+                borderColor: 'rgba(99, 102, 241, 0.3)',
+                color: '#818cf8',
+              }}
+            >
+              <Icon icon="fluent:shield-checkmark-20-filled" className="w-4 h-4" />
+              Guild: {guild.name}
+            </span>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-medium cursor-pointer transition-all border"
+              style={{
+                background: 'var(--bg-secondary)',
+                borderColor: 'var(--border-color)',
+                color: copiedLink ? '#10b981' : 'var(--text-secondary)',
+                boxShadow: 'var(--shadow-neumorph-sm)',
+              }}
+              title="Salin tautan formulir ini untuk dibagikan"
+            >
+              <Icon
+                icon={copiedLink ? 'fluent:checkmark-16-filled' : 'fluent:copy-16-regular'}
+                className="w-3.5 h-3.5"
+              />
+              <span>{copiedLink ? 'Link Tersalin!' : 'Salin Link Guild'}</span>
+            </button>
+          </div>
+
           <div
             style={{
               display: 'flex',
@@ -258,12 +304,16 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
             {formMode === 'add' ? (
               <>
                 Masukkan data stat karaktermu untuk berpartisipasi dalam rank PvP. <br />
-                <span className="text-[13px] italic">Note: Gunakan stats ketika tanpa menggunakan buff.</span>
+                <span className="text-[13px] italic">
+                  Note: Gunakan stats ketika tanpa menggunakan buff.
+                </span>
               </>
             ) : (
               <>
                 Pilih karaktermu untuk memperbarui data stats terbaru (Mereset Verifikasi). <br />
-                <span className="text-[13px] italic">Note: Gunakan stats ketika tanpa menggunakan buff.</span>
+                <span className="text-[13px] italic">
+                  Note: Gunakan stats ketika tanpa menggunakan buff.
+                </span>
               </>
             )}
           </p>
@@ -383,69 +433,52 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
                   </div>
 
                   <div className="flex flex-col gap-2.5">
-                    <label htmlFor="guild_id" style={{ color: 'var(--text-secondary)' }}>
-                      Pilih Guild <span className="text-red-500 font-bold">*</span>
-                    </label>
-                    <div className="relative after:content-[''] after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2 after:w-[10px] after:h-[6px] after:bg-[url('data:image/svg+xml;utf8,<svg_fill=%22%239ca3af%22_viewBox=%220_0_24_24%22_xmlns=%22http://www.w3.org/2000/svg%22><path_d=%22M7_10l5_5_5-5z%22/></svg>')] after:bg-no-repeat after:bg-center after:pointer-events-none">
-                      <select
-                        id="guild_id"
-                        name="guild_id"
-                        className="w-full appearance-none rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
-                        style={{
-                          background: 'var(--bg-primary)',
-                          boxShadow: 'var(--shadow-neumorph-inset)',
-                          color: 'var(--text-primary)',
-                          border: 'none',
-                        }}
-                        value={formData.guild_id}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="" disabled>
-                          -- Pilih Guild --
-                        </option>
-                        {guilds.map((g) => (
-                          <option key={g.id} value={g.id}>
-                            {g.name}
-                          </option>
-                        ))}
-                      </select>
+                    <label style={{ color: 'var(--text-secondary)' }}>Guild Terdaftar</label>
+                    <div
+                      className="w-full rounded-xl py-3.5 px-4 text-[15px] font-sans flex items-center justify-between border"
+                      style={{
+                        background: 'var(--bg-primary)',
+                        boxShadow: 'var(--shadow-neumorph-inset)',
+                        borderColor: 'var(--border-color)',
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon
+                          icon="fluent:shield-checkmark-24-filled"
+                          className="w-5 h-5 text-indigo-400"
+                        />
+                        <span className="font-semibold">{guild.name}</span>
+                      </div>
+                      <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                        Terverifikasi
+                      </span>
                     </div>
                   </div>
                 </>
               ) : (
                 <>
                   <div className="flex flex-col gap-2.5">
-                    <label htmlFor="guild_id" style={{ color: 'var(--text-secondary)' }}>
-                      Pilih Guild Asal <span className="text-red-500 font-bold">*</span>
-                    </label>
-                    <div className="relative after:content-[''] after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2 after:w-[10px] after:h-[6px] after:bg-[url('data:image/svg+xml;utf8,<svg_fill=%22%239ca3af%22_viewBox=%220_0_24_24%22_xmlns=%22http://www.w3.org/2000/svg%22><path_d=%22M7_10l5_5_5-5z%22/></svg>')] after:bg-no-repeat after:bg-center after:pointer-events-none">
-                      <select
-                        id="guild_id"
-                        name="guild_id"
-                        className="w-full appearance-none rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
-                        style={{
-                          background: 'var(--bg-primary)',
-                          boxShadow: 'var(--shadow-neumorph-inset)',
-                          color: 'var(--text-primary)',
-                          border: 'none',
-                        }}
-                        value={formData.guild_id}
-                        onChange={(e) => {
-                          handleChange(e)
-                          setSelectedUpdateId('')
-                        }}
-                        required
-                      >
-                        <option value="" disabled>
-                          -- Pilih Guild --
-                        </option>
-                        {guilds.map((g) => (
-                          <option key={g.id} value={g.id}>
-                            {g.name}
-                          </option>
-                        ))}
-                      </select>
+                    <label style={{ color: 'var(--text-secondary)' }}>Guild Terdaftar</label>
+                    <div
+                      className="w-full rounded-xl py-3.5 px-4 text-[15px] font-sans flex items-center justify-between border"
+                      style={{
+                        background: 'var(--bg-primary)',
+                        boxShadow: 'var(--shadow-neumorph-inset)',
+                        borderColor: 'var(--border-color)',
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon
+                          icon="fluent:shield-checkmark-24-filled"
+                          className="w-5 h-5 text-indigo-400"
+                        />
+                        <span className="font-semibold">{guild.name}</span>
+                      </div>
+                      <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                        Terverifikasi
+                      </span>
                     </div>
                   </div>
 
@@ -466,14 +499,15 @@ export function StatsForm({ guilds, characters }: StatsFormProps) {
                         value={selectedUpdateId}
                         onChange={(e) => handleSelectCharacter(e.target.value)}
                         required
-                        disabled={!formData.guild_id}
                       >
                         <option value="" disabled>
-                          -- Pilih Karakter --
+                          {filteredCharactersForUpdate.length === 0
+                            ? '-- Belum ada karakter di guild ini --'
+                            : '-- Pilih Karakter --'}
                         </option>
                         {filteredCharactersForUpdate.map((c) => (
                           <option key={c.id} value={String(c.id)}>
-                            {c.name}
+                            {c.name} ({JOBS.find((j) => j.value === c.job)?.label || c.job})
                           </option>
                         ))}
                       </select>

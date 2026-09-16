@@ -11,7 +11,8 @@ import { handleAuthError } from '../../components/SessionExpiredDialog'
 import { JOB_LABELS } from '@/const/JobLabels'
 import { saveWoeSetup } from '@/actions/woe/saveWoeSetup'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
-
+import { LineupExportModal } from '../../components/LineupExportModal'
+import { Icon } from '@iconify/react'
 import type { Guild, Character, WoeSetup, WoeRaid, PartySlotCharacter } from '@/types'
 
 interface WoeSetupClientProps {
@@ -74,6 +75,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
   })
   const [isPending, startTransition] = useTransition()
   const [saveStatus, setSaveStatus] = useState<string | null>(null)
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
 
   // Drag and drop state
   const [draggedMember, setDraggedMember] = useState<{
@@ -352,7 +354,16 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
               <span className="font-semibold text-emerald-500">{totalVerifiedMembers}</span>
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap items-center">
+            <Button
+              variant="ghost"
+              size="md"
+              className="border shadow-sm flex items-center gap-2"
+              onClick={() => setIsExportModalOpen(true)}
+            >
+              <Icon icon="fluent:image-20-filled" className="w-4 h-4 text-indigo-400" />
+              <span>Download Lineup PNG</span>
+            </Button>
             <Button id="tour-woe-add-castle" variant="amber" size="md" onClick={handleAddRaid}>
               + Add Raid
             </Button>
@@ -655,6 +666,15 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
             })
           }
         }}
+      />
+      <LineupExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        type="woe"
+        guildName={guild.name}
+        members={localMembers}
+        raids={raids}
+        benchedMembers={benchedMembers}
       />
     </div>
   )

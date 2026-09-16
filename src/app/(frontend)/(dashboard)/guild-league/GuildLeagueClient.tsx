@@ -15,6 +15,8 @@ import { generateSubParty } from '@/actions/guild/generateSubParty'
 import { savePartySetup } from '@/actions/guild/savePartySetup'
 import { clearParties } from '@/actions/guild/clearParties'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
+import { LineupExportModal } from '../../components/LineupExportModal'
+import { Icon } from '@iconify/react'
 import type { Guild, Character, PartySetup, Party, PartySlotCharacter } from '@/types'
 
 interface GuildLeagueClientProps {
@@ -39,6 +41,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   })
 
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false)
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const [selectedPartyIndex, setSelectedPartyIndex] = useState<number | null>(null)
   const [selectedPartyType, setSelectedPartyType] = useState<'elite' | 'sub' | null>(null)
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null)
@@ -433,16 +436,28 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     <div className="max-w-[1400px] mx-auto flex gap-6 relative items-start pb-20 w-full">
       {/* KIRI - Setup Guild League */}
       <div className="flex-1 min-w-0 flex flex-col">
-        <div id="tour-gl-header" className="mb-6">
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-            League Management
-          </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-            Atur formasi Guild League (Round-Robin Auto Assign). Total Verified Member:{' '}
-            <span className="font-semibold text-emerald-500">
-              {localMembers.filter((m) => m.isVerified).length}
-            </span>
-          </p>
+        <div id="tour-gl-header" className="mb-6 flex justify-between items-center flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+              League Management
+            </h1>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+              Atur formasi Guild League (Round-Robin Auto Assign). Total Verified Member:{' '}
+              <span className="font-semibold text-emerald-500">
+                {localMembers.filter((m) => m.isVerified).length}
+              </span>
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="md"
+            className="border shadow-sm flex items-center gap-2"
+            disabled={!isEliteGenerated && !isSubGenerated}
+            onClick={() => setIsExportModalOpen(true)}
+          >
+            <Icon icon="fluent:image-20-filled" className="w-4 h-4 text-indigo-400" />
+            <span>Download Lineup PNG</span>
+          </Button>
         </div>
 
         {/* ELITE SECTION */}
@@ -549,7 +564,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
           {/* SAVE & CLEAR ALL ACTIONS */}
           <div
-            className="flex gap-3 mt-5 border-t pt-5 mb-5"
+            className="flex gap-3 mt-5 border-t pt-5 mb-5 flex-wrap"
             style={{ borderColor: 'var(--border-color)' }}
           >
             <Button
@@ -561,6 +576,16 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
               onClick={() => handleClear('all')}
             >
               Clear Formations
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="flex-1 !justify-center border"
+              disabled={!localSetup || (!isEliteGenerated && !isSubGenerated)}
+              onClick={() => setIsExportModalOpen(true)}
+            >
+              <Icon icon="fluent:image-20-filled" className="w-5 h-5 text-indigo-400 mr-1.5" />
+              Download PNG
             </Button>
             <Button
               id="tour-gl-save"
@@ -715,6 +740,16 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
             }
           }
         }}
+      />
+      <LineupExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        type="gl"
+        guildName={guild.name}
+        members={localMembers}
+        eliteParties={localSetup?.elite_parties || []}
+        subParties={localSetup?.sub_parties || []}
+        benchedMembers={benchMembers}
       />
     </div>
   )

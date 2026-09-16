@@ -5,6 +5,7 @@ export type {
   WoeRaid,
   MemberMatchReport,
   CharacterGlReport,
+  CharacterStatHistory,
   User,
   NewUser,
   Guild,

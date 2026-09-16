@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect } from 'react'
 import { JOB_LABELS } from '@/const/JobLabels'
+import Image from 'next/image'
 
 const getJobIcon = (job: string) => `/icons/jobs/${job}.png`
 
@@ -51,7 +52,9 @@ export function JobFilterDropdown({
         <div className="flex items-center gap-1.5">
           {value ? (
             <>
-              <img
+              <Image
+                width={18}
+                height={18}
                 src={getJobIcon(value)}
                 alt=""
                 className="w-[18px] h-[18px] object-cover rounded-[20%]"
@@ -104,7 +107,9 @@ export function JobFilterDropdown({
                 onClose()
               }}
             >
-              <img
+              <Image
+                width={18}
+                height={18}
                 src={getJobIcon(jobValue)}
                 alt=""
                 className="w-[18px] h-[18px] object-cover rounded-[20%]"

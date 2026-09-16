@@ -4,7 +4,7 @@ import { db } from '@/db'
 import { characters } from '@/db/schema'
 import { calculatePvPScore } from '@/utils/calculatePvPScore'
 import { updateGuildTotals } from '@/utils/guildStats'
-import type { Character, CharacterStatsInput, ActionResult } from '@/types'
+import type { Character, CharacterStatsInput, ActionResult, CharacterStatHistory } from '@/types'
 import { actionError, actionSuccess, formatErrorMessage } from '@/types'
 
 export async function createCharacter(
@@ -18,13 +18,28 @@ export async function createCharacter(
     const computedScore = calculatePvPScore(payloadData)
     const newId = crypto.randomUUID()
 
+    const initialHistory: CharacterStatHistory[] = [
+      {
+        date: new Date().toISOString(),
+        pvp_score: computedScore,
+        job: String(payloadData.job || ''),
+        note: 'Pendaftaran stats awal',
+        hp: Number(payloadData.max_hp || 0),
+        patk: Number(payloadData.patk || 0),
+        matk: Number(payloadData.matk || 0),
+        pdef: Number(payloadData.pdef || 0),
+        mdef: Number(payloadData.mdef || 0),
+      },
+    ]
+
     const insertValues: Record<string, unknown> = {
       ...payloadData,
       id: newId,
       name: payloadData.name as string,
-      job: payloadData.job as any,
+      job: payloadData.job as (typeof characters.$inferInsert)['job'],
       guild_id: payloadData.guild_id as string,
       pvp_score: String(computedScore),
+      stat_history: initialHistory,
       isVerified: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

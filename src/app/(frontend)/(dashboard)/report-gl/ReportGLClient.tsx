@@ -10,7 +10,16 @@ import { handleAuthError } from '../../components/SessionExpiredDialog'
 import { saveReportGL } from '@/actions/guild/saveReportGL'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
 import { useRouter } from 'next/navigation'
-import type { Guild, PartySetup, ReportGl, Party, PartySlot, PartySlotCharacter, MemberMatchReport, Character } from '@/types'
+import type {
+  Guild,
+  PartySetup,
+  ReportGl,
+  Party,
+  PartySlot,
+  PartySlotCharacter,
+  MemberMatchReport,
+  Character,
+} from '@/types'
 
 interface ReportGLClientProps {
   guild: Guild
@@ -25,7 +34,12 @@ const clone = <T,>(obj: T): T => JSON.parse(JSON.stringify(obj))
 const REPORT_LIMIT = 14
 const RANKING_LIMIT = 10
 
-export function ReportGLClient({ guild, initialSetup, historyReports, members = [] }: ReportGLClientProps) {
+export function ReportGLClient({
+  guild,
+  initialSetup,
+  historyReports,
+  members = [],
+}: ReportGLClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeReport, setActiveReport] = useState<Partial<ReportGl> | null>(null)
   const [viewReport, setViewReport] = useState<ReportGl | null>(null)
@@ -59,16 +73,15 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
     > = {}
     historyReports.forEach((report) => {
       ;(report.member_reports || []).forEach((mr: MemberMatchReport) => {
-        const charId =
-          typeof mr.character_id === 'string'
-            ? mr.character_id
-            : mr.character_id?.id
+        const charId = typeof mr.character_id === 'string' ? mr.character_id : mr.character_id?.id
         if (!charId) return
         if (!rankMap[charId]) {
           const resolved = localMembers.find((m) => m.id === charId) || null
           const charName =
             resolved?.name ||
-            (typeof mr.character_id === 'object' && mr.character_id?.name ? mr.character_id.name : 'Unknown')
+            (typeof mr.character_id === 'object' && mr.character_id?.name
+              ? mr.character_id.name
+              : 'Unknown')
           const charJob =
             resolved?.job ||
             (typeof mr.character_id === 'object' && mr.character_id?.job ? mr.character_id.job : '')
@@ -114,10 +127,16 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
     const setupClone = clone(initialSetup)
     const initialMemberData: Record<string, { is_present: boolean; actual_score: number }> = {}
 
-    const initData = (parties: Party[]) => {
-      parties.forEach((p) =>
-        p.slots.forEach((s) => {
-          if (s.assigned_character) {
+    const hydrateAndInitParties = (parties: Party[], type: 'elite' | 'sub') =>
+      parties.map((p, pIdx) => {
+        const defaultName = type === 'elite' ? `Elite Party ${pIdx + 1}` : `Sub Party ${pIdx + 1}`
+        const pName = p.name || p.party_name || defaultName
+        return {
+          ...p,
+          name: pName,
+          party_name: pName,
+          slots: (p.slots || []).map((s) => {
+            if (!s.assigned_character) return s
             const charId =
               typeof s.assigned_character === 'object'
                 ? s.assigned_character.id
@@ -125,13 +144,24 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
             if (charId) {
               initialMemberData[charId] = { is_present: false, actual_score: 0 }
             }
-          }
-        }),
-      )
-    }
+            const charObj =
+              typeof s.assigned_character === 'object'
+                ? s.assigned_character
+                : localMembers.find((m) => m.id === charId) || s.assigned_character
+            return {
+              ...s,
+              assigned_character: charObj,
+            }
+          }),
+        }
+      })
 
-    initData(setupClone.elite_parties || [])
-    initData(setupClone.sub_parties || [])
+    if (setupClone.elite_parties) {
+      setupClone.elite_parties = hydrateAndInitParties(setupClone.elite_parties, 'elite')
+    }
+    if (setupClone.sub_parties) {
+      setupClone.sub_parties = hydrateAndInitParties(setupClone.sub_parties, 'sub')
+    }
 
     setMemberData(initialMemberData)
     setLocalSetup(setupClone)
@@ -146,7 +176,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
   const flattenedMembers = useMemo(() => {
     if (!localSetup) return []
     const members: {
-      char: PartySlotCharacter
+      char: PartySlotCharacter | Character
       partyType: 'elite' | 'sub'
       pIdx: number
       sIdx: number
@@ -155,15 +185,24 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
 
     const extract = (parties: Party[], type: 'elite' | 'sub') => {
       parties.forEach((p, pIdx) => {
+        const defaultName = type === 'elite' ? `Elite Party ${pIdx + 1}` : `Sub Party ${pIdx + 1}`
+        const partyName = p.name || p.party_name || defaultName
+
         p.slots.forEach((s, sIdx) => {
-          if (s.assigned_character && typeof s.assigned_character === 'object') {
-            members.push({
-              char: s.assigned_character,
-              partyType: type,
-              pIdx,
-              sIdx,
-              partyName: p.name || p.party_name || '',
-            })
+          if (s.assigned_character) {
+            const charObj =
+              typeof s.assigned_character === 'object'
+                ? s.assigned_character
+                : localMembers.find((m) => m.id === s.assigned_character) || null
+            if (charObj) {
+              members.push({
+                char: charObj,
+                partyType: type,
+                pIdx,
+                sIdx,
+                partyName,
+              })
+            }
           }
         })
       })
@@ -172,7 +211,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
     extract(localSetup.elite_parties || [], 'elite')
     extract(localSetup.sub_parties || [], 'sub')
     return members
-  }, [localSetup])
+  }, [localSetup, localMembers])
 
   const availableParties = useMemo(() => {
     if (!localSetup) return []
@@ -186,9 +225,10 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
     }[] = []
 
     localSetup.elite_parties?.forEach((p: Party, pIdx: number) => {
+      const name = p.name || p.party_name || `Elite Party ${pIdx + 1}`
       parties.push({
         id: `elite-${pIdx}`,
-        name: p.name || p.party_name || `Elite ${pIdx + 1}`,
+        name,
         type: 'elite',
         pIdx,
         memberCount: p.slots.filter((s: PartySlot) => s.assigned_character).length,
@@ -196,9 +236,10 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
       })
     })
     localSetup.sub_parties?.forEach((p: Party, pIdx: number) => {
+      const name = p.name || p.party_name || `Sub Party ${pIdx + 1}`
       parties.push({
         id: `sub-${pIdx}`,
-        name: p.name || p.party_name || `Sub ${pIdx + 1}`,
+        name,
         type: 'sub',
         pIdx,
         memberCount: p.slots.filter((s: PartySlot) => s.assigned_character).length,
@@ -244,15 +285,13 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
           return alert('Pilih karakter yang ingin di-swap')
         }
 
-        const targetSlotIdx = tParties[targetParty.pIdx].slots.findIndex(
-          (s: PartySlot) => {
-            const id =
-              typeof s.assigned_character === 'string'
-                ? s.assigned_character
-                : s.assigned_character?.id
-            return id === targetCharId
-          },
-        )
+        const targetSlotIdx = tParties[targetParty.pIdx].slots.findIndex((s: PartySlot) => {
+          const id =
+            typeof s.assigned_character === 'string'
+              ? s.assigned_character
+              : s.assigned_character?.id
+          return id === targetCharId
+        })
         const targetChar = tParties[targetParty.pIdx].slots[targetSlotIdx].assigned_character
 
         tParties[targetParty.pIdx].slots[targetSlotIdx].assigned_character = sourceChar
@@ -289,6 +328,8 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
     setIsSaving(true)
     const memberReports = flattenedMembers.map((m) => ({
       character_id: m.char.id,
+      character_name: m.char.name,
+      job: m.char.job,
       is_present: memberData[m.char.id]?.is_present || false,
       actual_score: memberData[m.char.id]?.actual_score || 0,
       party_assigned: m.partyName,
@@ -374,7 +415,10 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
         </div>
 
         {availableParties.map((party) => {
-          const partyMembers = flattenedMembers.filter((m) => m.partyName === party.name)
+          const partyMembers = flattenedMembers.filter(
+            (m) =>
+              (m.partyType === party.type && m.pIdx === party.pIdx) || m.partyName === party.name,
+          )
           if (partyMembers.length === 0) return null
 
           return (
@@ -424,7 +468,8 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
                               {m.char.name}
                             </div>
                             <div className="text-[11px] text-amber-400 font-semibold mt-0.5">
-                              PvP Score: {Math.round(Number(m.char.pvp_score) || 0).toLocaleString('id-ID')}
+                              PvP Score:{' '}
+                              {Math.round(Number(m.char.pvp_score) || 0).toLocaleString('id-ID')}
                             </div>
                           </div>
                         </div>
@@ -549,9 +594,12 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
                                 <option value="">-- Pilih Target Swap --</option>
                                 {targetParty?.slots.map((s: PartySlot) => {
                                   const char =
-                                    typeof s.assigned_character === 'object'
+                                    typeof s.assigned_character === 'object' && s.assigned_character
                                       ? s.assigned_character
-                                      : null
+                                      : typeof s.assigned_character === 'string'
+                                        ? localMembers.find((m) => m.id === s.assigned_character) ||
+                                          null
+                                        : null
                                   if (!char) return null
                                   return (
                                     <option key={char.id} value={char.id}>
@@ -705,7 +753,9 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
                           <line x1="8" y1="2" x2="8" y2="6" />
                           <line x1="3" y1="10" x2="21" y2="10" />
                         </svg>
-                        {report.match_date ? new Date(report.match_date).toLocaleDateString('id-ID') : '-'}
+                        {report.match_date
+                          ? new Date(report.match_date).toLocaleDateString('id-ID')
+                          : '-'}
                       </span>
                       <span
                         className={`font-semibold py-0.5 px-2 rounded text-[10px] ${
@@ -1012,9 +1062,46 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
             {(() => {
               const groups: Record<string, MemberMatchReport[]> = {}
               ;(viewReport.member_reports || []).forEach((mr: MemberMatchReport) => {
-                const party = mr.party_assigned || 'Unassigned'
-                if (!groups[party]) groups[party] = []
-                groups[party].push(mr)
+                let party = mr.party_assigned
+                if (!party) {
+                  const charId =
+                    typeof mr.character_id === 'string' ? mr.character_id : mr.character_id?.id
+                  if (charId && initialSetup) {
+                    for (let pIdx = 0; pIdx < (initialSetup.elite_parties || []).length; pIdx++) {
+                      const p = initialSetup.elite_parties![pIdx]
+                      if (
+                        p.slots.some(
+                          (s) =>
+                            (typeof s.assigned_character === 'string'
+                              ? s.assigned_character
+                              : s.assigned_character?.id) === charId,
+                        )
+                      ) {
+                        party = p.name || p.party_name || `Elite Party ${pIdx + 1}`
+                        break
+                      }
+                    }
+                    if (!party) {
+                      for (let pIdx = 0; pIdx < (initialSetup.sub_parties || []).length; pIdx++) {
+                        const p = initialSetup.sub_parties![pIdx]
+                        if (
+                          p.slots.some(
+                            (s) =>
+                              (typeof s.assigned_character === 'string'
+                                ? s.assigned_character
+                                : s.assigned_character?.id) === charId,
+                          )
+                        ) {
+                          party = p.name || p.party_name || `Sub Party ${pIdx + 1}`
+                          break
+                        }
+                      }
+                    }
+                  }
+                }
+                const finalParty = party || 'Unassigned'
+                if (!groups[finalParty]) groups[finalParty] = []
+                groups[finalParty].push(mr)
               })
 
               return Object.entries(groups).map(([partyName, members]) => {
@@ -1048,13 +1135,13 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
 
                     <div className="grid grid-cols-5 gap-3">
                       {sorted.map((mr: MemberMatchReport, idx: number) => {
-                        const char =
-                          typeof mr.character_id === 'object' ? mr.character_id : null
+                        const char = typeof mr.character_id === 'object' ? mr.character_id : null
                         const charId =
                           typeof mr.character_id === 'string'
                             ? mr.character_id
                             : mr.character_id?.id
-                        const resolvedChar = localMembers.find((m: Character) => m.id === charId) || null
+                        const resolvedChar =
+                          localMembers.find((m: Character) => m.id === charId) || null
                         const isPresent = Boolean(mr.is_present || mr.status === 'present')
                         const score = Math.round(Number(mr.actual_score || mr.score) || 0)
                         return (
@@ -1076,9 +1163,11 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
                             }}
                           >
                             <div className="relative mb-1.5">
-                              <img
+                              <Image
                                 src={getJobIcon(resolvedChar?.job || char?.job || '')}
                                 alt=""
+                                width={40}
+                                height={40}
                                 className="w-10 h-10 object-cover rounded-lg shadow-sm"
                                 style={{ border: '1px solid var(--border-color)' }}
                                 onError={(e) => (e.currentTarget.style.display = 'none')}
@@ -1186,9 +1275,7 @@ export function ReportGLClient({ guild, initialSetup, historyReports, members = 
               newReport.member_reports?.forEach((mr: MemberMatchReport) => {
                 if (mr.character_id) {
                   const charId =
-                    typeof mr.character_id === 'string'
-                      ? mr.character_id
-                      : mr.character_id.id
+                    typeof mr.character_id === 'string' ? mr.character_id : mr.character_id.id
                   const newChar = updated.find((m: Character) => m.id === charId)
                   if (newChar) {
                     mr.character_id = {

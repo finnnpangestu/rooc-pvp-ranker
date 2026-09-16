@@ -11,7 +11,17 @@ import { saveReportWoe } from '@/actions/woe/saveReportWoe'
 import { getCharactersDashboard } from '@/actions/dashboard/getCharactersDashboard'
 import { useRouter } from 'next/navigation'
 import { JOB_LABELS } from '@/const/JobLabels'
-import type { Guild, WoeSetup, ReportWoe, WoeRaid, Party, PartySlot, PartySlotCharacter, MemberMatchReport, Character } from '@/types'
+import type {
+  Guild,
+  WoeSetup,
+  ReportWoe,
+  WoeRaid,
+  Party,
+  PartySlot,
+  PartySlotCharacter,
+  MemberMatchReport,
+  Character,
+} from '@/types'
 
 interface ReportWoeClientProps {
   guild: Guild
@@ -25,7 +35,12 @@ const clone = <T,>(obj: T): T => JSON.parse(JSON.stringify(obj))
 
 const REPORT_LIMIT = 5
 
-export function ReportWoeClient({ guild, initialSetup, historyReports, members = [] }: ReportWoeClientProps) {
+export function ReportWoeClient({
+  guild,
+  initialSetup,
+  historyReports,
+  members = [],
+}: ReportWoeClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeReport, setActiveReport] = useState<ReportWoe | null>(null)
   const [viewReport, setViewReport] = useState<ReportWoe | null>(null)
@@ -66,10 +81,12 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
     }[] = []
 
     localSetup.raids.forEach((raid: WoeRaid, rIdx: number) => {
+      const rName = raid.name || raid.raid_name || `Raid ${rIdx + 1}`
       ;(raid.parties || []).forEach((party: Party, pIdx: number) => {
+        const pName = party.name || party.party_name || `Party ${pIdx + 1}`
         parties.push({
           id: `r${rIdx}-p${pIdx}`,
-          name: `${raid.name || raid.raid_name} - ${party.name || party.party_name}`,
+          name: `${rName} - ${pName}`,
           rIdx,
           pIdx,
           memberCount: party.slots.filter((s: PartySlot) => s.assigned_character).length,
@@ -92,7 +109,9 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
     }[] = []
 
     localSetup.raids.forEach((raid: WoeRaid, rIdx: number) => {
+      const rName = raid.name || raid.raid_name || `Raid ${rIdx + 1}`
       ;(raid.parties || []).forEach((party: Party, pIdx: number) => {
+        const pName = party.name || party.party_name || `Party ${pIdx + 1}`
         ;(party.slots || []).forEach((slot: PartySlot, sIdx: number) => {
           if (slot.assigned_character) {
             const charObj =
@@ -102,7 +121,7 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
             if (charObj) {
               flatList.push({
                 char: charObj,
-                partyName: `${raid.name || raid.raid_name} - ${party.name || party.party_name}`,
+                partyName: `${rName} - ${pName}`,
                 partyId: `r${rIdx}-p${pIdx}`,
                 rIdx,
                 pIdx,
@@ -127,7 +146,41 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
       return
     }
 
-    setLocalSetup(clone(initialSetup))
+    const setupClone: WoeSetup = clone(initialSetup)
+    if (setupClone.raids) {
+      setupClone.raids = setupClone.raids.map((raid, rIdx) => {
+        const rName = raid.name || raid.raid_name || `Raid ${rIdx + 1}`
+        return {
+          ...raid,
+          name: rName,
+          raid_name: rName,
+          parties: (raid.parties || []).map((party, pIdx) => {
+            const pName = party.name || party.party_name || `Party ${pIdx + 1}`
+            return {
+              ...party,
+              name: pName,
+              party_name: pName,
+              slots: party.slots.map((s) => {
+                const charId =
+                  typeof s.assigned_character === 'object' && s.assigned_character
+                    ? s.assigned_character.id
+                    : s.assigned_character
+                const charObj =
+                  typeof s.assigned_character === 'object'
+                    ? s.assigned_character
+                    : localMembers.find((m) => m.id === charId) || s.assigned_character
+                return {
+                  ...s,
+                  assigned_character: charObj,
+                }
+              }),
+            }
+          }),
+        }
+      })
+    }
+
+    setLocalSetup(setupClone)
 
     setActiveReport({
       id: crypto.randomUUID(),
@@ -140,25 +193,27 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
       member_reports: [],
     })
 
-    // Init with original flattened array (from initialSetup conceptually, but here we just iterate once)
     const initialData: Record<string, { is_present: boolean; party_assigned: string }> = {}
-
-    ;(initialSetup.raids || []).forEach((raid: WoeRaid) => {
-      ;(raid.parties || []).forEach((party: Party) => {
-        ;(party.slots || []).forEach((slot: PartySlot) => {
-          if (slot.assigned_character) {
-            const charId =
-              typeof slot.assigned_character === 'string'
-                ? slot.assigned_character
-                : slot.assigned_character.id
-            initialData[charId] = {
-              is_present: false,
-              party_assigned: `${raid.name || raid.raid_name} - ${party.name || party.party_name}`,
+    if (setupClone.raids) {
+      setupClone.raids.forEach((raid, rIdx) => {
+        const rName = raid.name || raid.raid_name || `Raid ${rIdx + 1}`
+        ;(raid.parties || []).forEach((party, pIdx) => {
+          const pName = party.name || party.party_name || `Party ${pIdx + 1}`
+          ;(party.slots || []).forEach((slot) => {
+            if (slot.assigned_character) {
+              const charId =
+                typeof slot.assigned_character === 'object'
+                  ? slot.assigned_character.id
+                  : slot.assigned_character
+              initialData[charId] = {
+                is_present: false,
+                party_assigned: `${rName} - ${pName}`,
+              }
             }
-          }
+          })
         })
       })
-    })
+    }
 
     setMemberData(initialData)
     setIsModalOpen(false)
@@ -242,6 +297,8 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
     setIsSaving(true)
     const memberReports = flattenedMembers.map((m) => ({
       character_id: m.char.id,
+      character_name: m.char.name,
+      job: m.char.job,
       is_present: memberData[m.char.id]?.is_present || false,
       party_assigned: m.partyName,
     }))
@@ -480,7 +537,8 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
                                     typeof s.assigned_character === 'object' && s.assigned_character
                                       ? s.assigned_character
                                       : typeof s.assigned_character === 'string'
-                                        ? localMembers.find((m) => m.id === s.assigned_character) || null
+                                        ? localMembers.find((m) => m.id === s.assigned_character) ||
+                                          null
                                         : null
                                   if (!char) return null
                                   return (
@@ -710,9 +768,36 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
             {(() => {
               const groups: Record<string, MemberMatchReport[]> = {}
               ;(viewReport.member_reports || []).forEach((mr: MemberMatchReport) => {
-                const party = mr.party_assigned || 'Unassigned'
-                if (!groups[party]) groups[party] = []
-                groups[party].push(mr)
+                let party = mr.party_assigned
+                if (!party) {
+                  const charId =
+                    typeof mr.character_id === 'string' ? mr.character_id : mr.character_id?.id
+                  if (charId && initialSetup?.raids) {
+                    for (let rIdx = 0; rIdx < initialSetup.raids.length; rIdx++) {
+                      const raid = initialSetup.raids[rIdx]
+                      const rName = raid.name || raid.raid_name || `Raid ${rIdx + 1}`
+                      for (let pIdx = 0; pIdx < (raid.parties || []).length; pIdx++) {
+                        const p = raid.parties[pIdx]
+                        const pName = p.name || p.party_name || `Party ${pIdx + 1}`
+                        if (
+                          p.slots.some(
+                            (s) =>
+                              (typeof s.assigned_character === 'string'
+                                ? s.assigned_character
+                                : s.assigned_character?.id) === charId,
+                          )
+                        ) {
+                          party = `${rName} - ${pName}`
+                          break
+                        }
+                      }
+                      if (party) break
+                    }
+                  }
+                }
+                const finalParty = party || 'Unassigned'
+                if (!groups[finalParty]) groups[finalParty] = []
+                groups[finalParty].push(mr)
               })
 
               return Object.entries(groups).map(([partyName, members]) => {
@@ -740,9 +825,13 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
 
                     <div className="grid grid-cols-5 gap-3">
                       {members.map((mr: MemberMatchReport, idx: number) => {
-                        const charId = typeof mr.character_id === 'string' ? mr.character_id : mr.character_id?.id
+                        const charId =
+                          typeof mr.character_id === 'string'
+                            ? mr.character_id
+                            : mr.character_id?.id
                         const isPresent = Boolean(mr.is_present || mr.status === 'present')
-                        const resolvedChar = localMembers.find((m: Character) => m.id === charId) || null
+                        const resolvedChar =
+                          localMembers.find((m: Character) => m.id === charId) || null
                         return (
                           <div
                             key={idx}
@@ -762,9 +851,11 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
                             }}
                           >
                             <div className="relative mb-1.5">
-                              <img
+                              <Image
                                 src={getJobIcon(resolvedChar?.job || '')}
                                 alt=""
+                                width={40}
+                                height={40}
                                 className="w-10 h-10 object-cover rounded-lg shadow-sm"
                                 style={{ border: '1px solid var(--border-color)' }}
                                 onError={(e) => (e.currentTarget.style.display = 'none')}
@@ -844,9 +935,7 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
               newReport.member_reports?.forEach((mr: MemberMatchReport) => {
                 if (mr.character_id) {
                   const charId =
-                    typeof mr.character_id === 'string'
-                      ? mr.character_id
-                      : mr.character_id.id
+                    typeof mr.character_id === 'string' ? mr.character_id : mr.character_id.id
                   const newChar = updated.find((m: Character) => m.id === charId)
                   if (newChar) {
                     mr.character_id = {
