@@ -10,7 +10,6 @@
     "devsafe": "npx rimraf .next && next dev",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
     "seed:chars": "tsx src/scripts/generateCharacters.ts",
     "lint": "eslint .",

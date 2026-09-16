@@ -23,9 +23,55 @@ interface WoeSetupClientProps {
 const getJobIcon = (jobValue: string) => `/icons/jobs/${jobValue}.png`
 const clone = <T,>(obj: T): T => JSON.parse(JSON.stringify(obj))
 
+const createNewRaid = (name: string): WoeRaid => {
+  const parties = []
+  for (let i = 0; i < 8; i++) {
+    parties.push({
+      name: `Party ${i + 1}`,
+      party_name: `Party ${i + 1}`,
+      slots: Array(5)
+        .fill(null)
+        .map(() => ({ required_job: 'any', assigned_character: null })),
+    })
+  }
+  return { name, raid_name: name, parties }
+}
+
+const hydrateRaids = (rawRaids: WoeRaid[], membersList: Character[]): WoeRaid[] => {
+  return (rawRaids || []).map((raid) => ({
+    ...raid,
+    name: raid.name || raid.raid_name || 'Raid',
+    raid_name: raid.raid_name || raid.name || 'Raid',
+    parties: (raid.parties || []).map((party, pIdx) => ({
+      ...party,
+      name: party.name || party.party_name || `Party ${pIdx + 1}`,
+      party_name: party.party_name || party.name || `Party ${pIdx + 1}`,
+      slots: (party.slots || []).map((slot) => {
+        let assignedChar: Character | PartySlotCharacter | null = null
+        if (slot.assigned_character) {
+          if (typeof slot.assigned_character === 'object') {
+            assignedChar = slot.assigned_character
+          } else if (typeof slot.assigned_character === 'string') {
+            assignedChar = membersList.find((m) => m.id === slot.assigned_character) || null
+          }
+        }
+        return {
+          ...slot,
+          assigned_character: assignedChar,
+        }
+      }),
+    })),
+  }))
+}
+
 export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientProps) {
   const [localMembers, setLocalMembers] = useState(members)
-  const [raids, setRaids] = useState<WoeRaid[]>([])
+  const [raids, setRaids] = useState<WoeRaid[]>(() => {
+    if (initialSetup?.raids && initialSetup.raids.length > 0) {
+      return hydrateRaids(initialSetup.raids, members)
+    }
+    return [createNewRaid('Raid 1')]
+  })
   const [isPending, startTransition] = useTransition()
   const [saveStatus, setSaveStatus] = useState<string | null>(null)
 
@@ -45,29 +91,23 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
 
   const [viewedMemberId, setViewedMemberId] = useState<string | null>(null)
 
-  // Initialize
+  // Helper to resolve character for any slot safely
+  const getSlotCharacter = (
+    assigned: PartySlotCharacter | string | null | undefined,
+  ): Character | PartySlotCharacter | null => {
+    if (!assigned) return null
+    if (typeof assigned === 'object') return assigned
+    return localMembers.find((m) => m.id === assigned) || null
+  }
+
+  // Initialize and keep in sync with server revalidation
   useEffect(() => {
     if (initialSetup?.raids && initialSetup.raids.length > 0) {
-      setRaids(initialSetup.raids)
-    } else {
-      // Default: create 1 Raid
+      setRaids(hydrateRaids(initialSetup.raids, localMembers))
+    } else if (!initialSetup?.raids || initialSetup.raids.length === 0) {
       setRaids([createNewRaid('Raid 1')])
     }
-  }, [initialSetup])
-
-  const createNewRaid = (name: string): WoeRaid => {
-    const parties = []
-    for (let i = 0; i < 8; i++) {
-      parties.push({
-        name: `Party ${i + 1}`,
-        party_name: `Party ${i + 1}`,
-        slots: Array(5)
-          .fill(null)
-          .map(() => ({ required_job: 'any', assigned_character: null })),
-      })
-    }
-    return { name, raid_name: name, parties }
-  }
+  }, [initialSetup, localMembers])
 
   const handleAddRaid = () => {
     setRaids((prev) => [...prev, createNewRaid(`Raid ${prev.length + 1}`)])
@@ -160,6 +200,9 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
 
       const res = await saveWoeSetup(guild.id, payloadRaids)
       if (res.success) {
+        if (res.data?.doc?.raids) {
+          setRaids(hydrateRaids(res.data.doc.raids, localMembers))
+        }
         setSaveStatus('success')
         setTimeout(() => setSaveStatus(null), 3000)
       } else {
@@ -243,7 +286,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
   const addMemberToParty = (memberId: string) => {
     if (selectedRaidIndex === null || selectedPartyIndex === null || selectedSlotIndex === null)
       return
-    const member = members.find((m) => m.id === memberId)
+    const member = localMembers.find((m) => m.id === memberId)
     if (!member) return
     const newRaids = clone(raids)
     newRaids[selectedRaidIndex].parties[selectedPartyIndex].slots[
@@ -277,10 +320,11 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
   let requiredJobForSlot = 'any'
   if (selectedRaidIndex !== null && selectedPartyIndex !== null && selectedSlotIndex !== null) {
     requiredJobForSlot =
-      raids[selectedRaidIndex]?.parties[selectedPartyIndex]?.slots[selectedSlotIndex]?.required_job || 'any'
+      raids[selectedRaidIndex]?.parties[selectedPartyIndex]?.slots[selectedSlotIndex]
+        ?.required_job || 'any'
   }
 
-  const dialogAvailableMembers = members
+  const dialogAvailableMembers = localMembers
     .filter((m) => {
       if (assignedMemberIds.has(m.id)) return false
       if (requiredJobForSlot !== 'any') return m.job === requiredJobForSlot
@@ -288,11 +332,11 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
     })
     .sort((a, b) => Number(b.pvp_score || 0) - Number(a.pvp_score || 0))
 
-  const benchedMembers = members
+  const benchedMembers = localMembers
     .filter((m) => !assignedMemberIds.has(m.id))
     .sort((a, b) => Number(b.pvp_score || 0) - Number(a.pvp_score || 0))
 
-  const totalVerifiedMembers = members.filter((m) => m.isVerified).length
+  const totalVerifiedMembers = localMembers.filter((m) => m.isVerified).length
 
   return (
     <div className="max-w-7xl mx-auto flex gap-6 relative items-start pb-20">
@@ -351,15 +395,13 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
 
               <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 auto-rows-fr">
                 {raid.parties.map((party, partyIdx: number) => {
-                  const totalScore = party.slots.reduce(
-                    (sum: number, slot) =>
-                      sum +
-                      (typeof slot.assigned_character === 'object' && slot.assigned_character
-                        ? Number(slot.assigned_character.pvp_score) || 0
-                        : 0),
-                    0,
-                  )
-                  const filledSlots = party.slots.filter((s) => s.assigned_character).length
+                  const totalScore = party.slots.reduce((sum: number, slot) => {
+                    const char = getSlotCharacter(slot.assigned_character)
+                    return sum + (Number(char?.pvp_score) || 0)
+                  }, 0)
+                  const filledSlots = party.slots.filter((s) =>
+                    Boolean(s.assigned_character),
+                  ).length
 
                   return (
                     <div
@@ -398,10 +440,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
 
                       <div className="flex flex-col gap-2.5 flex-1">
                         {party.slots.map((slot, slotIdx: number) => {
-                          const char =
-                            typeof slot.assigned_character === 'object' && slot.assigned_character
-                              ? slot.assigned_character
-                              : null
+                          const char = getSlotCharacter(slot.assigned_character)
                           return (
                             <div
                               key={slotIdx}
@@ -445,10 +484,17 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                                     borderColor: 'var(--border-color)',
                                   }}
                                 >
-                                  <span className="text-[13px] italic" style={{ color: 'var(--text-muted)' }}>
+                                  <span
+                                    className="text-[13px] italic"
+                                    style={{ color: 'var(--text-muted)' }}
+                                  >
                                     {draggedMember
                                       ? 'Drop karakter di sini...'
-                                      : '+ Tambah Karakter'}
+                                      : slot.required_job && slot.required_job !== 'any'
+                                        ? JOB_LABELS[
+                                            slot.required_job as keyof typeof JOB_LABELS
+                                          ] || slot.required_job
+                                        : '+ Tambah Karakter'}
                                   </span>
                                 </button>
                               )}

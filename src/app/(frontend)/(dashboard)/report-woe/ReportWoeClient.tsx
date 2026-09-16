@@ -82,8 +82,8 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
 
   const flattenedMembers = useMemo(() => {
     if (!localSetup || !localSetup.raids) return []
-    const members: {
-      char: PartySlotCharacter
+    const flatList: {
+      char: PartySlotCharacter | Character
       partyName: string
       partyId: string
       rIdx: number
@@ -94,21 +94,27 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
     localSetup.raids.forEach((raid: WoeRaid, rIdx: number) => {
       ;(raid.parties || []).forEach((party: Party, pIdx: number) => {
         ;(party.slots || []).forEach((slot: PartySlot, sIdx: number) => {
-          if (slot.assigned_character && typeof slot.assigned_character === 'object') {
-            members.push({
-              char: slot.assigned_character,
-              partyName: `${raid.name || raid.raid_name} - ${party.name || party.party_name}`,
-              partyId: `r${rIdx}-p${pIdx}`,
-              rIdx,
-              pIdx,
-              sIdx,
-            })
+          if (slot.assigned_character) {
+            const charObj =
+              typeof slot.assigned_character === 'object'
+                ? slot.assigned_character
+                : localMembers.find((m) => m.id === slot.assigned_character) || null
+            if (charObj) {
+              flatList.push({
+                char: charObj,
+                partyName: `${raid.name || raid.raid_name} - ${party.name || party.party_name}`,
+                partyId: `r${rIdx}-p${pIdx}`,
+                rIdx,
+                pIdx,
+                sIdx,
+              })
+            }
           }
         })
       })
     })
-    return members
-  }, [localSetup])
+    return flatList
+  }, [localSetup, localMembers])
 
   const handleStartReport = (e: React.FormEvent) => {
     e.preventDefault()
@@ -470,8 +476,13 @@ export function ReportWoeClient({ guild, initialSetup, historyReports, members =
                               >
                                 <option value="">-- Pilih Target Swap --</option>
                                 {targetParty?.slots.map((s: PartySlot) => {
-                                  const char = s.assigned_character
-                                  if (!char || typeof char === 'string') return null
+                                  const char =
+                                    typeof s.assigned_character === 'object' && s.assigned_character
+                                      ? s.assigned_character
+                                      : typeof s.assigned_character === 'string'
+                                        ? localMembers.find((m) => m.id === s.assigned_character) || null
+                                        : null
+                                  if (!char) return null
                                   return (
                                     <option key={char.id} value={char.id}>
                                       {char.name}
