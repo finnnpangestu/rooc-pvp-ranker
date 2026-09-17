@@ -68,9 +68,9 @@ export function JobFilterDropdown({
           className="absolute top-[calc(100%+6px)] right-0 w-[210px] max-h-[260px] overflow-y-auto rounded-2xl p-1.5 z-50 apple-glass bg-white/95 dark:bg-zinc-900/95 border border-black/5 dark:border-white/10 shadow-2xl animate-slideIn"
         >
           <div
-            className={`py-2 px-3 text-xs font-medium cursor-pointer flex items-center gap-2 rounded-xl transition-all duration-150 select-none ${
+            className={`py-2 px-3 text-xs font-medium cursor-pointer flex items-center justify-between rounded-xl transition-all duration-150 select-none ${
               value === ''
-                ? 'bg-[#0071e3]/10 text-[#0071e3] font-semibold'
+                ? 'bg-[#0071e3]/10 text-[#0071e3] dark:text-[#2997ff] font-semibold'
                 : 'text-zinc-700 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/8'
             }`}
             onClick={() => {
@@ -78,15 +78,16 @@ export function JobFilterDropdown({
               onClose()
             }}
           >
-            {allLabel}
+            <span>{allLabel}</span>
+            {value === '' && <span className="text-xs font-bold text-[#0071e3] dark:text-[#2997ff]">✓</span>}
           </div>
 
           {Object.entries(JOB_LABELS).map(([jobValue, label]) => (
             <div
               key={jobValue}
-              className={`py-2 px-3 text-xs font-medium cursor-pointer flex items-center gap-2 rounded-xl transition-all duration-150 select-none ${
+              className={`py-2 px-3 text-xs font-medium cursor-pointer flex items-center justify-between rounded-xl transition-all duration-150 select-none ${
                 value === jobValue
-                  ? 'bg-[#0071e3]/10 text-[#0071e3] font-semibold'
+                  ? 'bg-[#0071e3]/10 text-[#0071e3] dark:text-[#2997ff] font-semibold'
                   : 'text-zinc-700 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/8'
               }`}
               onClick={() => {
@@ -94,14 +95,19 @@ export function JobFilterDropdown({
                 onClose()
               }}
             >
-              <Image
-                width={18}
-                height={18}
-                src={getJobIcon(jobValue)}
-                alt=""
-                className="w-[18px] h-[18px] object-cover rounded-md"
-              />
-              <span className="truncate">{label}</span>
+              <div className="flex items-center gap-2 truncate">
+                <Image
+                  width={18}
+                  height={18}
+                  src={getJobIcon(jobValue)}
+                  alt=""
+                  className="w-[18px] h-[18px] object-cover rounded-md"
+                />
+                <span className="truncate">{label}</span>
+              </div>
+              {value === jobValue && (
+                <span className="text-xs font-bold text-[#0071e3] dark:text-[#2997ff]">✓</span>
+              )}
             </div>
           ))}
         </div>

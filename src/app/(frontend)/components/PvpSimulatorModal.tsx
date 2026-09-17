@@ -5,6 +5,7 @@ import { Icon } from '@iconify/react'
 import { JOB_LABELS, JOBS } from '@/const/JobLabels'
 import { calculatePvPScore, calculateHexagonStats } from '@/utils/calculatePvPScore'
 import { HexagonRadarChart } from './HexagonRadarChart'
+import { CustomDropdown } from './CustomDropdown'
 import type { Character, CharacterStatsInput, PopulatedMember } from '@/types'
 import Image from 'next/image'
 
@@ -399,24 +400,20 @@ export function PvpSimulatorModal({
                   >
                     Pilih Member Guild
                   </label>
-                  <select
+                  <CustomDropdown
                     value={selectedMemberId}
-                    onChange={(e) => handleSelectMember(e.target.value)}
-                    className="px-3 py-2 text-sm rounded-lg border outline-none cursor-pointer"
-                    style={{
-                      background: 'var(--bg-secondary)',
-                      color: 'var(--text-primary)',
-                      borderColor: 'var(--border-color)',
-                    }}
-                  >
-                    <option value="">-- Template Kosong / Custom --</option>
-                    {allMembers.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name} ({JOB_LABELS[m.job] || m.job}) -{' '}
-                        {Math.round(Number(m.pvp_score || 0))} pts
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => handleSelectMember(val)}
+                    placeholder="-- Template Kosong / Custom --"
+                    options={[
+                      { value: '', label: '-- Template Kosong / Custom --' },
+                      ...allMembers.map((m) => ({
+                        value: m.id,
+                        label: m.name,
+                        sublabel: `${JOB_LABELS[m.job] || m.job} • ${Math.round(Number(m.pvp_score || 0))} pts`,
+                        icon: getJobIcon(m.job),
+                      })),
+                    ]}
+                  />
                 </div>
 
                 <div className="flex flex-col gap-1 w-full sm:w-56">
@@ -426,22 +423,16 @@ export function PvpSimulatorModal({
                   >
                     Target Job
                   </label>
-                  <select
+                  <CustomDropdown
                     value={simJob}
-                    onChange={(e) => setSimJob(e.target.value)}
-                    className="px-3 py-2 text-sm rounded-lg border outline-none cursor-pointer"
-                    style={{
-                      background: 'var(--bg-secondary)',
-                      color: 'var(--text-primary)',
-                      borderColor: 'var(--border-color)',
-                    }}
-                  >
-                    {JOBS.map((j) => (
-                      <option key={j.value} value={j.value}>
-                        {j.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setSimJob(val)}
+                    placeholder="-- Target Job --"
+                    options={JOBS.map((j) => ({
+                      value: j.value,
+                      label: j.label,
+                      icon: getJobIcon(j.value),
+                    }))}
+                  />
                 </div>
               </div>
 
@@ -754,22 +745,17 @@ export function PvpSimulatorModal({
                   )}
                 </div>
 
-                <select
+                <CustomDropdown
                   value={compareIdA}
-                  onChange={(e) => setCompareIdA(e.target.value)}
-                  className="px-3 py-2 text-sm rounded-lg border outline-none cursor-pointer"
-                  style={{
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    borderColor: 'var(--border-color)',
-                  }}
-                >
-                  {allMembers.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name} ({JOB_LABELS[m.job] || m.job})
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setCompareIdA(val)}
+                  placeholder="-- Pilih Kandidat A --"
+                  options={allMembers.map((m) => ({
+                    value: m.id,
+                    label: m.name,
+                    sublabel: JOB_LABELS[m.job] || m.job,
+                    icon: getJobIcon(m.job),
+                  }))}
+                />
 
                 {charA && (
                   <div
@@ -824,22 +810,17 @@ export function PvpSimulatorModal({
                   )}
                 </div>
 
-                <select
+                <CustomDropdown
                   value={compareIdB}
-                  onChange={(e) => setCompareIdB(e.target.value)}
-                  className="px-3 py-2 text-sm rounded-lg border outline-none cursor-pointer"
-                  style={{
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    borderColor: 'var(--border-color)',
-                  }}
-                >
-                  {allMembers.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name} ({JOB_LABELS[m.job] || m.job})
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setCompareIdB(val)}
+                  placeholder="-- Pilih Kandidat B --"
+                  options={allMembers.map((m) => ({
+                    value: m.id,
+                    label: m.name,
+                    sublabel: JOB_LABELS[m.job] || m.job,
+                    icon: getJobIcon(m.job),
+                  }))}
+                />
 
                 {charB && (
                   <div

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { GlobalDialog } from '../../components/GlobalDialog'
 import { CharacterDetailModal } from '../../components/CharacterDetailModal'
 import { Button } from '../../components/Button'
+import { CustomDropdown } from '../../components/CustomDropdown'
 import { Pagination } from '../../components/Pagination'
 import { handleAuthError } from '../../components/SessionExpiredDialog'
 import { saveReportGL } from '@/actions/guild/saveReportGL'
@@ -542,60 +543,59 @@ export function ReportGLClient({
                             Pindah Ke
                           </span>
                           <div className="flex-1 flex flex-col gap-2">
-                            <select
+                            <CustomDropdown
                               value={selectedTargetId || ''}
-                              onChange={(e) => {
+                              onChange={(val) => {
                                 setSwapTargetParty((prev) => ({
                                   ...prev,
-                                  [charId]: e.target.value,
+                                  [charId]: val,
                                 }))
                                 setSwapTargetChar((prev) => ({ ...prev, [charId]: '' }))
                               }}
-                              className="w-full rounded-xl py-2 px-3 outline-none text-sm border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
-                              style={{
-                                color: 'var(--text-primary)',
-                              }}
-                            >
-                              <option value="">-- Tetap di posisinya --</option>
-                              {availableParties.map((p) => (
-                                <option
-                                  key={p.id}
-                                  value={p.id}
-                                  disabled={p.id === `${m.partyType}-${m.pIdx}`}
-                                >
-                                  {p.name} ({p.memberCount}/5)
-                                </option>
-                              ))}
-                            </select>
+                              placeholder="-- Tetap di posisinya --"
+                              size="sm"
+                              options={[
+                                { value: '', label: '-- Tetap di posisinya --' },
+                                ...availableParties.map((p) => ({
+                                  value: p.id,
+                                  label: `${p.name} (${p.memberCount}/5)`,
+                                  disabled: p.id === `${m.partyType}-${m.pIdx}`,
+                                })),
+                              ]}
+                            />
 
                             {isTargetFull && (
-                              <select
+                              <CustomDropdown
                                 value={swapTargetChar[charId] || ''}
-                                onChange={(e) =>
+                                onChange={(val) =>
                                   setSwapTargetChar((prev) => ({
                                     ...prev,
-                                    [charId]: e.target.value,
+                                    [charId]: val,
                                   }))
                                 }
-                                className="w-full rounded-xl py-2 px-3 outline-none text-xs border border-amber-500/30 bg-amber-500/5 text-amber-500 focus:ring-2 focus:ring-amber-500/30 transition-all"
-                              >
-                                <option value="">-- Pilih Target Swap --</option>
-                                {targetParty?.slots.map((s: PartySlot) => {
-                                  const char =
-                                    typeof s.assigned_character === 'object' && s.assigned_character
-                                      ? s.assigned_character
-                                      : typeof s.assigned_character === 'string'
-                                        ? localMembers.find((m) => m.id === s.assigned_character) ||
-                                          null
-                                        : null
-                                  if (!char) return null
-                                  return (
-                                    <option key={char.id} value={char.id}>
-                                      {char.name}
-                                    </option>
-                                  )
-                                })}
-                              </select>
+                                placeholder="-- Pilih Target Swap --"
+                                size="sm"
+                                triggerClassName="!border-amber-500/30 text-amber-600 dark:text-amber-400"
+                                options={[
+                                  { value: '', label: '-- Pilih Target Swap --' },
+                                  ...(targetParty?.slots
+                                    .map((s: PartySlot) => {
+                                      const char =
+                                        typeof s.assigned_character === 'object' && s.assigned_character
+                                          ? s.assigned_character
+                                          : typeof s.assigned_character === 'string'
+                                            ? localMembers.find((mem) => mem.id === s.assigned_character) || null
+                                            : null
+                                      if (!char) return null
+                                      return {
+                                        value: char.id,
+                                        label: char.name,
+                                        icon: getJobIcon(char.job || ''),
+                                      }
+                                    })
+                                    .filter(Boolean) as { value: string; label: string; icon?: string }[]),
+                                ]}
+                              />
                             )}
 
                             {selectedTargetId && (

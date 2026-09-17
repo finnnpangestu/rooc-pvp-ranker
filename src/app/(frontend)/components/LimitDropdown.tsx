@@ -48,7 +48,7 @@ export function LimitDropdown({
               key={opt}
               className={`py-1.5 px-3 text-xs font-medium cursor-pointer rounded-xl transition-all duration-150 select-none text-center tabular-nums ${
                 value === opt
-                  ? 'bg-[#0071e3]/10 text-[#0071e3] font-semibold'
+                  ? 'bg-[#0071e3]/10 text-[#0071e3] dark:text-[#2997ff] font-semibold'
                   : 'text-zinc-700 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/8'
               }`}
               onClick={() => {

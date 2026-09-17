@@ -7,6 +7,7 @@ import { GlobalDialog } from '../../components/GlobalDialog'
 import { CharacterDetailModal } from '../../components/CharacterDetailModal'
 import { Button, ButtonSize, ButtonVariant } from '../../components/Button'
 import { Badge } from '../../components/Badge'
+import { CustomDropdown } from '../../components/CustomDropdown'
 import { createResource } from '@/actions/resources/createResource'
 import { deleteResource } from '@/actions/resources/deleteResource'
 import { distributeResource } from '@/actions/resources/distributeResource'
@@ -1203,19 +1204,18 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
             >
               Pilih Member
             </label>
-            <select
+            <CustomDropdown
               value={distributeMemberId}
-              onChange={(e) => setDistributeMemberId(e.target.value)}
-              className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all"
+              onChange={(val) => setDistributeMemberId(val)}
+              placeholder="-- Pilih Member --"
               disabled={isDistributing}
-            >
-              <option value="">-- Pilih Member --</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name} ({m.job})
-                </option>
-              ))}
-            </select>
+              options={members.map((m) => ({
+                value: m.id,
+                label: m.name,
+                sublabel: m.job,
+                icon: `/icons/jobs/${m.job}.png`,
+              }))}
+            />
           </div>
 
           <div className="flex flex-col gap-3">
@@ -1228,25 +1228,24 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
 
             {distributeItems.map((item, index) => (
               <div key={index} className="flex gap-2 items-start">
-                <select
+                <CustomDropdown
+                  className="flex-1"
                   value={item.resource_id}
-                  onChange={(e) => {
+                  onChange={(val) => {
                     const newItems = [...distributeItems]
-                    newItems[index].resource_id = e.target.value
+                    newItems[index].resource_id = val
                     setDistributeItems(newItems)
                   }}
-                  className="flex-1 rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all"
+                  placeholder="-- Pilih Resource --"
                   disabled={isDistributing}
-                >
-                  <option value="">-- Pilih Resource --</option>
-                  {resources
+                  options={resources
                     .filter((r) => Number(r.remaining_quantity) > 0)
-                    .map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name} (Sisa: {r.remaining_quantity})
-                      </option>
-                    ))}
-                </select>
+                    .map((r) => ({
+                      value: r.id,
+                      label: r.name,
+                      sublabel: `Sisa: ${r.remaining_quantity}`,
+                    }))}
+                />
 
                 <input
                   type="number"
@@ -1398,19 +1397,18 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               >
                 Pilih Member Baru
               </label>
-              <select
+              <CustomDropdown
                 value={editDistMemberId}
-                onChange={(e) => setEditDistMemberId(e.target.value)}
-                className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all"
+                onChange={(val) => setEditDistMemberId(val)}
+                placeholder="-- Pilih Member --"
                 disabled={isEditingDist}
-              >
-                <option value="">-- Pilih Member --</option>
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} ({m.job})
-                  </option>
-                ))}
-              </select>
+                options={members.map((m) => ({
+                  value: m.id,
+                  label: m.name,
+                  sublabel: m.job,
+                  icon: `/icons/jobs/${m.job}.png`,
+                }))}
+              />
             </div>
           ) : (
             <div>

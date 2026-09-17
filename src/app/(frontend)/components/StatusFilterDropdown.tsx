@@ -134,7 +134,7 @@ export function StatusFilterDropdown({
           <div
             className={`py-2 px-3 text-xs font-medium cursor-pointer flex items-center justify-between rounded-xl transition-all duration-150 mb-1 select-none ${
               value === 'all'
-                ? 'bg-[#0071e3]/10 text-[#0071e3] font-semibold'
+                ? 'bg-[#0071e3]/10 text-[#0071e3] dark:text-[#2997ff] font-semibold'
                 : 'text-zinc-700 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/8'
             }`}
             onClick={() => {
@@ -155,7 +155,7 @@ export function StatusFilterDropdown({
           <div
             className={`py-2 px-3 text-xs font-medium cursor-pointer flex items-center justify-between rounded-xl transition-all duration-150 mb-1 select-none ${
               value === 'pending'
-                ? 'bg-amber-500/15 text-amber-500 font-semibold'
+                ? 'bg-amber-500/15 text-amber-500 dark:text-amber-400 font-semibold'
                 : 'text-zinc-700 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/8'
             }`}
             onClick={() => {
@@ -183,7 +183,7 @@ export function StatusFilterDropdown({
           <div
             className={`py-2 px-3 text-xs font-medium cursor-pointer flex items-center justify-between rounded-xl transition-all duration-150 select-none ${
               value === 'verified'
-                ? 'bg-emerald-500/15 text-emerald-500 font-semibold'
+                ? 'bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 font-semibold'
                 : 'text-zinc-700 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/8'
             }`}
             onClick={() => {

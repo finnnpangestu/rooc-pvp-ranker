@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -10,6 +9,7 @@ import { JOBS } from '@/const/JobLabels'
 import { GENERAL_STATS, QUASI_STATS, SPECIAL_STATS } from '@/const/StatsLabels'
 import { updateCharacterStats } from '@/actions/stats/updateCharacter'
 import { Icon } from '@iconify/react'
+import { CustomDropdown } from '../components/CustomDropdown'
 import clsx from 'clsx'
 import { useTheme } from '../components/ThemeProvider'
 import type { Character, CharacterStatsInput } from '@/types'
@@ -166,7 +166,11 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {fields.map((field) => (
         <div key={field.name} className="flex flex-col gap-2">
-          <label htmlFor={field.name} className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+          <label
+            htmlFor={field.name}
+            className="text-xs font-semibold uppercase tracking-wider"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             {field.label} {field.required && <span className="text-red-500 font-bold">*</span>}
           </label>
           <input
@@ -207,14 +211,15 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
           >
             ROOC Ranker
           </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: 'var(--text-primary)' }}>
+          <h1
+            className="text-3xl font-bold tracking-tight mb-2"
+            style={{ color: 'var(--text-primary)' }}
+          >
             Submit Stats
           </h1>
 
           <div className="flex items-center justify-center gap-2.5 mb-4 flex-wrap">
-            <span
-              className="inline-flex items-center gap-1.5 py-1.5 px-3.5 rounded-full text-xs font-semibold border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400"
-            >
+            <span className="inline-flex items-center gap-1.5 py-1.5 px-3.5 rounded-full text-xs font-semibold border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400">
               <Icon icon="fluent:shield-checkmark-20-filled" className="w-4 h-4" />
               Guild: {guild.name}
             </span>
@@ -243,9 +248,15 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
               title={isDark ? 'Beralih ke Light Mode' : 'Beralih ke Dark Mode'}
             >
               {isDark ? (
-                <Icon icon="fluent:weather-sunny-16-regular" className="w-3.5 h-3.5 text-amber-500" />
+                <Icon
+                  icon="fluent:weather-sunny-16-regular"
+                  className="w-3.5 h-3.5 text-amber-500"
+                />
               ) : (
-                <Icon icon="fluent:weather-moon-16-regular" className="w-3.5 h-3.5 text-indigo-500" />
+                <Icon
+                  icon="fluent:weather-moon-16-regular"
+                  className="w-3.5 h-3.5 text-indigo-500"
+                />
               )}
               <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
@@ -314,9 +325,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
           </p>
         </div>
 
-        <div
-          className="flex gap-2 p-1.5 rounded-2xl mb-8 relative z-10 border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] overflow-x-auto scrollbar-none"
-        >
+        <div className="flex gap-2 p-1.5 rounded-2xl mb-8 relative z-10 border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] overflow-x-auto scrollbar-none">
           {TABS.map((tab) => {
             const isDisabled = formMode === 'update' && !selectedUpdateId && tab.id !== 'info'
             const isActive = activeTab === tab.id
@@ -347,7 +356,11 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
               {formMode === 'add' ? (
                 <>
                   <div className="flex flex-col gap-2">
-                    <label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                    <label
+                      htmlFor="name"
+                      className="text-xs font-semibold uppercase tracking-wider"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
                       IGN (In-Game Name) <span className="text-red-500 font-bold">*</span>
                     </label>
                     <input
@@ -366,33 +379,33 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label htmlFor="job" className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                    <label
+                      className="text-xs font-semibold uppercase tracking-wider"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
                       Job <span className="text-red-500 font-bold">*</span>
                     </label>
-                    <select
-                      id="job"
-                      name="job"
-                      className="w-full appearance-none rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
-                      style={{
-                        color: 'var(--text-primary)',
-                      }}
+                    <CustomDropdown
                       value={formData.job}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="" disabled>
-                        -- Pilih Job --
-                      </option>
-                      {JOBS.map((j) => (
-                        <option key={j.value} value={j.value}>
-                          {j.label}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) =>
+                        setFormData((prev) => ({ ...prev, job: val as Character['job'] }))
+                      }
+                      placeholder="-- Pilih Job --"
+                      options={JOBS.map((j) => ({
+                        value: j.value,
+                        label: j.label,
+                        icon: `/icons/jobs/${j.value}.png`,
+                      }))}
+                    />
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Guild Terdaftar</label>
+                    <label
+                      className="text-xs font-semibold uppercase tracking-wider"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      Guild Terdaftar
+                    </label>
                     <div
                       className="w-full rounded-xl py-3 px-4 text-sm font-sans flex items-center justify-between border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04]"
                       style={{
@@ -415,7 +428,12 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
               ) : (
                 <>
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Guild Terdaftar</label>
+                    <label
+                      className="text-xs font-semibold uppercase tracking-wider"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      Guild Terdaftar
+                    </label>
                     <div
                       className="w-full rounded-xl py-3 px-4 text-sm font-sans flex items-center justify-between border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04]"
                       style={{
@@ -436,57 +454,50 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label htmlFor="update_ign" className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                    <label
+                      className="text-xs font-semibold uppercase tracking-wider"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
                       Pilih Karakter (IGN) <span className="text-red-500 font-bold">*</span>
                     </label>
-                    <select
-                      id="update_ign"
-                      className="w-full appearance-none rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
-                      style={{
-                        color: 'var(--text-primary)',
-                      }}
+                    <CustomDropdown
                       value={selectedUpdateId}
-                      onChange={(e) => handleSelectCharacter(e.target.value)}
-                      required
-                    >
-                      <option value="" disabled>
-                        {filteredCharactersForUpdate.length === 0
+                      onChange={(val) => handleSelectCharacter(val)}
+                      placeholder={
+                        filteredCharactersForUpdate.length === 0
                           ? '-- Belum ada karakter di guild ini --'
-                          : '-- Pilih Karakter --'}
-                      </option>
-                      {filteredCharactersForUpdate.map((c) => (
-                        <option key={c.id} value={String(c.id)}>
-                          {c.name} ({JOBS.find((j) => j.value === c.job)?.label || c.job})
-                        </option>
-                      ))}
-                    </select>
+                          : '-- Pilih Karakter --'
+                      }
+                      disabled={filteredCharactersForUpdate.length === 0}
+                      options={filteredCharactersForUpdate.map((c) => ({
+                        value: String(c.id),
+                        label: c.name,
+                        sublabel: JOBS.find((j) => j.value === c.job)?.label || c.job,
+                        icon: `/icons/jobs/${c.job}.png`,
+                      }))}
+                    />
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label htmlFor="job" className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                    <label
+                      className="text-xs font-semibold uppercase tracking-wider"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
                       Edit Job (Jika Pindah Job) <span className="text-red-500 font-bold">*</span>
                     </label>
-                    <select
-                      id="job"
-                      name="job"
-                      className="w-full appearance-none rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
-                      style={{
-                        color: 'var(--text-primary)',
-                      }}
+                    <CustomDropdown
                       value={formData.job}
-                      onChange={handleChange}
-                      required
+                      onChange={(val) =>
+                        setFormData((prev) => ({ ...prev, job: val as Character['job'] }))
+                      }
+                      placeholder="-- Pilih Job --"
                       disabled={!selectedUpdateId}
-                    >
-                      <option value="" disabled>
-                        -- Pilih Job --
-                      </option>
-                      {JOBS.map((j) => (
-                        <option key={j.value} value={j.value}>
-                          {j.label}
-                        </option>
-                      ))}
-                    </select>
+                      options={JOBS.map((j) => ({
+                        value: j.value,
+                        label: j.label,
+                        icon: `/icons/jobs/${j.value}.png`,
+                      }))}
+                    />
                   </div>
                 </>
               )}
@@ -495,9 +506,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
 
           {/* Tab: General */}
           <div className={clsx('hidden animate-fadeUp', { '!block': activeTab === 'general' })}>
-            <div
-              className="mb-6 text-xs leading-relaxed p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-[var(--text-secondary)] backdrop-blur-sm"
-            >
+            <div className="mb-6 text-xs leading-relaxed p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-[var(--text-secondary)] backdrop-blur-sm">
               Statistik dasar karaktermu.
             </div>
             {renderSection(GENERAL_STATS)}
@@ -505,9 +514,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
 
           {/* Tab: Quasi */}
           <div className={clsx('hidden animate-fadeUp', { '!block': activeTab === 'quasi' })}>
-            <div
-              className="mb-6 text-xs leading-relaxed p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-[var(--text-secondary)] backdrop-blur-sm"
-            >
+            <div className="mb-6 text-xs leading-relaxed p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-[var(--text-secondary)] backdrop-blur-sm">
               Statistik lanjutan (Quasi). Isi dalam bentuk angka murni tanpa persen (Contoh: 99.5
               untuk 99.5%). Untuk stats Minus (-), Jangan pakai tanda minus (Contoh: 5 Untuk -5)
             </div>
@@ -516,23 +523,14 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
 
           {/* Tab: Special */}
           <div className={clsx('hidden animate-fadeUp', { '!block': activeTab === 'special' })}>
-            <div
-              className="mb-6 text-xs leading-relaxed p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-[var(--text-secondary)] backdrop-blur-sm"
-            >
+            <div className="mb-6 text-xs leading-relaxed p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-[var(--text-secondary)] backdrop-blur-sm">
               Statistik tambahan dari equipment atau modifier khusus.
             </div>
             {renderSection(SPECIAL_STATS)}
           </div>
 
-          <div
-            className="mt-10 pt-8 border-t border-black/5 dark:border-white/10 flex justify-end"
-          >
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              loading={isSubmitting}
-            >
+          <div className="mt-10 pt-8 border-t border-black/5 dark:border-white/10 flex justify-end">
+            <Button type="submit" variant="primary" size="lg" loading={isSubmitting}>
               {formMode === 'add' ? 'Kirim Data Stats' : 'Update Data Stats'}
             </Button>
           </div>

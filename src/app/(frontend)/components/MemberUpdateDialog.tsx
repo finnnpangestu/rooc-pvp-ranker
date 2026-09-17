@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { GlobalDialog } from './GlobalDialog'
 import { Button } from './Button'
 import { TabBar, TabButton } from './TabBar'
+import { CustomDropdown } from './CustomDropdown'
 import { JOBS } from '@/const/JobLabels'
 import { updateCharacterStats } from '@/actions/stats/updateCharacter'
 import { GENERAL_STATS, QUASI_STATS, SPECIAL_STATS } from '@/const/StatsLabels'
@@ -148,28 +149,23 @@ export function MemberUpdateDialog({ character, isOpen, onClose }: MemberUpdateD
             </div>
             <div className="flex flex-col gap-1.5">
               <label
-                htmlFor="job"
                 className="text-[11px] font-semibold uppercase tracking-[0.03em] text-zinc-500 dark:text-zinc-400"
               >
                 Job <span className="text-red-500 font-bold">*</span>
               </label>
-              <select
-                id="job"
-                name="job"
-                className="w-full rounded-xl py-2 px-3 text-sm font-medium transition-all duration-150 outline-none bg-black/4 dark:bg-white/6 border border-black/8 dark:border-white/10 text-zinc-900 dark:text-zinc-100 focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/20 cursor-pointer"
+              <CustomDropdown
                 value={formData.job || ''}
-                onChange={handleChange}
-                required
-              >
-                <option value="" disabled>
-                  -- Pilih Job --
-                </option>
-                {JOBS.map((j) => (
-                  <option key={j.value} value={j.value}>
-                    {j.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) =>
+                  setFormData((prev) => ({ ...prev, job: val as Character['job'] }))
+                }
+                placeholder="-- Pilih Job --"
+                size="sm"
+                options={JOBS.map((j) => ({
+                  value: j.value,
+                  label: j.label,
+                  icon: `/icons/jobs/${j.value}.png`,
+                }))}
+              />
             </div>
           </div>
 
