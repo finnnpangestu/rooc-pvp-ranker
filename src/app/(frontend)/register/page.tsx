@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { GlobalDialog } from '../components/GlobalDialog'
+import { Button } from '../components/Button'
 import { Turnstile, TurnstileRef } from '../components/Turnstile'
 import { registerUser } from '@/actions/auth/registerUser'
 import { formatErrorMessage } from '@/types'
@@ -46,34 +47,19 @@ export default function RegisterPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
+      className="min-h-screen flex items-center justify-center p-4 apple-canvas"
       style={{ background: 'var(--bg-primary)' }}
     >
-      <div
-        className="w-full max-w-[400px] p-10 rounded-3xl text-center transition-colors"
-        style={{
-          background: 'var(--bg-card)',
-          boxShadow: 'var(--shadow-neumorph)',
-          color: 'var(--text-primary)',
-        }}
-      >
-        <h1 className="mb-2 text-[28px] font-bold" style={{ color: 'var(--text-primary)' }}>
+      <div className="w-full max-w-[420px] p-8 sm:p-10 rounded-3xl text-center apple-glass shadow-2xl border border-black/5 dark:border-white/10 transition-all">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
           Register Guild Master
         </h1>
-        <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-sm mt-1.5 mb-6" style={{ color: 'var(--text-secondary)' }}>
           Daftarkan diri sebagai pemimpin guild
         </p>
 
         {error && (
-          <div
-            className="p-3 rounded-lg text-[13px] mb-4 border"
-            style={{
-              background: 'var(--bg-primary)',
-              borderColor: '#ef4444',
-              color: '#ef4444',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
-          >
+          <div className="p-3.5 rounded-2xl text-[13px] mb-4 border border-red-500/20 bg-red-500/10 text-red-500 backdrop-blur-sm text-left">
             {error}
           </div>
         )}
@@ -81,7 +67,7 @@ export default function RegisterPage() {
         <form onSubmit={handleRegister}>
           <div className="mb-4 text-left">
             <label
-              className="block text-[13px] mb-2 font-medium"
+              className="block text-xs font-semibold uppercase tracking-wider mb-2"
               style={{ color: 'var(--text-muted)' }}
             >
               Nama Lengkap / IGN
@@ -89,19 +75,16 @@ export default function RegisterPage() {
             <input
               type="text"
               name="name"
-              className="w-full rounded-lg py-3 px-4 font-sans transition-all duration-200 outline-none"
+              className="w-full rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
               style={{
-                background: 'var(--bg-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
                 color: 'var(--text-primary)',
-                border: 'none',
               }}
               required
             />
           </div>
           <div className="mb-4 text-left">
             <label
-              className="block text-[13px] mb-2 font-medium"
+              className="block text-xs font-semibold uppercase tracking-wider mb-2"
               style={{ color: 'var(--text-muted)' }}
             >
               Email
@@ -109,19 +92,16 @@ export default function RegisterPage() {
             <input
               type="email"
               name="email"
-              className="w-full rounded-lg py-3 px-4 font-sans transition-all duration-200 outline-none"
+              className="w-full rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
               style={{
-                background: 'var(--bg-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
                 color: 'var(--text-primary)',
-                border: 'none',
               }}
               required
             />
           </div>
-          <div className="mb-4 text-left">
+          <div className="mb-5 text-left">
             <label
-              className="block text-[13px] mb-2 font-medium"
+              className="block text-xs font-semibold uppercase tracking-wider mb-2"
               style={{ color: 'var(--text-muted)' }}
             >
               Password
@@ -129,12 +109,9 @@ export default function RegisterPage() {
             <input
               type="password"
               name="password"
-              className="w-full rounded-lg py-3 px-4 font-sans transition-all duration-200 outline-none"
+              className="w-full rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
               style={{
-                background: 'var(--bg-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
                 color: 'var(--text-primary)',
-                border: 'none',
               }}
               required
               minLength={6}
@@ -143,27 +120,22 @@ export default function RegisterPage() {
 
           <Turnstile ref={turnstileRef} className="my-2" />
 
-          <button
+          <Button
             type="submit"
-            className="w-full rounded-lg p-[14px] font-semibold font-sans cursor-pointer mt-4 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            style={{
-              background: 'var(--bg-primary)',
-              boxShadow: 'var(--shadow-neumorph-sm)',
-              color: 'var(--text-primary)',
-              border: 'none',
-            }}
-            disabled={isLoading}
+            variant="primary"
+            size="lg"
+            className="w-full mt-4"
+            loading={isLoading}
           >
-            {isLoading ? 'Memproses...' : 'Daftar Sekarang'}
-          </button>
+            Daftar Sekarang
+          </Button>
         </form>
 
         <p className="mt-6 text-sm" style={{ color: 'var(--text-muted)' }}>
           Sudah punya akun?{' '}
           <Link
             href="/login"
-            className="font-medium no-underline hover:underline"
-            style={{ color: 'var(--text-primary)' }}
+            className="font-semibold text-blue-500 hover:text-blue-600 transition-colors"
           >
             Login di sini
           </Link>
@@ -178,17 +150,14 @@ export default function RegisterPage() {
           Sekarang kamu bisa login menggunakan email dan password yang telah didaftarkan.
           <br />
           <br />
-          <button
+          <Button
+            variant="primary"
+            size="md"
+            className="w-full"
             onClick={handleCloseDialog}
-            className="w-full rounded-lg p-3 font-semibold font-sans cursor-pointer transition-colors border-none"
-            style={{
-              background: 'var(--bg-primary)',
-              boxShadow: 'var(--shadow-neumorph-sm)',
-              color: 'var(--text-primary)',
-            }}
           >
             Lanjut ke Login
-          </button>
+          </Button>
         </div>
       </GlobalDialog>
     </div>

@@ -451,30 +451,25 @@ export function ReportGLClient({
                   return (
                     <div
                       key={charId}
-                      className="rounded-xl p-5 flex flex-col gap-4 border transition-all"
-                      style={{
-                        background: 'var(--bg-secondary)',
-                        borderColor: 'var(--border-color)',
-                        boxShadow: 'var(--shadow-neumorph-sm)',
-                      }}
+                      className="rounded-2xl p-4 flex flex-col gap-3.5 border border-black/5 dark:border-white/10 transition-all bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.04] dark:hover:bg-white/[0.05]"
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
                           <Image
                             src={getJobIcon(m.char.job || '')}
                             alt=""
-                            width={32}
-                            height={32}
-                            className="rounded object-cover"
+                            width={36}
+                            height={36}
+                            className="rounded-xl object-cover shadow-sm"
                           />
                           <div>
                             <div
-                              className="font-bold text-[15px]"
+                              className="font-bold text-sm tracking-tight"
                               style={{ color: 'var(--text-primary)' }}
                             >
                               {m.char.name}
                             </div>
-                            <div className="text-[11px] text-amber-400 font-semibold mt-0.5">
+                            <div className="text-[11px] text-amber-500 font-semibold tabular-nums mt-0.5">
                               PvP Score:{' '}
                               {Math.round(Number(m.char.pvp_score) || 0).toLocaleString('id-ID')}
                             </div>
@@ -483,7 +478,7 @@ export function ReportGLClient({
 
                         <label className="flex flex-col items-center gap-1 cursor-pointer">
                           <span
-                            className="text-[11px] font-bold uppercase tracking-wider"
+                            className="text-[10px] font-bold uppercase tracking-wider"
                             style={{ color: data.is_present ? '#10b981' : 'var(--text-muted)' }}
                           >
                             Hadir
@@ -501,16 +496,10 @@ export function ReportGLClient({
                               }
                             />
                             <div
-                              className={`w-10 h-5 rounded-full transition-colors duration-300 ${data.is_present ? 'bg-emerald-500' : 'bg-gray-600'}`}
-                              style={{
-                                boxShadow: data.is_present
-                                  ? 'inset 0 2px 4px rgba(0,0,0,0.2)'
-                                  : 'var(--shadow-neumorph-inset)',
-                              }}
+                              className={`w-11 h-6 rounded-full transition-colors duration-200 relative p-0.5 ${data.is_present ? 'bg-[#34c759]' : 'bg-black/20 dark:bg-white/20'}`}
                             >
                               <div
-                                className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all duration-300 ${data.is_present ? 'left-6' : 'left-1'}`}
-                                style={{ boxShadow: 'var(--shadow-neumorph-sm)' }}
+                                className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${data.is_present ? 'translate-x-5' : 'translate-x-0'}`}
                               />
                             </div>
                           </div>
@@ -520,10 +509,10 @@ export function ReportGLClient({
                       <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-3">
                           <span
-                            className="text-[13px] w-20"
+                            className="text-xs font-medium w-20"
                             style={{ color: 'var(--text-secondary)' }}
                           >
-                            Score Aktual
+                            Skor Real:
                           </span>
                           <input
                             type="number"
@@ -531,15 +520,16 @@ export function ReportGLClient({
                             onChange={(e) =>
                               setMemberData((prev) => ({
                                 ...prev,
-                                [charId]: { ...prev[charId], actual_score: Number(e.target.value) },
+                                [charId]: {
+                                  ...prev[charId],
+                                  actual_score: Number(e.target.value),
+                                },
                               }))
                             }
-                            className="flex-1 rounded-lg py-2 px-3 outline-none text-[14px]"
+                            placeholder="Skor in-game"
+                            className="flex-1 rounded-xl py-2 px-3 text-sm outline-none border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 tabular-nums transition-all"
                             style={{
-                              background: 'var(--bg-primary)',
                               color: 'var(--text-primary)',
-                              boxShadow: 'var(--shadow-neumorph-inset)',
-                              border: 'none',
                             }}
                           />
                         </div>
@@ -561,12 +551,9 @@ export function ReportGLClient({
                                 }))
                                 setSwapTargetChar((prev) => ({ ...prev, [charId]: '' }))
                               }}
-                              className="w-full rounded-lg py-2 px-3 outline-none text-[14px]"
+                              className="w-full rounded-xl py-2 px-3 outline-none text-sm border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
                               style={{
-                                background: 'var(--bg-primary)',
                                 color: 'var(--text-primary)',
-                                boxShadow: 'var(--shadow-neumorph-inset)',
-                                border: 'none',
                               }}
                             >
                               <option value="">-- Tetap di posisinya --</option>
@@ -590,13 +577,7 @@ export function ReportGLClient({
                                     [charId]: e.target.value,
                                   }))
                                 }
-                                className="w-full rounded-lg py-2 px-3 outline-none text-[13px]"
-                                style={{
-                                  background: 'var(--bg-primary)',
-                                  color: '#f59e0b',
-                                  boxShadow: 'var(--shadow-neumorph-inset)',
-                                  border: '1px solid rgba(245, 158, 11, 0.2)',
-                                }}
+                                className="w-full rounded-xl py-2 px-3 outline-none text-xs border border-amber-500/30 bg-amber-500/5 text-amber-500 focus:ring-2 focus:ring-amber-500/30 transition-all"
                               >
                                 <option value="">-- Pilih Target Swap --</option>
                                 {targetParty?.slots.map((s: PartySlot) => {
@@ -655,34 +636,23 @@ export function ReportGLClient({
                 Bench (Tidak Hadir)
               </h2>
               <div
-                className="rounded-2xl p-5 border transition-colors"
-                style={{
-                  background: 'var(--bg-card)',
-                  borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph)',
-                }}
+                className="rounded-3xl p-5 border border-black/5 dark:border-white/10 apple-glass shadow-sm"
               >
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2.5">
                   {absentMembers.map((m) => (
                     <div
                       key={m.char.id}
-                      className="flex items-center gap-2 py-2 px-4 rounded-xl border"
-                      style={{
-                        background: 'var(--bg-primary)',
-                        borderColor: 'var(--border-color)',
-                        boxShadow: 'var(--shadow-neumorph-inset)',
-                        opacity: 0.6,
-                      }}
+                      className="flex items-center gap-2 py-1.5 px-3.5 rounded-full border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] opacity-60 text-xs"
                     >
                       <Image
                         src={getJobIcon(m.char.job || '')}
                         alt=""
-                        width={24}
-                        height={24}
-                        className="object-cover rounded"
+                        width={20}
+                        height={20}
+                        className="object-cover rounded-full"
                       />
                       <span style={{ color: 'var(--text-secondary)' }}>{m.char.name}</span>
-                      <span className="text-xs text-red-400 font-semibold">(Absen)</span>
+                      <span className="text-[11px] text-red-500 font-semibold">(Absen)</span>
                     </div>
                   ))}
                 </div>
@@ -697,7 +667,7 @@ export function ReportGLClient({
   return (
     <div className="max-w-[1200px] mx-auto p-5">
       <div id="tour-report-gl" className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold m-0" style={{ color: 'var(--text-primary)' }}>
+        <h1 className="text-2xl font-bold tracking-tight m-0" style={{ color: 'var(--text-primary)' }}>
           Riwayat Report GL
         </h1>
         <Button variant="primary" size="md" onClick={() => setIsModalOpen(true)}>
@@ -709,41 +679,31 @@ export function ReportGLClient({
         {/* Daftar Report - 2/3 lebar */}
         <div id="tour-report-list" className="lg:col-span-2 flex flex-col">
           <div
-            className="flex-1 rounded-2xl border p-4 flex flex-col"
-            style={{
-              background: 'var(--bg-card)',
-              borderColor: 'var(--border-color)',
-              boxShadow: 'var(--shadow-neumorph)',
-            }}
+            className="flex-1 rounded-3xl border border-black/5 dark:border-white/10 p-5 flex flex-col apple-glass shadow-sm"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 content-start">
               {paginatedReports.length === 0 ? (
-                <p className="col-span-2 text-center py-10" style={{ color: 'var(--text-muted)' }}>
+                <p className="col-span-2 text-center py-10 text-sm" style={{ color: 'var(--text-muted)' }}>
                   Belum ada riwayat report.
                 </p>
               ) : (
                 paginatedReports.map((report) => (
                   <div
                     key={report.id}
-                    className="rounded-xl p-3 border cursor-pointer transition-all hover:shadow-lg"
-                    style={{
-                      background: 'var(--bg-primary)',
-                      borderColor: 'var(--border-color)',
-                      boxShadow: 'var(--shadow-neumorph-sm)',
-                    }}
+                    className="rounded-2xl p-4 border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] cursor-pointer transition-all apple-press shadow-sm"
                     onClick={() => handleViewReport(report)}
                   >
                     <h3
-                      className="font-semibold text-sm truncate"
+                      className="font-semibold text-sm truncate tracking-tight"
                       style={{ color: 'var(--text-primary)' }}
                     >
                       {report.report_name}
                     </h3>
                     <div
-                      className="flex justify-between items-center text-xs mt-1"
+                      className="flex justify-between items-center text-xs mt-2"
                       style={{ color: 'var(--text-secondary)' }}
                     >
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1.5">
                         <svg
                           width="12"
                           height="12"
@@ -765,10 +725,10 @@ export function ReportGLClient({
                           : '-'}
                       </span>
                       <span
-                        className={`font-semibold py-0.5 px-2 rounded text-[10px] ${
+                        className={`font-semibold py-0.5 px-2 rounded-full text-[10px] ${
                           report.match_status === 'win'
-                            ? 'text-emerald-400 bg-emerald-400/10'
-                            : 'text-rose-400 bg-rose-400/10'
+                            ? 'text-emerald-500 bg-emerald-500/10 border border-emerald-500/20'
+                            : 'text-rose-500 bg-rose-500/10 border border-rose-500/20'
                         }`}
                       >
                         {report.match_status === 'win' ? 'WIN' : 'LOSS'}
@@ -791,15 +751,10 @@ export function ReportGLClient({
         {/* Ranking GL - 1/3 lebar */}
         <div id="tour-report-ranking" className="lg:col-span-1 flex flex-col">
           <div
-            className="flex-1 rounded-2xl border p-4 flex flex-col"
-            style={{
-              background: 'var(--bg-card)',
-              borderColor: 'var(--border-color)',
-              boxShadow: 'var(--shadow-neumorph)',
-            }}
+            className="flex-1 rounded-3xl border border-black/5 dark:border-white/10 p-5 flex flex-col apple-glass shadow-sm"
           >
             <h3
-              className="text-base font-bold mb-3 flex items-center gap-2"
+              className="text-base font-bold tracking-tight mb-3 flex items-center gap-2"
               style={{ color: 'var(--text-primary)' }}
             >
               <svg
@@ -820,7 +775,7 @@ export function ReportGLClient({
 
             <div className="flex-1">
               {paginatedRanking.length === 0 ? (
-                <p className="text-center py-6" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-center py-6 text-sm" style={{ color: 'var(--text-muted)' }}>
                   Belum ada data ranking.
                 </p>
               ) : (
@@ -831,19 +786,16 @@ export function ReportGLClient({
                     return (
                       <div
                         key={idx}
-                        className="flex items-center justify-between p-2 rounded-lg border transition-all cursor-pointer hover:bg-black/[0.03] dark:hover:bg-white/5"
-                        onClick={() => setViewedMember(member.charObj)}
-                        style={{
-                          background: 'var(--bg-primary)',
-                          borderColor: isTop3
+                        className={`flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer apple-press ${
+                          isTop3
                             ? globalIdx === 1
-                              ? 'rgba(251,191,36,0.3)'
+                              ? 'bg-amber-500/10 border-amber-500/30'
                               : globalIdx === 2
-                                ? 'rgba(229,231,235,0.3)'
-                                : 'rgba(251,146,60,0.3)'
-                            : 'var(--border-color)',
-                          boxShadow: isTop3 ? 'var(--shadow-neumorph-sm)' : 'none',
-                        }}
+                                ? 'bg-zinc-500/10 border-zinc-500/30'
+                                : 'bg-orange-500/10 border-orange-500/30'
+                            : 'bg-black/[0.02] dark:bg-white/[0.03] border-black/5 dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
+                        }`}
+                        onClick={() => setViewedMember(member.charObj)}
                       >
                         <div className="flex items-center gap-2">
                           <span
@@ -908,7 +860,7 @@ export function ReportGLClient({
         <div className="flex flex-col gap-5 mt-2">
           <div>
             <label
-              className="text-[13px] font-semibold mb-2 block"
+              className="text-xs font-semibold uppercase tracking-wider mb-2 block"
               style={{ color: 'var(--text-secondary)' }}
             >
               Nama Report
@@ -918,19 +870,16 @@ export function ReportGLClient({
               placeholder="Contoh: Week 1 vs Valhalla"
               value={reportName}
               onChange={(e) => setReportName(e.target.value)}
-              className="w-full rounded-xl py-3 px-4 outline-none text-[14px]"
+              className="w-full rounded-xl py-2.5 px-4 outline-none text-sm border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
               style={{
-                background: 'var(--bg-secondary)',
                 color: 'var(--text-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-                border: 'none',
               }}
             />
           </div>
 
           <div>
             <label
-              className="text-[13px] font-semibold mb-2 block"
+              className="text-xs font-semibold uppercase tracking-wider mb-2 block"
               style={{ color: 'var(--text-secondary)' }}
             >
               Skor Total Guild
@@ -939,46 +888,40 @@ export function ReportGLClient({
               type="number"
               value={matchScore || ''}
               onChange={(e) => setMatchScore(Number(e.target.value))}
-              className="w-full rounded-xl py-3 px-4 outline-none text-[14px]"
+              placeholder="0"
+              className="w-full rounded-xl py-2.5 px-4 outline-none text-sm border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all tabular-nums"
               style={{
-                background: 'var(--bg-secondary)',
                 color: 'var(--text-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-                border: 'none',
               }}
             />
           </div>
 
           <div>
             <label
-              className="text-[13px] font-semibold mb-2 block"
+              className="text-xs font-semibold uppercase tracking-wider mb-2 block"
               style={{ color: 'var(--text-secondary)' }}
             >
               Hasil Pertandingan
             </label>
             <div
-              className="flex p-1 rounded-xl"
-              style={{
-                background: 'var(--bg-secondary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-              }}
+              className="flex p-1 rounded-2xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04]"
             >
               <button
                 onClick={() => setMatchStatus('win')}
-                className={`flex-1 py-2.5 rounded-lg text-[14px] font-semibold transition-all ${
+                className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all apple-press ${
                   matchStatus === 'win'
-                    ? 'bg-emerald-500/20 text-emerald-400 shadow-md'
-                    : 'text-gray-500 bg-transparent'
+                    ? 'bg-emerald-500 text-white shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 Menang
               </button>
               <button
                 onClick={() => setMatchStatus('loss')}
-                className={`flex-1 py-2.5 rounded-lg text-[14px] font-semibold transition-all ${
+                className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all apple-press ${
                   matchStatus === 'loss'
-                    ? 'bg-rose-500/20 text-rose-400 shadow-md'
-                    : 'text-gray-500 bg-transparent'
+                    ? 'bg-rose-500 text-white shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 Kalah
@@ -1129,11 +1072,9 @@ export function ReportGLClient({
                         {partyName}
                       </h4>
                       <span
-                        className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                        className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05]"
                         style={{
-                          background: 'var(--bg-secondary)',
                           color: 'var(--text-muted)',
-                          boxShadow: 'var(--shadow-neumorph-inset)',
                         }}
                       >
                         {sorted.length}/5
@@ -1154,19 +1095,13 @@ export function ReportGLClient({
                         return (
                           <div
                             key={idx}
-                            className="flex flex-col items-center p-3 rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer hover:bg-black/[0.03] dark:hover:bg-white/5"
+                            className={`flex flex-col items-center p-3 rounded-2xl border transition-all duration-200 cursor-pointer apple-press ${
+                              isPresent
+                                ? 'bg-black/[0.02] dark:bg-white/[0.03] border-emerald-500/30 shadow-sm'
+                                : 'bg-black/[0.01] dark:bg-white/[0.01] border-black/5 dark:border-white/10 opacity-60'
+                            }`}
                             onClick={() => {
                               if (resolvedChar) setViewedMember(resolvedChar)
-                            }}
-                            style={{
-                              background: isPresent ? 'var(--bg-card)' : 'var(--bg-primary)',
-                              borderColor: isPresent
-                                ? 'rgba(16,185,129,0.2)'
-                                : 'var(--border-color)',
-                              boxShadow: isPresent
-                                ? 'var(--shadow-neumorph-sm)'
-                                : 'var(--shadow-neumorph-inset)',
-                              opacity: isPresent ? 1 : 0.6,
                             }}
                           >
                             <div className="relative mb-1.5">
@@ -1175,18 +1110,12 @@ export function ReportGLClient({
                                 alt=""
                                 width={40}
                                 height={40}
-                                className="w-10 h-10 object-cover rounded-lg shadow-sm"
-                                style={{ border: '1px solid var(--border-color)' }}
+                                className="w-10 h-10 object-cover rounded-xl shadow-sm border border-black/5 dark:border-white/10"
                                 onError={(e) => (e.currentTarget.style.display = 'none')}
                               />
                               {!isPresent && (
                                 <div
-                                  className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold"
-                                  style={{
-                                    background: 'var(--bg-secondary)',
-                                    color: 'var(--text-muted)',
-                                    boxShadow: 'var(--shadow-neumorph-inset)',
-                                  }}
+                                  className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-bold bg-rose-500 text-white shadow-sm"
                                 >
                                   ✕
                                 </div>

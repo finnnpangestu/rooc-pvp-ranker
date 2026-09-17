@@ -109,7 +109,6 @@ export function SessionExpiredDialog() {
           className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 relative"
           style={{
             background: 'rgba(245, 158, 11, 0.12)',
-            boxShadow: 'var(--shadow-neumorph-sm)',
             border: '1px solid rgba(245, 158, 11, 0.25)',
           }}
         >

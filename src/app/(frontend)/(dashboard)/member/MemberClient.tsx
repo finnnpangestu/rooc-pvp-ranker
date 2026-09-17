@@ -102,23 +102,19 @@ export function MemberClient({ guild, members }: MemberClientProps) {
     <div className="max-w-[1400px] mx-auto w-full">
       <div
         id="tour-member-list"
-        className="rounded-lg flex flex-col h-[955px] overflow-hidden transition-colors"
-        style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
+        className="rounded-3xl flex flex-col h-[955px] overflow-hidden transition-colors apple-glass border border-black/5 dark:border-white/10 shadow-sm"
       >
         <div
-          className="p-5 border-b flex justify-between items-center gap-3 flex-wrap"
-          style={{ borderColor: 'var(--border-color)' }}
+          className="p-5 border-b border-black/5 dark:border-white/10 flex justify-between items-center gap-3 flex-wrap"
         >
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold m-0" style={{ color: 'var(--text-primary)' }}>
+            <h2 className="text-lg font-bold tracking-tight m-0" style={{ color: 'var(--text-primary)' }}>
               Daftar Member Guild
             </h2>
             <span
-              className="text-xs px-2.5 py-0.5 rounded-full font-medium"
+              className="text-xs px-2.5 py-0.5 rounded-full font-medium border border-black/5 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05]"
               style={{
-                background: 'var(--bg-secondary)',
                 color: 'var(--text-secondary)',
-                border: '1px solid var(--border-color)',
               }}
             >
               {filteredMembers.length} member
@@ -130,13 +126,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                 setSimulatorTargetMember(null)
                 setIsSimulatorOpen(true)
               }}
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]"
-              style={{
-                background:
-                  'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15))',
-                borderColor: 'rgba(129, 140, 248, 0.4)',
-                color: '#a5b4fc',
-              }}
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center gap-1.5 transition-all cursor-pointer apple-press"
             >
               <span>Simulasi & Compare</span>
             </button>
@@ -155,12 +145,9 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari nama character..."
-                className="pl-9 pr-8 py-2 text-sm rounded-xl outline-none border transition-all w-48 sm:w-56 focus:w-64"
+                className="pl-9 pr-8 py-2 text-sm rounded-xl outline-none border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all w-48 sm:w-56 focus:w-64"
                 style={{
-                  background: 'var(--bg-secondary)',
                   color: 'var(--text-primary)',
-                  borderColor: searchQuery ? 'rgba(129, 140, 248, 0.4)' : 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
                 }}
               />
               {searchQuery && (

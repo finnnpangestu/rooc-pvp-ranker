@@ -317,25 +317,21 @@ export function PvpSimulatorModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
-      style={{ backgroundColor: 'rgba(5, 7, 13, 0.82)', backdropFilter: 'blur(10px)' }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/40 dark:bg-black/65 backdrop-blur-xl animate-fadeIn"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
     >
       <div
-        className="w-full max-w-5xl rounded-2xl flex flex-col max-h-[92vh] overflow-hidden border shadow-2xl transition-all"
-        style={{
-          background: 'var(--bg-card)',
-          borderColor: 'var(--border-color)',
-          boxShadow: 'var(--shadow-neumorph)',
-        }}
+        className="w-full max-w-5xl rounded-3xl flex flex-col max-h-[92vh] overflow-hidden border border-black/5 dark:border-white/10 shadow-2xl transition-all bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl animate-slideIn"
       >
         {/* Header Modal */}
         <div
-          className="p-5 sm:p-6 border-b flex items-center justify-between gap-4 flex-wrap"
-          style={{ borderColor: 'var(--border-color)', background: 'var(--bg-secondary)' }}
+          className="p-5 sm:p-6 border-b border-black/5 dark:border-white/10 flex items-center justify-between gap-4 flex-wrap bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl"
         >
           <div className="flex items-center gap-3">
             <div>
-              <h2 className="text-xl font-bold m-0" style={{ color: 'var(--text-primary)' }}>
+              <h2 className="text-xl font-bold m-0 tracking-tight" style={{ color: 'var(--text-primary)' }}>
                 PvP Lab & Simulator
               </h2>
               <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--text-muted)' }}>
@@ -347,16 +343,15 @@ export function PvpSimulatorModal({
           {/* Tab Navigasi Utama */}
           <div className="flex items-center gap-2">
             <div
-              className="flex p-1 rounded-xl border"
-              style={{ background: 'var(--bg-primary)', borderColor: 'var(--border-color)' }}
+              className="flex p-1 rounded-2xl bg-black/5 dark:bg-white/8 border border-black/5 dark:border-white/10"
             >
               <button
                 type="button"
                 onClick={() => setActiveTab('simulator')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer select-none active:scale-[0.98] ${
                   activeTab === 'simulator'
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/10'
+                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-semibold shadow-sm'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
                 Stat Simulator
@@ -364,10 +359,10 @@ export function PvpSimulatorModal({
               <button
                 type="button"
                 onClick={() => setActiveTab('compare')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer select-none active:scale-[0.98] ${
                   activeTab === 'compare'
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/10'
+                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-semibold shadow-sm'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
                 <Icon icon="fluent:arrow-swap-20-filled" className="w-4 h-4" />
@@ -378,9 +373,13 @@ export function PvpSimulatorModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all cursor-pointer select-none active:scale-90"
+              aria-label="Close"
             >
-              <Icon icon="fluent:dismiss-24-regular" className="w-5 h-5" />
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
             </button>
           </div>
         </div>
@@ -390,12 +389,7 @@ export function PvpSimulatorModal({
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
             {/* Control Bar: Pilih Member & Job */}
             <div
-              className="p-4 rounded-xl border flex flex-col md:flex-row items-center justify-between gap-4"
-              style={{
-                background: 'var(--bg-primary)',
-                borderColor: 'var(--border-color)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-              }}
+              className="p-4.5 rounded-2xl border border-black/5 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 bg-black/[0.02] dark:bg-white/[0.04] backdrop-blur-md"
             >
               <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
                 <div className="flex flex-col gap-1 w-full sm:w-64">
@@ -661,11 +655,9 @@ export function PvpSimulatorModal({
                   return (
                     <div
                       key={stat.key}
-                      className="p-3 rounded-xl border flex flex-col justify-between gap-2 transition-all"
+                      className="p-3.5 rounded-2xl border flex flex-col justify-between gap-2 transition-all bg-black/[0.02] dark:bg-white/[0.04]"
                       style={{
-                        background: 'var(--bg-primary)',
-                        borderColor: diff !== 0 ? 'rgba(99, 102, 241, 0.4)' : 'var(--border-color)',
-                        boxShadow: 'var(--shadow-neumorph-inset)',
+                        borderColor: diff !== 0 ? 'rgba(99, 102, 241, 0.5)' : 'var(--border-color)',
                       }}
                     >
                       <div className="flex items-center justify-between">
@@ -745,12 +737,10 @@ export function PvpSimulatorModal({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Karakter A */}
               <div
-                className="p-4 rounded-xl border flex flex-col gap-3"
+                className="p-4.5 rounded-2xl border flex flex-col gap-3 bg-black/[0.02] dark:bg-white/[0.04]"
                 style={{
-                  background: 'var(--bg-primary)',
                   borderColor:
                     compareWinner === 'A' ? 'rgba(52, 211, 153, 0.4)' : 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
                 }}
               >
                 <div className="flex items-center justify-between">
@@ -817,12 +807,10 @@ export function PvpSimulatorModal({
 
               {/* Karakter B */}
               <div
-                className="p-4 rounded-xl border flex flex-col gap-3"
+                className="p-4.5 rounded-2xl border flex flex-col gap-3 bg-black/[0.02] dark:bg-white/[0.04]"
                 style={{
-                  background: 'var(--bg-primary)',
                   borderColor:
                     compareWinner === 'B' ? 'rgba(52, 211, 153, 0.4)' : 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
                 }}
               >
                 <div className="flex items-center justify-between">
@@ -923,12 +911,7 @@ export function PvpSimulatorModal({
             {/* Visualisasi Perbandingan Hexagon Radar */}
             {charA && charB && hexA && hexB && (
               <div
-                className="p-5 rounded-xl border flex flex-col items-center"
-                style={{
-                  background: 'var(--bg-primary)',
-                  borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
-                }}
+                className="p-5 rounded-3xl border border-black/5 dark:border-white/10 flex flex-col items-center bg-black/[0.02] dark:bg-white/[0.04]"
               >
                 <div
                   className="w-full flex items-center justify-between mb-4 border-b pb-3"

@@ -443,27 +443,17 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
       >
         {resources.length === 0 ? (
           <div
-            className="col-span-4 rounded-lg p-8 text-center border"
-            style={{
-              background: 'var(--bg-card)',
-              borderColor: 'var(--border-color)',
-              boxShadow: 'var(--shadow-neumorph)',
-            }}
+            className="col-span-4 apple-glass rounded-2xl p-8 text-center border border-black/5 dark:border-white/10 shadow-sm"
           >
             <p style={{ color: 'var(--text-muted)' }}>
-              Belum ada resource. Klik "Buat Resource" untuk menambahkan.
+              Belum ada resource. Klik &quot;Buat Resource&quot; untuk menambahkan.
             </p>
           </div>
         ) : (
           resources.map((resource) => (
             <div
               key={resource.id}
-              className="rounded-lg p-4 border transition-all hover:shadow-lg flex flex-col"
-              style={{
-                background: 'var(--bg-card)',
-                borderColor: 'var(--border-color)',
-                boxShadow: 'var(--shadow-neumorph)',
-              }}
+              className="apple-glass rounded-2xl p-5 border border-black/5 dark:border-white/10 shadow-sm hover:shadow-md transition-all flex flex-col"
             >
               <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
                 {resource.name}
@@ -562,12 +552,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
 
       <div
         id="tour-resource-history"
-        className="rounded-3xl p-8 border"
-        style={{
-          background: 'var(--bg-panel)',
-          borderColor: 'var(--border-color)',
-          boxShadow: 'var(--shadow-neumorph-lg)',
-        }}
+        className="apple-glass rounded-3xl p-8 border border-black/5 dark:border-white/10 shadow-sm transition-colors"
       >
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
@@ -628,13 +613,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                   setSelectionMode(null)
                 }}
                 placeholder="Cari nama character..."
-                className="pl-9 pr-8 py-2 text-sm rounded-xl outline-none border transition-all w-44 sm:w-56 focus:w-64"
-                style={{
-                  background: 'var(--bg-secondary)',
-                  color: 'var(--text-primary)',
-                  borderColor: characterSearch ? 'rgba(129, 140, 248, 0.4)' : 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
-                }}
+                className="pl-9 pr-8 py-2 text-sm rounded-xl outline-none border transition-all w-44 sm:w-56 focus:w-64 bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)]"
               />
               {characterSearch && (
                 <button
@@ -658,7 +637,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               <button
                 type="button"
                 onClick={() => setIsFilterOpen((prev) => !prev)}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer border"
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer border border-black/5 dark:border-white/10 shadow-sm apple-press"
                 style={{
                   background:
                     selectedResourceFilters.length > 0
@@ -668,8 +647,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                   borderColor:
                     selectedResourceFilters.length > 0
                       ? 'rgba(129, 140, 248, 0.4)'
-                      : 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-sm)',
+                      : undefined,
                 }}
               >
                 <Icon
@@ -703,13 +681,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               {/* Dropdown Menu */}
               {isFilterOpen && (
                 <div
-                  className="absolute right-0 top-full mt-2 w-72 rounded-2xl p-3 border z-50 animate-fadeIn"
-                  style={{
-                    background: 'var(--bg-card)',
-                    borderColor: 'var(--border-color)',
-                    boxShadow: 'var(--shadow-neumorph-lg)',
-                    backdropFilter: 'blur(12px)',
-                  }}
+                  className="apple-glass-heavy absolute right-0 top-full mt-2 w-72 rounded-2xl p-3 border border-black/10 dark:border-white/15 shadow-2xl z-50 animate-fadeIn"
                 >
                   <div
                     className="flex items-center justify-between pb-2.5 mb-2 border-b"
@@ -785,7 +757,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                                   background: isChecked ? '#6366f1' : 'var(--bg-secondary)',
                                   boxShadow: isChecked
                                     ? '0 1px 3px rgba(99, 102, 241, 0.4)'
-                                    : 'var(--shadow-neumorph-inset)',
+                                    : 'none',
                                   border: isChecked
                                     ? '1px solid #6366f1'
                                     : '1px solid var(--border-color)',
@@ -909,19 +881,11 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                       <div className="flex justify-center items-center">
                         <div
                           onClick={handleSelectAll}
-                          className="w-5 h-5 rounded-md flex items-center justify-center transition-all cursor-pointer"
-                          style={{
-                            background:
-                              selectedIds.length > 0 ? 'var(--bg-card)' : 'var(--bg-secondary)',
-                            boxShadow:
-                              selectedIds.length > 0
-                                ? 'var(--shadow-neumorph-sm)'
-                                : 'var(--shadow-neumorph-inset)',
-                            border:
-                              selectedIds.length > 0
-                                ? '1px solid rgba(129, 140, 248, 0.5)'
-                                : '1px solid var(--border-color)',
-                          }}
+                          className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all cursor-pointer border ${
+                            selectedIds.length > 0
+                              ? 'bg-[#0071e3] border-[#0071e3] text-white shadow-sm'
+                              : 'bg-black/5 dark:bg-white/5 border-black/15 dark:border-white/15'
+                          }`}
                         >
                           {isAllSelected && (
                             <svg
@@ -929,7 +893,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                               height="12"
                               viewBox="0 0 24 24"
                               fill="none"
-                              stroke="#818cf8"
+                              stroke="#ffffff"
                               strokeWidth="3"
                               strokeLinecap="round"
                               strokeLinejoin="round"
@@ -993,17 +957,13 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                               onClick={() => {
                                 if (!isDisabled) handleToggleRow(dist.id, dist.status)
                               }}
-                              className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                              style={{
-                                background: isChecked ? 'var(--bg-card)' : 'var(--bg-secondary)',
-                                boxShadow: isChecked
-                                  ? 'var(--shadow-neumorph-sm)'
-                                  : 'var(--shadow-neumorph-inset)',
-                                border: isChecked
-                                  ? '1px solid rgba(129, 140, 248, 0.5)'
-                                  : '1px solid var(--border-color)',
-                                opacity: isDisabled ? 0.5 : 1,
-                              }}
+                              className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all border ${
+                                isDisabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'
+                              } ${
+                                isChecked
+                                  ? 'bg-[#0071e3] border-[#0071e3] text-white shadow-sm'
+                                  : 'bg-black/5 dark:bg-white/5 border-black/15 dark:border-white/15'
+                              }`}
                             >
                               {isChecked && (
                                 <svg
@@ -1011,7 +971,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                                   height="12"
                                   viewBox="0 0 24 24"
                                   fill="none"
-                                  stroke="#818cf8"
+                                  stroke="#ffffff"
                                   strokeWidth="3"
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -1192,13 +1152,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               placeholder="Contoh: S, A, B, Mythic"
               value={resourceName}
               onChange={(e) => setResourceName(e.target.value)}
-              className="w-full rounded-xl py-3 px-4 outline-none text-[14px]"
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-                border: 'none',
-              }}
+              className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all"
               disabled={isCreating}
             />
           </div>
@@ -1215,13 +1169,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               min={1}
               value={resourceQuantity || ''}
               onChange={(e) => setResourceQuantity(Number(e.target.value))}
-              className="w-full rounded-xl py-3 px-4 outline-none text-[14px]"
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-                border: 'none',
-              }}
+              className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all tabular-nums"
               disabled={isCreating}
             />
           </div>
@@ -1258,13 +1206,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
             <select
               value={distributeMemberId}
               onChange={(e) => setDistributeMemberId(e.target.value)}
-              className="w-full rounded-xl py-3 px-4 outline-none text-[14px]"
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-                border: 'none',
-              }}
+              className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all"
               disabled={isDistributing}
             >
               <option value="">-- Pilih Member --</option>
@@ -1293,13 +1235,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                     newItems[index].resource_id = e.target.value
                     setDistributeItems(newItems)
                   }}
-                  className="flex-1 rounded-xl py-3 px-4 outline-none text-[14px]"
-                  style={{
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    boxShadow: 'var(--shadow-neumorph-inset)',
-                    border: 'none',
-                  }}
+                  className="flex-1 rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all"
                   disabled={isDistributing}
                 >
                   <option value="">-- Pilih Resource --</option>
@@ -1321,13 +1257,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                     newItems[index].quantity = Number(e.target.value)
                     setDistributeItems(newItems)
                   }}
-                  className="w-24 rounded-xl py-3 px-4 outline-none text-[14px] text-center"
-                  style={{
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    boxShadow: 'var(--shadow-neumorph-inset)',
-                    border: 'none',
-                  }}
+                  className="w-24 rounded-xl py-3 px-4 outline-none text-[14px] text-center bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all tabular-nums"
                   disabled={isDistributing}
                 />
 
@@ -1382,13 +1312,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               placeholder="Contoh: Bonus Week 1"
               value={distributeNotes}
               onChange={(e) => setDistributeNotes(e.target.value)}
-              className="w-full rounded-xl py-3 px-4 outline-none text-[14px]"
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-                border: 'none',
-              }}
+              className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all"
               disabled={isDistributing}
             />
           </div>
@@ -1439,13 +1363,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               min={1}
               value={editAddQuantity || ''}
               onChange={(e) => setEditAddQuantity(Number(e.target.value))}
-              className="w-full rounded-xl py-3 px-4 outline-none text-[14px]"
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-                border: 'none',
-              }}
+              className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all tabular-nums"
               disabled={isEditing}
             />
           </div>
@@ -1483,13 +1401,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               <select
                 value={editDistMemberId}
                 onChange={(e) => setEditDistMemberId(e.target.value)}
-                className="w-full rounded-xl py-3 px-4 outline-none text-[14px]"
-                style={{
-                  background: 'var(--bg-secondary)',
-                  color: 'var(--text-primary)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
-                  border: 'none',
-                }}
+                className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all"
                 disabled={isEditingDist}
               >
                 <option value="">-- Pilih Member --</option>
@@ -1513,13 +1425,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                 min={1}
                 value={editDistQuantity || ''}
                 onChange={(e) => setEditDistQuantity(Number(e.target.value))}
-                className="w-full rounded-xl py-3 px-4 outline-none text-[14px]"
-                style={{
-                  background: 'var(--bg-secondary)',
-                  color: 'var(--text-primary)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
-                  border: 'none',
-                }}
+                className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all tabular-nums"
                 disabled={isEditingDist}
               />
             </div>
@@ -1575,12 +1481,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
           {/* Info Resource */}
           {resourceToDelete && (
             <div
-              className="p-3.5 rounded-xl border flex flex-col gap-2.5"
-              style={{
-                background: 'var(--bg-secondary)',
-                borderColor: 'var(--border-color)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-              }}
+              className="p-3.5 rounded-xl border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] flex flex-col gap-2.5"
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: 'var(--text-muted)' }}>

@@ -60,15 +60,12 @@ export default async function StatsPage({ searchParams }: PageProps) {
   if (!targetGuild) {
     return (
       <main
-        className="min-h-screen py-12 px-4 flex items-center justify-center"
+        className="min-h-screen py-12 px-4 flex items-center justify-center apple-canvas"
         style={{ background: 'var(--bg-primary)' }}
       >
         <div
-          className="max-w-[540px] w-full p-8 sm:p-10 rounded-3xl relative overflow-hidden transition-colors text-center border"
+          className="max-w-[540px] w-full p-8 sm:p-10 rounded-3xl relative overflow-hidden transition-colors text-center border border-black/5 dark:border-white/10 apple-glass shadow-2xl"
           style={{
-            background: 'var(--bg-card)',
-            boxShadow: 'var(--shadow-neumorph)',
-            borderColor: 'var(--border-color)',
             color: 'var(--text-primary)',
           }}
         >
@@ -77,52 +74,39 @@ export default async function StatsPage({ searchParams }: PageProps) {
 
           <div className="relative z-10 flex flex-col items-center gap-5">
             <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center border"
-              style={{
-                background: 'rgba(239, 68, 68, 0.1)',
-                borderColor: 'rgba(239, 68, 68, 0.25)',
-                color: '#ef4444',
-                boxShadow: 'var(--shadow-neumorph-sm)',
-              }}
+              className="w-16 h-16 rounded-2xl flex items-center justify-center border border-red-500/25 bg-red-500/10 text-red-500 shadow-sm"
             >
               <Icon icon="fluent:shield-dismiss-24-filled" className="w-8 h-8" />
             </div>
 
             <div>
               <div
-                className="inline-block py-1 px-3 text-xs font-semibold uppercase tracking-wider rounded-full mb-3 border text-red-400"
-                style={{
-                  background: 'rgba(239, 68, 68, 0.08)',
-                  borderColor: 'rgba(239, 68, 68, 0.2)',
-                }}
+                className="inline-block py-1 px-3 text-xs font-semibold uppercase tracking-wider rounded-full mb-3 border border-red-500/20 bg-red-500/10 text-red-500"
               >
                 Akses Terbatas
               </div>
               <h1
-                className="text-2xl sm:text-3xl font-bold mb-3"
+                className="text-2xl sm:text-3xl font-bold tracking-tight mb-3"
                 style={{ color: 'var(--text-primary)' }}
               >
                 Guild Tidak Ditemukan
               </h1>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 Anda tidak termasuk ke dalam member guild. Silakan hubungi{' '}
-                <strong className="text-white">Guild Master</strong> Anda untuk mendapatkan link
+                <strong className="text-[var(--text-primary)]">Guild Master</strong> Anda untuk mendapatkan link
                 resmi yang direkomendasikan.
               </p>
             </div>
 
             <div
-              className="w-full p-4 rounded-2xl border text-xs leading-relaxed text-left flex items-start gap-3"
+              className="w-full p-4 rounded-2xl border border-black/5 dark:border-white/10 text-xs leading-relaxed text-left flex items-start gap-3 bg-black/[0.02] dark:bg-white/[0.04]"
               style={{
-                background: 'var(--bg-secondary)',
-                borderColor: 'var(--border-color)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
                 color: 'var(--text-muted)',
               }}
             >
               <Icon
                 icon="fluent:info-20-filled"
-                className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5"
+                className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5"
               />
               <div>
                 Halaman input & update stats sekarang membutuhkan parameter Guild ID yang valid agar
@@ -133,11 +117,8 @@ export default async function StatsPage({ searchParams }: PageProps) {
             <div className="w-full mt-2">
               <Link
                 href="/leaderboards"
-                className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all duration-200 text-center border cursor-pointer inline-flex items-center justify-center gap-2 hover:shadow-neumorph"
+                className="w-full py-3.5 px-6 rounded-2xl font-semibold text-sm transition-all duration-200 text-center border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] active:scale-[0.97] cursor-pointer inline-flex items-center justify-center gap-2"
                 style={{
-                  background: 'var(--bg-secondary)',
-                  borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-sm)',
                   color: 'var(--text-primary)',
                 }}
               >
@@ -151,7 +132,7 @@ export default async function StatsPage({ searchParams }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen py-4 px-4" style={{ background: 'var(--bg-primary)' }}>
+    <main className="min-h-screen py-6 px-4 apple-canvas" style={{ background: 'var(--bg-primary)' }}>
       <StatsForm guild={targetGuild} characters={guildCharacters} />
     </main>
   )

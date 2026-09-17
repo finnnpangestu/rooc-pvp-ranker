@@ -32,36 +32,25 @@ export function LimitDropdown({
     <div ref={containerRef} className={`relative ${className}`}>
       <button
         type="button"
-        className="w-full rounded-lg py-2 px-3 text-[13px] font-semibold font-sans cursor-pointer flex items-center justify-between transition-all duration-200 space-x-2"
-        style={{
-          background: 'var(--bg-primary)',
-          boxShadow: 'var(--shadow-neumorph-sm)',
-          color: 'var(--text-secondary)',
-        }}
+        className="w-full rounded-xl py-2 px-3 text-xs font-medium cursor-pointer flex items-center justify-between transition-all duration-150 bg-black/5 dark:bg-white/8 hover:bg-black/8 dark:hover:bg-white/12 border border-black/5 dark:border-white/10 select-none active:scale-[0.98] space-x-2"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span>{value} </span>
-        <span className="text-[10px] opacity-60">{isOpen ? '▲' : '▼'}</span>
+        <span className="tabular-nums font-semibold">{value}</span>
+        <span className="text-[10px] opacity-40">{isOpen ? '▲' : '▼'}</span>
       </button>
 
       {isOpen && (
         <div
-          className="absolute top-[calc(100%+6px)] right-0 w-[80px] rounded-lg shadow-lg p-1 z-50"
-          style={{
-            background: 'var(--bg-secondary)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          className="absolute top-[calc(100%+6px)] right-0 w-[85px] rounded-2xl p-1 z-50 apple-glass bg-white/95 dark:bg-zinc-900/95 border border-black/5 dark:border-white/10 shadow-2xl animate-slideIn"
         >
           {options.map((opt) => (
             <div
               key={opt}
-              className={`py-2 px-3 text-[13px] font-medium cursor-pointer rounded-md transition-all duration-150 ${
-                value === opt ? 'shadow-neumorph-inset' : 'hover:shadow-neumorph-sm'
+              className={`py-1.5 px-3 text-xs font-medium cursor-pointer rounded-xl transition-all duration-150 select-none text-center tabular-nums ${
+                value === opt
+                  ? 'bg-[#0071e3]/10 text-[#0071e3] font-semibold'
+                  : 'text-zinc-700 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/8'
               }`}
-              style={{
-                background: value === opt ? 'var(--bg-primary)' : 'transparent',
-                color: value === opt ? 'var(--text-primary)' : 'var(--text-muted)',
-              }}
               onClick={() => {
                 onChange(opt)
                 setIsOpen(false)

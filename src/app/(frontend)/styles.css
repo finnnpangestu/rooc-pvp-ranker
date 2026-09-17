@@ -1,84 +1,107 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
   --font-poppins: var(--font-poppins), 'Poppins', sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", var(--font-jetbrains-mono), Menlo, monospace;
 }
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 :root,
 [data-theme='light'] {
-  --bg-primary: #e8e8ec;
-  --bg-secondary: #d1d1d6;
-  --bg-card: #e8e8ec;
-  --text-primary: #1c1c1e;
-  --text-secondary: #3a3a3c;
-  --text-muted: #6e6e72;
-  --shadow-light: #ffffff;
-  --shadow-dark: #b8b8be;
-  --shadow-neumorph: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
-  --shadow-neumorph-inset:
-    inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
-  --shadow-neumorph-sm: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+  --bg-primary: #f5f5f7;
+  --bg-secondary: rgba(255, 255, 255, 0.72);
+  --bg-card: rgba(255, 255, 255, 0.82);
+  --text-primary: #1d1d1f;
+  --text-secondary: #515154;
+  --text-muted: #86868b;
   --border-color: rgba(0, 0, 0, 0.08);
-  --badge-bg: #d1d1d6;
-  --badge-text: #1c1c1e;
-  --card-bg: #e8e8ec;
+  --border-specular: rgba(255, 255, 255, 0.9);
+  
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+  --shadow-float: 0 12px 32px -4px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03);
+  --shadow-modal: 0 24px 48px -12px rgba(0, 0, 0, 0.18), 0 0 1px rgba(0, 0, 0, 0.1);
+  
+  /* Fallback aliases for smooth transition */
+  --shadow-neumorph: var(--shadow-card);
+  --shadow-neumorph-sm: var(--shadow-subtle);
+  --shadow-neumorph-inset: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+
+  --badge-bg: rgba(0, 0, 0, 0.05);
+  --badge-text: #1d1d1f;
+  --card-bg: rgba(255, 255, 255, 0.82);
+
+  --accent-blue: #0071e3;
+  --accent-indigo: #5856d6;
+  --accent-emerald: #34c759;
+  --accent-amber: #ff9500;
+  --accent-rose: #ff3b30;
 }
 
 [data-theme='dark'] {
-  --bg-primary: #1c1c1e;
-  --bg-secondary: #2a2a2e;
-  --bg-card: #1c1c1e;
-  --text-primary: #f0f0f2;
-  --text-secondary: #a0a0a6;
-  --text-muted: #8e8e93;
-  --shadow-light: #2a2a2e;
-  --shadow-dark: #0e0e10;
-  --shadow-neumorph: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
-  --shadow-neumorph-inset:
-    inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
-  --shadow-neumorph-sm: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
-  --border-color: rgba(255, 255, 255, 0.08);
-  --badge-bg: #2a2a2e;
-  --badge-text: #f0f0f2;
-  --card-bg: #1c1c1e;
+  --bg-primary: #09090b;
+  --bg-secondary: rgba(24, 24, 27, 0.70);
+  --bg-card: rgba(28, 28, 30, 0.78);
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --text-muted: #6e6e73;
+  --border-color: rgba(255, 255, 255, 0.09);
+  --border-specular: rgba(255, 255, 255, 0.12);
+  
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 8px 24px -4px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-float: 0 16px 40px -6px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.1);
+  --shadow-modal: 0 28px 60px -12px rgba(0, 0, 0, 0.75), 0 0 1px rgba(255, 255, 255, 0.15);
+
+  /* Fallback aliases for smooth transition */
+  --shadow-neumorph: var(--shadow-card);
+  --shadow-neumorph-sm: var(--shadow-subtle);
+  --shadow-neumorph-inset: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+
+  --badge-bg: rgba(255, 255, 255, 0.08);
+  --badge-text: #f5f5f7;
+  --card-bg: rgba(28, 28, 30, 0.78);
+
+  --accent-blue: #2997ff;
+  --accent-indigo: #5e5ce6;
+  --accent-emerald: #30d158;
+  --accent-amber: #ff9f0a;
+  --accent-rose: #ff453a;
 }
 
 @layer base {
   ::selection {
-    @apply bg-indigo-500/30 text-indigo-100;
+    @apply bg-indigo-500/25 text-indigo-400;
   }
 
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background-color: var(--bg-secondary);
+    background-color: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-indigo-500/30 rounded-full hover:bg-indigo-500/50 transition-colors;
+    background-color: rgba(142, 142, 147, 0.35);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(142, 142, 147, 0.55);
   }
 
   html,
   body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-family: var(--font-outfit), sans-serif;
-    font-size: 18px;
-    line-height: 32px;
-    @apply h-full m-0 antialiased transition-colors duration-200;
-  }
-
-  @media (max-width: 1024px) {
-    html,
-    body {
-      font-size: 15px;
-      line-height: 24px;
-    }
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 16px;
+    line-height: 26px;
+    @apply h-full m-0 transition-colors duration-200;
   }
 
   #app {
@@ -86,19 +109,15 @@
   }
 
   img {
-    @apply max-w-full h-auto block rounded-lg;
+    @apply max-w-full h-auto block rounded-xl;
   }
 
   a {
-    @apply text-current transition-colors duration-200 hover:text-indigo-400;
+    @apply text-current transition-all duration-150;
   }
 
-  a:focus {
-    @apply outline-none ring-2 ring-indigo-500/50 rounded-sm ring-offset-2 ring-offset-[#0f0f14];
-  }
-
-  a:active {
-    @apply opacity-70 outline-none;
+  a:hover {
+    color: var(--accent-blue);
   }
 
   svg {
@@ -106,7 +125,33 @@
   }
 }
 
-@keyframes fadeIn {
+/* Apple Materials & Translucency */
+.apple-glass {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.apple-glass-heavy {
+  backdrop-filter: blur(30px) saturate(190%);
+  -webkit-backdrop-filter: blur(30px) saturate(190%);
+}
+
+/* Tactile Pointer-Down Feedback (Kill Latency) */
+.apple-press {
+  transition: transform 120ms cubic-bezier(0.2, 0, 0, 1), opacity 120ms ease, background-color 150ms ease;
+  user-select: none;
+}
+.apple-press:active {
+  transform: scale(0.97);
+}
+
+/* Numeric Optical Figures */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Critically Damped Apple Spring Animations (Damping 1.0, Response 0.3-0.4s) */
+@keyframes appleFadeIn {
   from {
     opacity: 0;
   }
@@ -115,7 +160,7 @@
   }
 }
 
-@keyframes fadeOut {
+@keyframes appleFadeOut {
   from {
     opacity: 1;
   }
@@ -124,9 +169,9 @@
   }
 }
 
-@keyframes slideIn {
+@keyframes appleSheetIn {
   from {
-    transform: scale(0.95) translateY(10px);
+    transform: scale(0.96) translateY(12px);
     opacity: 0;
   }
   to {
@@ -135,29 +180,42 @@
   }
 }
 
-@keyframes slideOut {
+@keyframes appleSheetOut {
   from {
     transform: scale(1) translateY(0);
     opacity: 1;
   }
   to {
-    transform: scale(0.95) translateY(10px);
+    transform: scale(0.96) translateY(12px);
     opacity: 0;
   }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.3s ease forwards;
+  animation: appleFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-fadeOut {
-  animation: fadeOut 0.3s ease forwards;
+  animation: appleFadeOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slideIn {
-  animation: slideIn 0.3s ease forwards;
+  animation: appleSheetIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slideOut {
-  animation: slideOut 0.3s ease forwards;
+  animation: appleSheetOut 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slideIn,
+  .animate-slideOut,
+  .animate-fadeIn,
+  .animate-fadeOut {
+    animation-duration: 0.15s !important;
+    transform: none !important;
+  }
+  .apple-press:active {
+    transform: none !important;
+  }
 }

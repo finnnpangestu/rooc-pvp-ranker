@@ -417,17 +417,13 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                   return (
                     <div
                       key={partyIdx}
-                      className="rounded-2xl p-4 flex flex-col h-full transition-colors"
-                      style={{
-                        background: 'var(--bg-card)',
-                        boxShadow: 'var(--shadow-neumorph)',
-                      }}
+                      className="rounded-3xl p-5 flex flex-col h-full transition-colors apple-glass border border-black/5 dark:border-white/10 shadow-sm"
                     >
                       <div className="flex justify-between items-start mb-3">
-                        <h3 className="text-[18px] font-semibold m-0" style={{ color: '#0ea5e9' }}>
+                        <h3 className="text-base font-bold tracking-tight m-0 text-sky-500">
                           {party.name}
                           <span
-                            className="text-[13px] ml-2 font-normal"
+                            className="text-xs ml-2 font-normal"
                             style={{ color: 'var(--text-muted)' }}
                           >
                             ({filledSlots}/5)
@@ -435,16 +431,16 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                         </h3>
                         <div className="flex-shrink-0">
                           <div
-                            className="text-[11px] text-right mb-0.5"
+                            className="text-[11px] text-right mb-0.5 uppercase tracking-wider"
                             style={{ color: 'var(--text-muted)' }}
                           >
                             Total Score
                           </div>
                           <div
-                            className="font-bold text-[14px] text-right"
+                            className="font-bold text-sm text-right tabular-nums"
                             style={{ color: 'var(--text-primary)' }}
                           >
-                            {Math.round(totalScore).toLocaleString()}
+                            {Math.round(totalScore).toLocaleString('id-ID')}
                           </div>
                         </div>
                       </div>
@@ -464,12 +460,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                                   e.preventDefault()
                                 }
                               }}
-                              className={`flex items-center p-2.5 rounded-xl border relative group transition-colors ${char ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} hover:opacity-80 ${draggedMember ? 'border-emerald-500/50 bg-emerald-500/5' : ''}`}
-                              style={{
-                                background: 'var(--bg-primary)',
-                                borderColor: 'var(--border-color)',
-                                boxShadow: 'var(--shadow-neumorph-sm)',
-                              }}
+                              className={`flex items-center p-2.5 rounded-2xl border border-black/5 dark:border-white/10 relative group transition-all ${char ? 'cursor-grab active:cursor-grabbing bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.04] dark:hover:bg-white/[0.05]' : 'cursor-pointer hover:border-black/20 dark:hover:border-white/20'} ${draggedMember ? 'border-emerald-500/50 bg-emerald-500/5' : ''}`}
                               onDragOver={(e) => {
                                 e.preventDefault()
                               }}
@@ -489,14 +480,13 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                               ) : (
                                 <button
                                   onClick={() => openAddMemberDialog(raidIdx, partyIdx, slotIdx)}
-                                  className="w-full flex items-center justify-center font-sans text-[13px] cursor-pointer transition-all duration-200 min-h-[42px] bg-transparent border border-dashed rounded-lg"
+                                  className="w-full flex items-center justify-center font-sans text-xs cursor-pointer transition-all duration-200 min-h-[42px] bg-transparent border border-dashed border-black/15 dark:border-white/15 rounded-xl apple-press"
                                   style={{
                                     color: 'var(--text-muted)',
-                                    borderColor: 'var(--border-color)',
                                   }}
                                 >
                                   <span
-                                    className="text-[13px] italic"
+                                    className="text-xs italic"
                                     style={{ color: 'var(--text-muted)' }}
                                   >
                                     {draggedMember
@@ -528,21 +518,15 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
         className="w-[300px] shrink-0 sticky top-4 max-h-[calc(100vh-2rem)] flex flex-col"
       >
         <div
-          className="rounded-2xl flex flex-col flex-1 min-h-0"
-          style={{
-            background: 'var(--bg-secondary)',
-            boxShadow: 'var(--shadow-neumorph-lg)',
-            border: '1px solid var(--border-color)',
-          }}
+          className="rounded-3xl flex flex-col flex-1 min-h-0 apple-glass border border-black/5 dark:border-white/10 shadow-md"
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDropToBench}
         >
           <div
-            className="p-4 border-b shrink-0 flex items-center justify-between"
-            style={{ borderColor: 'var(--border-color)' }}
+            className="p-4 border-b border-black/5 dark:border-white/10 shrink-0 flex items-center justify-between"
           >
             <div>
-              <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
+              <h2 className="font-bold text-base tracking-tight" style={{ color: 'var(--text-primary)' }}>
                 Benched
               </h2>
               <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
@@ -557,12 +541,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                 key={m.id}
                 draggable
                 onDragStart={() => handleDragStart(m, null, null, null)}
-                className="flex items-center p-2.5 rounded-xl cursor-grab active:cursor-grabbing hover:opacity-80 transition-all border"
-                style={{
-                  background: 'var(--bg-primary)',
-                  borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-sm)',
-                }}
+                className="flex items-center p-2.5 rounded-2xl cursor-grab active:cursor-grabbing hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03]"
               >
                 <CharacterCard character={m} />
               </div>

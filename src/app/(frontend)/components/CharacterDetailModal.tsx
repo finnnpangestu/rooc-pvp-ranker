@@ -118,11 +118,9 @@ export function CharacterDetailModal({
     <GlobalDialog isOpen={isOpen} onClose={onClose} title={`Detail: ${member.name}`} maxWidth={800}>
       <div>
         <div
-          className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-6 p-4.5 rounded-xl border"
+          className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-6 p-5 rounded-3xl border transition-colors bg-black/[0.02] dark:bg-white/[0.04] backdrop-blur-xl"
           style={{
-            background: 'var(--bg-primary)',
             borderColor: 'var(--border-color)',
-            boxShadow: 'var(--shadow-neumorph-inset)',
           }}
         >
           {/* Bagian Kiri: Info Utama Karakter & Kehadiran/Resource */}
@@ -134,18 +132,18 @@ export function CharacterDetailModal({
                 alt=""
                 width={48}
                 height={48}
-                className="w-12 h-12 object-cover rounded-lg shadow-sm border shrink-0"
+                className="w-12 h-12 object-cover rounded-2xl shadow-sm border shrink-0"
                 style={{ borderColor: 'var(--border-color)' }}
                 onError={(e) => (e.currentTarget.style.display = 'none')}
               />
               <div>
-                <div className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
+                <div className="font-bold text-lg tracking-tight" style={{ color: 'var(--text-primary)' }}>
                   {member.name}
                 </div>
                 <div className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
                   {JOB_LABELS[member.job] || member.job}
                 </div>
-                <div className="text-xs text-amber-500 dark:text-amber-400 font-medium mt-1 flex items-center gap-1.5">
+                <div className="text-xs text-amber-500 dark:text-amber-400 font-semibold mt-1 flex items-center gap-1.5 tabular-nums">
                   <svg
                     width="13"
                     height="13"
@@ -167,23 +165,22 @@ export function CharacterDetailModal({
               style={{ borderColor: 'var(--border-color)' }}
             >
               <div
-                className="flex items-center justify-between gap-3 px-2.5 py-1.5 rounded-lg border transition-colors"
+                className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl border transition-colors bg-black/[0.03] dark:bg-white/[0.05]"
                 style={{
-                  background: 'var(--bg-secondary)',
                   borderColor: 'var(--border-color)',
                 }}
               >
                 <span
-                  className="text-[11px] font-semibold uppercase tracking-wider"
+                  className="text-[11px] font-semibold uppercase tracking-[0.03em]"
                   style={{ color: 'var(--text-muted)' }}
                 >
                   Kehadiran GL
                 </span>
-                <div className="flex items-center gap-1 text-sm font-bold">
+                <div className="flex items-center gap-1 text-sm font-bold tabular-nums">
                   <span className="text-emerald-500 dark:text-emerald-400">
                     {member.gl_present_count || 0}
                   </span>
-                  <span className="text-xs font-normal" style={{ color: 'var(--text-muted)' }}>
+                  <span className="text-xs font-normal opacity-40">
                     /
                   </span>
                   <span className="text-rose-500 dark:text-red-400">
@@ -193,23 +190,22 @@ export function CharacterDetailModal({
               </div>
 
               <div
-                className="flex items-center justify-between gap-3 px-2.5 py-1.5 rounded-lg border transition-colors"
+                className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl border transition-colors bg-black/[0.03] dark:bg-white/[0.05]"
                 style={{
-                  background: 'var(--bg-secondary)',
                   borderColor: 'var(--border-color)',
                 }}
               >
                 <span
-                  className="text-[11px] font-semibold uppercase tracking-wider"
+                  className="text-[11px] font-semibold uppercase tracking-[0.03em]"
                   style={{ color: 'var(--text-muted)' }}
                 >
                   Kehadiran WoE
                 </span>
-                <div className="flex items-center gap-1 text-sm font-bold">
+                <div className="flex items-center gap-1 text-sm font-bold tabular-nums">
                   <span className="text-emerald-500 dark:text-emerald-400">
                     {member.woe_present_count || 0}
                   </span>
-                  <span className="text-xs font-normal" style={{ color: 'var(--text-muted)' }}>
+                  <span className="text-xs font-normal opacity-40">
                     /
                   </span>
                   <span className="text-rose-500 dark:text-red-400">
@@ -219,19 +215,18 @@ export function CharacterDetailModal({
               </div>
 
               <div
-                className="flex items-center justify-between gap-3 px-2.5 py-1.5 rounded-lg border transition-colors"
+                className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl border transition-colors bg-black/[0.03] dark:bg-white/[0.05]"
                 style={{
-                  background: 'var(--bg-secondary)',
                   borderColor: 'var(--border-color)',
                 }}
               >
                 <span
-                  className="text-[11px] font-semibold uppercase tracking-wider"
+                  className="text-[11px] font-semibold uppercase tracking-[0.03em]"
                   style={{ color: 'var(--text-muted)' }}
                 >
                   Resource
                 </span>
-                <span className="text-sm font-bold text-indigo-500 dark:text-indigo-400">
+                <span className="text-sm font-bold text-indigo-500 dark:text-indigo-400 tabular-nums">
                   {member.total_resources || 0}
                 </span>
               </div>
@@ -358,15 +353,15 @@ export function CharacterDetailModal({
             {/* Metric Summary Banner */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div
-                className="p-3 rounded-xl border flex flex-col justify-center"
+                className="p-3.5 rounded-2xl border flex flex-col justify-center bg-black/[0.03] dark:bg-white/[0.05]"
                 style={{
-                  background: 'var(--bg-primary)',
                   borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
                 }}
               >
-                <span className="text-[11px] font-semibold uppercase text-gray-400">Skor Awal</span>
-                <strong className="text-base text-gray-200 mt-0.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                  Skor Awal
+                </span>
+                <strong className="text-base mt-0.5 tabular-nums" style={{ color: 'var(--text-primary)' }}>
                   {Math.round(
                     member.stat_history && member.stat_history.length > 0
                       ? member.stat_history[0].pvp_score
@@ -376,36 +371,32 @@ export function CharacterDetailModal({
               </div>
 
               <div
-                className="p-3 rounded-xl border flex flex-col justify-center"
+                className="p-3.5 rounded-2xl border flex flex-col justify-center bg-black/[0.03] dark:bg-white/[0.05]"
                 style={{
-                  background: 'var(--bg-primary)',
                   borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
                 }}
               >
-                <span className="text-[11px] font-semibold uppercase text-gray-400">
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                   Skor Terkini
                 </span>
-                <strong className="text-base text-amber-400 mt-0.5">
+                <strong className="text-base text-amber-500 dark:text-amber-400 mt-0.5 tabular-nums">
                   {Math.round(Number(member.pvp_score || 0)).toLocaleString('id-ID')}
                 </strong>
               </div>
 
               <div
-                className="p-3 rounded-xl border flex flex-col justify-center"
+                className="p-3.5 rounded-2xl border flex flex-col justify-center bg-black/[0.03] dark:bg-white/[0.05]"
                 style={{
-                  background: 'var(--bg-primary)',
                   borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
                 }}
               >
-                <span className="text-[11px] font-semibold uppercase text-gray-400">
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                   Total Progres
                 </span>
                 {(() => {
                   const hist = member.stat_history || []
                   if (hist.length < 2) {
-                    return <strong className="text-base text-gray-400 mt-0.5">Baseline</strong>
+                    return <strong className="text-base text-zinc-400 mt-0.5">Baseline</strong>
                   }
                   const first = hist[0].pvp_score
                   const last = hist[hist.length - 1].pvp_score
@@ -413,7 +404,7 @@ export function CharacterDetailModal({
                   const isPos = delta >= 0
                   return (
                     <strong
-                      className={`text-base mt-0.5 ${isPos ? 'text-emerald-400' : 'text-rose-400'}`}
+                      className={`text-base mt-0.5 tabular-nums ${isPos ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}
                     >
                       {isPos
                         ? `+${Math.round(delta).toLocaleString('id-ID')}`
@@ -424,17 +415,15 @@ export function CharacterDetailModal({
               </div>
 
               <div
-                className="p-3 rounded-xl border flex flex-col justify-center"
+                className="p-3.5 rounded-2xl border flex flex-col justify-center bg-black/[0.03] dark:bg-white/[0.05]"
                 style={{
-                  background: 'var(--bg-primary)',
                   borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
                 }}
               >
-                <span className="text-[11px] font-semibold uppercase text-gray-400">
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                   Total Snapshot
                 </span>
-                <strong className="text-base text-emerald-400 mt-0.5">
+                <strong className="text-base text-emerald-500 dark:text-emerald-400 mt-0.5 tabular-nums">
                   {member.stat_history ? member.stat_history.length : 0} kali
                 </strong>
               </div>
@@ -443,11 +432,9 @@ export function CharacterDetailModal({
             {/* Recharts Line Chart - Hanya tampil jika perubahan minimal 2x (chartData.length >= 2), menampilkan maksimal 5 data terakhir */}
             {chartData.length >= 2 && (
               <div
-                className="p-5 rounded-xl border flex flex-col gap-3 transition-colors"
+                className="p-5 rounded-3xl border flex flex-col gap-3 transition-colors bg-white/60 dark:bg-zinc-850/60 apple-glass shadow-sm"
                 style={{
-                  background: 'var(--bg-card)',
                   borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph)',
                 }}
               >
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -553,11 +540,9 @@ export function CharacterDetailModal({
                   return (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors hover:bg-black/[0.03] dark:hover:bg-white/5"
+                      className="p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
                       style={{
-                        background: 'var(--bg-primary)',
                         borderColor: 'var(--border-color)',
-                        boxShadow: 'var(--shadow-neumorph-inset)',
                       }}
                     >
                       <div className="flex items-start gap-3">
@@ -654,10 +639,10 @@ export function CharacterDetailModal({
 
           {onOpenSimulator && (
             <Button
-              variant="primary"
+              variant="ghost"
               size="md"
               onClick={() => onOpenSimulator(member)}
-              className="!text-indigo-400 !border !border-indigo-500/30 hover:!text-indigo-300"
+              className="text-indigo-600 dark:text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/10"
             >
               Simulasi Stat
             </Button>
@@ -671,17 +656,17 @@ export function CharacterDetailModal({
             variant={member.isVerified ? 'ghost' : 'success'}
             size="md"
             loading={isPending}
-            className={`flex-1 sm:flex-none ${member.isVerified ? '!bg-amber-500/10 !text-amber-500 !border-amber-500/20' : ''}`}
+            className={`flex-1 sm:flex-none ${member.isVerified ? 'text-amber-600 dark:text-amber-400 border-amber-500/30' : ''}`}
             onClick={handleToggleVerify}
           >
             {member.isVerified ? 'Batalkan Verifikasi' : 'Approve & Verifikasi'}
           </Button>
 
           <Button
-            variant="ghost"
+            variant="danger"
             size="md"
             loading={isPending}
-            className="flex-1 sm:flex-none !bg-red-500/10 !text-red-500 !border-red-500/20"
+            className="flex-1 sm:flex-none"
             onClick={handleDelete}
           >
             Hapus Member

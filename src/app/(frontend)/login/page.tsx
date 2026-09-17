@@ -4,6 +4,7 @@ import React, { useState, Suspense, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { GlobalDialog } from '../components/GlobalDialog'
+import { Button } from '../components/Button'
 import { Turnstile, TurnstileRef } from '../components/Turnstile'
 import { loginUser } from '@/actions/auth/loginUser'
 import { formatErrorMessage } from '@/types'
@@ -52,34 +53,19 @@ function LoginFormContent() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
+      className="min-h-screen flex items-center justify-center p-4 apple-canvas"
       style={{ background: 'var(--bg-primary)' }}
     >
-      <div
-        className="w-full max-w-[400px] p-10 rounded-3xl text-center transition-colors"
-        style={{
-          background: 'var(--bg-card)',
-          boxShadow: 'var(--shadow-neumorph)',
-          color: 'var(--text-primary)',
-        }}
-      >
-        <h1 className="mb-2 text-[28px] font-bold" style={{ color: 'var(--text-primary)' }}>
+      <div className="w-full max-w-[420px] p-8 sm:p-10 rounded-3xl text-center apple-glass shadow-2xl border border-black/5 dark:border-white/10 transition-all">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
           Login Guild Master
         </h1>
-        <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-sm mt-1.5 mb-6" style={{ color: 'var(--text-secondary)' }}>
           Masuk untuk mengelola guild dan roster
         </p>
 
         {isSessionExpired && (
-          <div
-            className="p-3.5 rounded-xl text-[13px] mb-4 border flex items-start gap-2.5 text-left"
-            style={{
-              background: 'rgba(245, 158, 11, 0.08)',
-              borderColor: 'rgba(245, 158, 11, 0.3)',
-              color: '#f59e0b',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
-          >
+          <div className="p-4 rounded-2xl text-[13px] mb-4 border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-start gap-3 text-left backdrop-blur-sm">
             <svg
               width="18"
               height="18"
@@ -94,7 +80,7 @@ function LoginFormContent() {
             </svg>
             <div>
               <div className="font-bold">Sesi Anda Telah Berakhir</div>
-              <div className="text-xs opacity-90 mt-0.5">
+              <div className="text-xs opacity-90 mt-0.5 leading-relaxed">
                 Token otentikasi (JWT) telah kedaluwarsa. Silakan login kembali untuk melanjutkan.
               </div>
             </div>
@@ -102,15 +88,7 @@ function LoginFormContent() {
         )}
 
         {error && (
-          <div
-            className="p-3 rounded-lg text-[13px] mb-4 border"
-            style={{
-              background: 'var(--bg-primary)',
-              borderColor: '#ef4444',
-              color: '#ef4444',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
-          >
+          <div className="p-3.5 rounded-2xl text-[13px] mb-4 border border-red-500/20 bg-red-500/10 text-red-500 backdrop-blur-sm text-left">
             {error}
           </div>
         )}
@@ -118,7 +96,7 @@ function LoginFormContent() {
         <form onSubmit={handleLogin}>
           <div className="mb-4 text-left">
             <label
-              className="block text-[13px] mb-2 font-medium"
+              className="block text-xs font-semibold uppercase tracking-wider mb-2"
               style={{ color: 'var(--text-muted)' }}
             >
               Email
@@ -126,21 +104,18 @@ function LoginFormContent() {
             <input
               type="email"
               name="email"
-              className="w-full rounded-lg py-3 px-4 font-sans transition-all duration-200 outline-none"
+              className="w-full rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
               style={{
-                background: 'var(--bg-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
                 color: 'var(--text-primary)',
-                border: 'none',
               }}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
-          <div className="mb-4 text-left">
+          <div className="mb-5 text-left">
             <label
-              className="block text-[13px] mb-2 font-medium"
+              className="block text-xs font-semibold uppercase tracking-wider mb-2"
               style={{ color: 'var(--text-muted)' }}
             >
               Password
@@ -148,12 +123,9 @@ function LoginFormContent() {
             <input
               type="password"
               name="password"
-              className="w-full rounded-lg py-3 px-4 font-sans transition-all duration-200 outline-none"
+              className="w-full rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
               style={{
-                background: 'var(--bg-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
                 color: 'var(--text-primary)',
-                border: 'none',
               }}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -163,27 +135,22 @@ function LoginFormContent() {
 
           <Turnstile ref={turnstileRef} className="my-2" />
 
-          <button
+          <Button
             type="submit"
-            className="w-full rounded-lg p-[14px] font-semibold font-sans cursor-pointer mt-4 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            style={{
-              background: 'var(--bg-primary)',
-              boxShadow: 'var(--shadow-neumorph-sm)',
-              color: 'var(--text-primary)',
-              border: 'none',
-            }}
-            disabled={isLoading}
+            variant="primary"
+            size="lg"
+            className="w-full mt-4"
+            loading={isLoading}
           >
-            {isLoading ? 'Memproses...' : 'Login'}
-          </button>
+            Login
+          </Button>
         </form>
 
         <p className="mt-6 text-sm" style={{ color: 'var(--text-muted)' }}>
           Belum punya akun?{' '}
           <Link
             href="/register"
-            className="font-medium no-underline hover:underline"
-            style={{ color: 'var(--text-primary)' }}
+            className="font-semibold text-blue-500 hover:text-blue-600 transition-colors"
           >
             Daftar di sini
           </Link>
@@ -195,17 +162,14 @@ function LoginFormContent() {
           Selamat datang kembali! Autentikasi berhasil.
           <br />
           <br />
-          <button
+          <Button
+            variant="primary"
+            size="md"
+            className="w-full"
             onClick={handleCloseDialog}
-            className="w-full rounded-lg p-3 font-semibold font-sans cursor-pointer transition-colors border-none"
-            style={{
-              background: 'var(--bg-primary)',
-              boxShadow: 'var(--shadow-neumorph-sm)',
-              color: 'var(--text-primary)',
-            }}
           >
             Lanjut ke Dashboard
-          </button>
+          </Button>
         </div>
       </GlobalDialog>
     </div>
@@ -217,12 +181,10 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div
-          className="min-h-screen flex items-center justify-center p-4"
+          className="min-h-screen flex items-center justify-center p-4 apple-canvas"
           style={{ background: 'var(--bg-primary)' }}
         >
-          <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Memuat...
-          </div>
+          <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
         </div>
       }
     >

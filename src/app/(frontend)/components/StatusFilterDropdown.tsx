@@ -40,30 +40,30 @@ export function StatusFilterDropdown({
       case 'pending':
         return {
           icon: 'fluent:clock-24-filled',
-          iconColor: '#f59e0b',
+          iconColor: '#ff9f0a',
           label: 'Pending',
           count: pendingCount,
-          countBg: 'rgba(245, 158, 11, 0.15)',
-          countText: '#f59e0b',
-          countBorder: 'rgba(245, 158, 11, 0.3)',
+          countBg: 'rgba(255, 159, 10, 0.15)',
+          countText: '#ff9f0a',
+          countBorder: 'rgba(255, 159, 10, 0.25)',
         }
       case 'verified':
         return {
           icon: 'fluent:shield-checkmark-24-filled',
-          iconColor: '#10b981',
+          iconColor: '#30d158',
           label: 'Verified',
           count: verifiedCount,
-          countBg: 'rgba(16, 185, 129, 0.15)',
-          countText: '#10b981',
-          countBorder: 'rgba(16, 185, 129, 0.3)',
+          countBg: 'rgba(48, 209, 88, 0.15)',
+          countText: '#30d158',
+          countBorder: 'rgba(48, 209, 88, 0.25)',
         }
       default:
         return {
           icon: 'fluent:filter-24-regular',
-          iconColor: 'var(--text-secondary)',
+          iconColor: 'var(--text-muted)',
           label: 'Semua Status',
           count: totalCount,
-          countBg: 'var(--bg-secondary)',
+          countBg: 'var(--badge-bg)',
           countText: 'var(--text-secondary)',
           countBorder: 'var(--border-color)',
         }
@@ -77,35 +77,31 @@ export function StatusFilterDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full rounded-lg py-2 px-3 text-[13px] font-semibold font-sans cursor-pointer flex items-center justify-between transition-all duration-200 gap-2"
+        className="w-full rounded-xl py-2 px-3.5 text-xs font-medium cursor-pointer flex items-center justify-between transition-all duration-150 gap-2 bg-black/5 dark:bg-white/8 hover:bg-black/8 dark:hover:bg-white/12 border border-black/5 dark:border-white/10 select-none active:scale-[0.98]"
         style={{
-          background: 'var(--bg-primary)',
-          boxShadow: 'var(--shadow-neumorph-sm)',
-          color: 'var(--text-secondary)',
-          border: '1px solid',
           borderColor:
             value === 'pending'
-              ? 'rgba(245, 158, 11, 0.4)'
+              ? 'rgba(255, 159, 10, 0.4)'
               : value === 'verified'
-                ? 'rgba(16, 185, 129, 0.4)'
-                : 'transparent',
+                ? 'rgba(48, 209, 88, 0.4)'
+                : undefined,
         }}
       >
         <div className="flex items-center gap-2 min-w-0">
           <Icon icon={current.icon} className="w-4 h-4 shrink-0" style={{ color: current.iconColor }} />
           <span
-            className="truncate"
-            style={{ color: value !== 'all' ? current.iconColor : 'var(--text-secondary)' }}
+            className="truncate font-semibold"
+            style={{ color: value !== 'all' ? current.iconColor : 'var(--text-primary)' }}
           >
             {current.label}
           </span>
           {value === 'all' && pendingCount > 0 ? (
             <span
-              className="px-1.5 py-0.5 text-[10px] font-bold rounded-full shrink-0 animate-pulse"
+              className="px-2 py-0.5 text-[10px] font-bold rounded-full shrink-0 tabular-nums animate-pulse"
               style={{
-                background: 'rgba(245, 158, 11, 0.18)',
-                color: '#f59e0b',
-                border: '1px solid rgba(245, 158, 11, 0.35)',
+                background: 'rgba(255, 159, 10, 0.18)',
+                color: '#ff9f0a',
+                border: '1px solid rgba(255, 159, 10, 0.35)',
               }}
               title={`${pendingCount} member pending`}
             >
@@ -113,7 +109,7 @@ export function StatusFilterDropdown({
             </span>
           ) : value !== 'all' ? (
             <span
-              className="px-1.5 py-0.5 text-[10px] font-bold rounded-full shrink-0"
+              className="px-2 py-0.5 text-[10px] font-bold rounded-full shrink-0 tabular-nums"
               style={{
                 background: current.countBg,
                 color: current.countText,
@@ -126,28 +122,21 @@ export function StatusFilterDropdown({
         </div>
         <Icon
           icon={isOpen ? 'fluent:chevron-up-16-regular' : 'fluent:chevron-down-16-regular'}
-          className="w-3.5 h-3.5 opacity-60 shrink-0"
+          className="w-3.5 h-3.5 opacity-40 shrink-0"
         />
       </button>
 
       {isOpen && (
         <div
-          className="absolute top-[calc(100%+6px)] right-0 w-[190px] rounded-xl shadow-lg p-1.5 z-50 animate-fadeIn border"
-          style={{
-            background: 'var(--bg-secondary)',
-            borderColor: 'var(--border-color)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          className="absolute top-[calc(100%+6px)] right-0 w-[200px] rounded-2xl p-1.5 z-50 animate-slideIn apple-glass bg-white/95 dark:bg-zinc-900/95 border border-black/5 dark:border-white/10 shadow-2xl"
         >
           {/* Semua Status */}
           <div
-            className={`py-2 px-3 text-[13px] font-medium cursor-pointer flex items-center justify-between rounded-lg transition-all duration-150 mb-1 ${
-              value === 'all' ? 'shadow-neumorph-inset' : 'hover:shadow-neumorph-sm'
+            className={`py-2 px-3 text-xs font-medium cursor-pointer flex items-center justify-between rounded-xl transition-all duration-150 mb-1 select-none ${
+              value === 'all'
+                ? 'bg-[#0071e3]/10 text-[#0071e3] font-semibold'
+                : 'text-zinc-700 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/8'
             }`}
-            style={{
-              background: value === 'all' ? 'var(--bg-primary)' : 'transparent',
-              color: value === 'all' ? 'var(--text-primary)' : 'var(--text-muted)',
-            }}
             onClick={() => {
               onChange('all')
               setIsOpen(false)
@@ -158,36 +147,32 @@ export function StatusFilterDropdown({
               <span>Semua Status</span>
             </div>
             {totalCount !== undefined && (
-              <span className="text-xs opacity-60 font-mono">{totalCount}</span>
+              <span className="text-xs opacity-60 tabular-nums font-semibold">{totalCount}</span>
             )}
           </div>
 
           {/* Pending */}
           <div
-            className={`py-2 px-3 text-[13px] font-medium cursor-pointer flex items-center justify-between rounded-lg transition-all duration-150 mb-1 ${
-              value === 'pending' ? 'shadow-neumorph-inset' : 'hover:shadow-neumorph-sm'
+            className={`py-2 px-3 text-xs font-medium cursor-pointer flex items-center justify-between rounded-xl transition-all duration-150 mb-1 select-none ${
+              value === 'pending'
+                ? 'bg-amber-500/15 text-amber-500 font-semibold'
+                : 'text-zinc-700 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/8'
             }`}
-            style={{
-              background: value === 'pending' ? 'var(--bg-primary)' : 'transparent',
-              color: value === 'pending' ? '#f59e0b' : 'var(--text-muted)',
-            }}
             onClick={() => {
               onChange('pending')
               setIsOpen(false)
             }}
           >
             <div className="flex items-center gap-2">
-              <Icon icon="fluent:clock-24-filled" className="w-4 h-4 text-amber-400" />
-              <span className={value === 'pending' ? 'font-semibold text-amber-400' : ''}>
-                Pending
-              </span>
+              <Icon icon="fluent:clock-24-filled" className="w-4 h-4 text-amber-500" />
+              <span>Pending</span>
             </div>
             <span
-              className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+              className="px-2 py-0.5 rounded-full text-[10px] font-bold tabular-nums"
               style={{
-                background: 'rgba(245, 158, 11, 0.15)',
-                color: '#f59e0b',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
+                background: 'rgba(255, 159, 10, 0.15)',
+                color: '#ff9f0a',
+                border: '1px solid rgba(255, 159, 10, 0.3)',
               }}
             >
               {pendingCount}
@@ -196,30 +181,26 @@ export function StatusFilterDropdown({
 
           {/* Verified */}
           <div
-            className={`py-2 px-3 text-[13px] font-medium cursor-pointer flex items-center justify-between rounded-lg transition-all duration-150 ${
-              value === 'verified' ? 'shadow-neumorph-inset' : 'hover:shadow-neumorph-sm'
+            className={`py-2 px-3 text-xs font-medium cursor-pointer flex items-center justify-between rounded-xl transition-all duration-150 select-none ${
+              value === 'verified'
+                ? 'bg-emerald-500/15 text-emerald-500 font-semibold'
+                : 'text-zinc-700 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/8'
             }`}
-            style={{
-              background: value === 'verified' ? 'var(--bg-primary)' : 'transparent',
-              color: value === 'verified' ? '#10b981' : 'var(--text-muted)',
-            }}
             onClick={() => {
               onChange('verified')
               setIsOpen(false)
             }}
           >
             <div className="flex items-center gap-2">
-              <Icon icon="fluent:shield-checkmark-24-filled" className="w-4 h-4 text-emerald-400" />
-              <span className={value === 'verified' ? 'font-semibold text-emerald-400' : ''}>
-                Verified
-              </span>
+              <Icon icon="fluent:shield-checkmark-24-filled" className="w-4 h-4 text-emerald-500" />
+              <span>Verified</span>
             </div>
             <span
-              className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+              className="px-2 py-0.5 rounded-full text-[10px] font-bold tabular-nums"
               style={{
-                background: 'rgba(16, 185, 129, 0.15)',
-                color: '#10b981',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
+                background: 'rgba(48, 209, 88, 0.15)',
+                color: '#30d158',
+                border: '1px solid rgba(48, 209, 88, 0.3)',
               }}
             >
               {verifiedCount}

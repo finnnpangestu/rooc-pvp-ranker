@@ -90,11 +90,10 @@ const getRankStyle = (rank: number, isDark: boolean) => {
       width: '28px',
       height: '28px',
       borderRadius: '50%',
-      background: 'var(--bg-primary)',
-      boxShadow: 'var(--shadow-neumorph-inset)',
+      background: 'rgba(0, 0, 0, 0.03)',
       color: 'var(--text-muted)',
       fontWeight: 600,
-      fontSize: '14px',
+      fontSize: '13px',
       border: '1px solid var(--border-color)',
     },
   }
@@ -111,18 +110,15 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
 
   return (
     <div
-      className="max-w-[1200px] my-10 mx-auto p-6 sm:p-10 rounded-3xl font-sans relative overflow-hidden transition-colors border"
+      className="max-w-[1200px] my-6 sm:my-10 mx-auto p-6 sm:p-10 rounded-3xl font-sans relative overflow-hidden transition-colors border border-black/5 dark:border-white/10 apple-glass shadow-xl"
       style={{
-        background: 'var(--bg-card)',
-        boxShadow: 'var(--shadow-neumorph)',
-        borderColor: 'var(--border-color)',
         color: 'var(--text-primary)',
       }}
     >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1
-            className="text-2xl sm:text-3xl font-bold mb-1"
+            className="text-2xl sm:text-3xl font-bold tracking-tight mb-1"
             style={{ color: 'var(--text-primary)' }}
           >
             Guild Leaderboard
@@ -139,18 +135,17 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
               icon="fluent:search-24-regular"
               className="w-4 h-4 absolute left-3 pointer-events-none"
               style={{ color: 'var(--text-secondary)' }}
-            />
+            >
+              <title>Cari</title>
+            </Icon>
             <input
               type="text"
               value={guildSearch}
               onChange={(e) => setGuildSearch(e.target.value)}
               placeholder="Cari nama guild..."
-              className="w-full pl-9 pr-8 py-2 text-sm rounded-xl outline-none border transition-all"
+              className="w-full pl-9 pr-8 py-2.5 text-sm rounded-xl outline-none border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
               style={{
-                background: 'var(--bg-secondary)',
                 color: 'var(--text-primary)',
-                borderColor: guildSearch ? 'rgba(129, 140, 248, 0.4)' : 'var(--border-color)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
               }}
             />
             {guildSearch && (
@@ -169,17 +164,14 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center shrink-0"
+            className="p-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] apple-press transition-all cursor-pointer flex items-center justify-center shrink-0"
             style={{
-              background: 'var(--bg-secondary)',
-              borderColor: 'var(--border-color)',
               color: 'var(--text-secondary)',
-              boxShadow: 'var(--shadow-neumorph-sm)',
             }}
             title={isDark ? 'Beralih ke Light Mode' : 'Beralih ke Dark Mode'}
           >
             {isDark ? (
-              <Icon icon="fluent:weather-sunny-24-regular" className="w-4 h-4 text-amber-400" />
+              <Icon icon="fluent:weather-sunny-24-regular" className="w-4 h-4 text-amber-500" />
             ) : (
               <Icon icon="fluent:weather-moon-24-regular" className="w-4 h-4 text-indigo-500" />
             )}

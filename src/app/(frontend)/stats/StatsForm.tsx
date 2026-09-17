@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { GlobalDialog } from '../components/GlobalDialog'
+import { Button } from '../components/Button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { JOBS } from '@/const/JobLabels'
@@ -164,8 +165,8 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
   const renderSection = (fields: { name: string; label: string; required?: boolean }[]) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {fields.map((field) => (
-        <div key={field.name} className="flex flex-col gap-2.5">
-          <label htmlFor={field.name} style={{ color: 'var(--text-secondary)' }}>
+        <div key={field.name} className="flex flex-col gap-2">
+          <label htmlFor={field.name} className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
             {field.label} {field.required && <span className="text-red-500 font-bold">*</span>}
           </label>
           <input
@@ -173,12 +174,9 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
             name={field.name}
             type="number"
             step="any"
-            className="w-full rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
+            className="w-full rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 tabular-nums"
             style={{
-              background: 'var(--bg-primary)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
               color: 'var(--text-primary)',
-              border: 'none',
             }}
             value={String(formData[field.name as keyof CharacterStatsInput] ?? '')}
             onChange={handleChange}
@@ -193,38 +191,29 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
   return (
     <>
       <div
-        className="max-w-[1200px] my-10 mx-auto p-10 rounded-3xl relative overflow-hidden transition-colors"
+        className="max-w-[1200px] my-6 sm:my-10 mx-auto p-6 sm:p-10 rounded-3xl relative overflow-hidden transition-colors apple-glass border border-black/5 dark:border-white/10 shadow-xl"
         style={{
-          background: 'var(--bg-card)',
-          boxShadow: 'var(--shadow-neumorph)',
           color: 'var(--text-primary)',
         }}
       >
-        <div className="absolute -top-[100px] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(99,102,241,0.15)_0%,rgba(0,0,0,0)_70%)] z-0 pointer-events-none"></div>
+        <div className="absolute -top-[100px] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(0,113,227,0.12)_0%,rgba(0,0,0,0)_70%)] z-0 pointer-events-none"></div>
 
         <div className="text-center mb-10 relative z-10">
           <div
-            className="inline-block py-1.5 px-3 text-[13px] font-semibold uppercase tracking-[1px] rounded-full mb-4"
+            className="inline-block py-1.5 px-4 text-xs font-semibold uppercase tracking-wider rounded-full mb-4 border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05]"
             style={{
-              background: 'var(--bg-primary)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
               color: 'var(--text-primary)',
             }}
           >
             ROOC Ranker
           </div>
-          <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+          <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: 'var(--text-primary)' }}>
             Submit Stats
           </h1>
 
-          <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+          <div className="flex items-center justify-center gap-2.5 mb-4 flex-wrap">
             <span
-              className="inline-flex items-center gap-1.5 py-1 px-3.5 rounded-full text-xs font-semibold border"
-              style={{
-                background: 'rgba(99, 102, 241, 0.1)',
-                borderColor: 'rgba(99, 102, 241, 0.3)',
-                color: '#818cf8',
-              }}
+              className="inline-flex items-center gap-1.5 py-1.5 px-3.5 rounded-full text-xs font-semibold border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400"
             >
               <Icon icon="fluent:shield-checkmark-20-filled" className="w-4 h-4" />
               Guild: {guild.name}
@@ -232,12 +221,9 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
             <button
               type="button"
               onClick={handleCopyLink}
-              className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-medium cursor-pointer transition-all border"
+              className="inline-flex items-center gap-1.5 py-1.5 px-3.5 rounded-full text-xs font-medium cursor-pointer transition-all border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] apple-press"
               style={{
-                background: 'var(--bg-secondary)',
-                borderColor: 'var(--border-color)',
                 color: copiedLink ? '#10b981' : 'var(--text-secondary)',
-                boxShadow: 'var(--shadow-neumorph-sm)',
               }}
               title="Salin tautan formulir ini untuk dibagikan"
             >
@@ -250,17 +236,14 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
             <button
               type="button"
               onClick={toggleTheme}
-              className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-medium cursor-pointer transition-all border"
+              className="inline-flex items-center gap-1.5 py-1.5 px-3.5 rounded-full text-xs font-medium cursor-pointer transition-all border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] apple-press"
               style={{
-                background: 'var(--bg-secondary)',
-                borderColor: 'var(--border-color)',
                 color: 'var(--text-secondary)',
-                boxShadow: 'var(--shadow-neumorph-sm)',
               }}
               title={isDark ? 'Beralih ke Light Mode' : 'Beralih ke Dark Mode'}
             >
               {isDark ? (
-                <Icon icon="fluent:weather-sunny-16-regular" className="w-3.5 h-3.5 text-amber-400" />
+                <Icon icon="fluent:weather-sunny-16-regular" className="w-3.5 h-3.5 text-amber-500" />
               ) : (
                 <Icon icon="fluent:weather-moon-16-regular" className="w-3.5 h-3.5 text-indigo-500" />
               )}
@@ -268,36 +251,17 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
             </button>
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '8px',
-              margin: '20px 0 16px 0',
-            }}
-          >
-            <div
-              style={{
-                display: 'inline-flex',
-                background: 'var(--bg-secondary)',
-                borderRadius: '10px',
-                padding: '4px',
-                border: '1px solid var(--border-color)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-              }}
-            >
+          <div className="flex justify-center my-5">
+            <div className="inline-flex p-1 rounded-2xl border border-black/10 dark:border-white/10 bg-black/[0.04] dark:bg-white/[0.05] backdrop-blur-md">
               <button
                 type="button"
                 onClick={() => handleModeChange('add')}
                 className={clsx(
-                  'flex-1 bg-transparent border-none py-3 px-5 text-[15px] font-semibold font-sans rounded-[10px] cursor-pointer transition-all duration-300 whitespace-nowrap',
-                  formMode === 'add' ? 'shadow-neumorph-inset' : 'hover:shadow-neumorph-sm',
+                  'py-2 px-5 text-sm font-semibold rounded-xl cursor-pointer transition-all duration-200 apple-press',
+                  formMode === 'add'
+                    ? 'bg-white dark:bg-zinc-800 text-[var(--text-primary)] shadow-sm border border-black/5 dark:border-white/10'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
                 )}
-                style={{
-                  background: formMode === 'add' ? 'var(--bg-primary)' : 'transparent',
-                  color: formMode === 'add' ? 'var(--text-primary)' : 'var(--text-muted)',
-                  boxShadow: formMode === 'add' ? 'var(--shadow-neumorph-inset)' : 'none',
-                }}
               >
                 Tambah Char
               </button>
@@ -305,14 +269,11 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                 type="button"
                 onClick={() => handleModeChange('update')}
                 className={clsx(
-                  'flex-1 bg-transparent border-none py-3 px-5 text-[15px] font-semibold font-sans rounded-[10px] cursor-pointer transition-all duration-300 whitespace-nowrap',
-                  formMode === 'update' ? 'shadow-neumorph-inset' : 'hover:shadow-neumorph-sm',
+                  'py-2 px-5 text-sm font-semibold rounded-xl cursor-pointer transition-all duration-200 apple-press',
+                  formMode === 'update'
+                    ? 'bg-white dark:bg-zinc-800 text-[var(--text-primary)] shadow-sm border border-black/5 dark:border-white/10'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
                 )}
-                style={{
-                  background: formMode === 'update' ? 'var(--bg-primary)' : 'transparent',
-                  color: formMode === 'update' ? 'var(--text-primary)' : 'var(--text-muted)',
-                  boxShadow: formMode === 'update' ? 'var(--shadow-neumorph-inset)' : 'none',
-                }}
               >
                 Update Char
               </button>
@@ -354,35 +315,22 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
         </div>
 
         <div
-          className="flex gap-2 p-2 rounded-2xl mb-8 relative z-10 border overflow-x-auto scrollbar-none"
-          style={{
-            background: 'var(--bg-secondary)',
-            borderColor: 'var(--border-color)',
-            boxShadow: 'var(--shadow-neumorph-inset)',
-          }}
+          className="flex gap-2 p-1.5 rounded-2xl mb-8 relative z-10 border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] overflow-x-auto scrollbar-none"
         >
           {TABS.map((tab) => {
             const isDisabled = formMode === 'update' && !selectedUpdateId && tab.id !== 'info'
+            const isActive = activeTab === tab.id
             return (
               <button
                 key={tab.id}
                 type="button"
                 className={clsx(
-                  'flex-1 py-3 px-5 text-[15px] font-semibold font-sans rounded-[10px] cursor-pointer transition-all duration-300 whitespace-nowrap border',
-                  activeTab === tab.id
-                    ? 'shadow-neumorph-inset'
-                    : 'shadow-neumorph-sm hover:shadow-neumorph',
-                  isDisabled && 'opacity-50 cursor-not-allowed',
+                  'flex-1 py-2.5 px-5 text-sm font-semibold rounded-xl cursor-pointer transition-all duration-200 whitespace-nowrap apple-press',
+                  isActive
+                    ? 'bg-white dark:bg-zinc-800 text-[var(--text-primary)] shadow-sm border border-black/5 dark:border-white/10'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
+                  isDisabled && 'opacity-40 cursor-not-allowed pointer-events-none',
                 )}
-                style={{
-                  background: activeTab === tab.id ? 'var(--bg-primary)' : 'var(--bg-secondary)',
-                  color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-muted)',
-                  borderColor: 'var(--border-color)',
-                  boxShadow:
-                    activeTab === tab.id
-                      ? 'var(--shadow-neumorph-inset)'
-                      : 'var(--shadow-neumorph-sm)',
-                }}
                 onClick={() => setActiveTab(tab.id)}
                 disabled={isDisabled}
               >
@@ -398,20 +346,17 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {formMode === 'add' ? (
                 <>
-                  <div className="flex flex-col gap-2.5">
-                    <label htmlFor="name" style={{ color: 'var(--text-secondary)' }}>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
                       IGN (In-Game Name) <span className="text-red-500 font-bold">*</span>
                     </label>
                     <input
                       id="name"
                       name="name"
                       type="text"
-                      className="w-full rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
+                      className="w-full rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
                       style={{
-                        background: 'var(--bg-primary)',
-                        boxShadow: 'var(--shadow-neumorph-inset)',
                         color: 'var(--text-primary)',
-                        border: 'none',
                       }}
                       value={formData.name}
                       onChange={handleChange}
@@ -420,56 +365,48 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2.5">
-                    <label htmlFor="job" style={{ color: 'var(--text-secondary)' }}>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="job" className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
                       Job <span className="text-red-500 font-bold">*</span>
                     </label>
-                    <div className="relative after:content-[''] after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2 after:w-[10px] after:h-[6px] after:bg-[url('data:image/svg+xml;utf8,<svg_fill=%22%239ca3af%22_viewBox=%220_0_24_24%22_xmlns=%22http://www.w3.org/2000/svg%22><path_d=%22M7_10l5_5_5-5z%22/></svg>')] after:bg-no-repeat after:bg-center after:pointer-events-none">
-                      <select
-                        id="job"
-                        name="job"
-                        className="w-full appearance-none rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
-                        style={{
-                          background: 'var(--bg-primary)',
-                          boxShadow: 'var(--shadow-neumorph-inset)',
-                          color: 'var(--text-primary)',
-                          border: 'none',
-                        }}
-                        value={formData.job}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="" disabled>
-                          -- Pilih Job --
+                    <select
+                      id="job"
+                      name="job"
+                      className="w-full appearance-none rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+                      style={{
+                        color: 'var(--text-primary)',
+                      }}
+                      value={formData.job}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="" disabled>
+                        -- Pilih Job --
+                      </option>
+                      {JOBS.map((j) => (
+                        <option key={j.value} value={j.value}>
+                          {j.label}
                         </option>
-                        {JOBS.map((j) => (
-                          <option key={j.value} value={j.value}>
-                            {j.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                      ))}
+                    </select>
                   </div>
 
-                  <div className="flex flex-col gap-2.5">
-                    <label style={{ color: 'var(--text-secondary)' }}>Guild Terdaftar</label>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Guild Terdaftar</label>
                     <div
-                      className="w-full rounded-xl py-3.5 px-4 text-[15px] font-sans flex items-center justify-between border"
+                      className="w-full rounded-xl py-3 px-4 text-sm font-sans flex items-center justify-between border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04]"
                       style={{
-                        background: 'var(--bg-primary)',
-                        boxShadow: 'var(--shadow-neumorph-inset)',
-                        borderColor: 'var(--border-color)',
                         color: 'var(--text-primary)',
                       }}
                     >
                       <div className="flex items-center gap-2">
                         <Icon
                           icon="fluent:shield-checkmark-24-filled"
-                          className="w-5 h-5 text-indigo-400"
+                          className="w-5 h-5 text-blue-500"
                         />
                         <span className="font-semibold">{guild.name}</span>
                       </div>
-                      <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-semibold">
                         Terverifikasi
                       </span>
                     </div>
@@ -477,92 +414,79 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                 </>
               ) : (
                 <>
-                  <div className="flex flex-col gap-2.5">
-                    <label style={{ color: 'var(--text-secondary)' }}>Guild Terdaftar</label>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Guild Terdaftar</label>
                     <div
-                      className="w-full rounded-xl py-3.5 px-4 text-[15px] font-sans flex items-center justify-between border"
+                      className="w-full rounded-xl py-3 px-4 text-sm font-sans flex items-center justify-between border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04]"
                       style={{
-                        background: 'var(--bg-primary)',
-                        boxShadow: 'var(--shadow-neumorph-inset)',
-                        borderColor: 'var(--border-color)',
                         color: 'var(--text-primary)',
                       }}
                     >
                       <div className="flex items-center gap-2">
                         <Icon
                           icon="fluent:shield-checkmark-24-filled"
-                          className="w-5 h-5 text-indigo-400"
+                          className="w-5 h-5 text-blue-500"
                         />
                         <span className="font-semibold">{guild.name}</span>
                       </div>
-                      <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-semibold">
                         Terverifikasi
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2.5">
-                    <label htmlFor="update_ign" style={{ color: 'var(--text-secondary)' }}>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="update_ign" className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
                       Pilih Karakter (IGN) <span className="text-red-500 font-bold">*</span>
                     </label>
-                    <div className="relative after:content-[''] after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2 after:w-[10px] after:h-[6px] after:bg-[url('data:image/svg+xml;utf8,<svg_fill=%22%239ca3af%22_viewBox=%220_0_24_24%22_xmlns=%22http://www.w3.org/2000/svg%22><path_d=%22M7_10l5_5_5-5z%22/></svg>')] after:bg-no-repeat after:bg-center after:pointer-events-none">
-                      <select
-                        id="update_ign"
-                        className="w-full appearance-none rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
-                        style={{
-                          background: 'var(--bg-primary)',
-                          boxShadow: 'var(--shadow-neumorph-inset)',
-                          color: 'var(--text-primary)',
-                          border: 'none',
-                        }}
-                        value={selectedUpdateId}
-                        onChange={(e) => handleSelectCharacter(e.target.value)}
-                        required
-                      >
-                        <option value="" disabled>
-                          {filteredCharactersForUpdate.length === 0
-                            ? '-- Belum ada karakter di guild ini --'
-                            : '-- Pilih Karakter --'}
+                    <select
+                      id="update_ign"
+                      className="w-full appearance-none rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+                      style={{
+                        color: 'var(--text-primary)',
+                      }}
+                      value={selectedUpdateId}
+                      onChange={(e) => handleSelectCharacter(e.target.value)}
+                      required
+                    >
+                      <option value="" disabled>
+                        {filteredCharactersForUpdate.length === 0
+                          ? '-- Belum ada karakter di guild ini --'
+                          : '-- Pilih Karakter --'}
+                      </option>
+                      {filteredCharactersForUpdate.map((c) => (
+                        <option key={c.id} value={String(c.id)}>
+                          {c.name} ({JOBS.find((j) => j.value === c.job)?.label || c.job})
                         </option>
-                        {filteredCharactersForUpdate.map((c) => (
-                          <option key={c.id} value={String(c.id)}>
-                            {c.name} ({JOBS.find((j) => j.value === c.job)?.label || c.job})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                      ))}
+                    </select>
                   </div>
 
-                  <div className="flex flex-col gap-2.5">
-                    <label htmlFor="job" style={{ color: 'var(--text-secondary)' }}>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="job" className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
                       Edit Job (Jika Pindah Job) <span className="text-red-500 font-bold">*</span>
                     </label>
-                    <div className="relative after:content-[''] after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2 after:w-[10px] after:h-[6px] after:bg-[url('data:image/svg+xml;utf8,<svg_fill=%22%239ca3af%22_viewBox=%220_0_24_24%22_xmlns=%22http://www.w3.org/2000/svg%22><path_d=%22M7_10l5_5_5-5z%22/></svg>')] after:bg-no-repeat after:bg-center after:pointer-events-none">
-                      <select
-                        id="job"
-                        name="job"
-                        className="w-full appearance-none rounded-xl py-3.5 px-4 text-[15px] font-sans transition-all duration-200 outline-none"
-                        style={{
-                          background: 'var(--bg-primary)',
-                          boxShadow: 'var(--shadow-neumorph-inset)',
-                          color: 'var(--text-primary)',
-                          border: 'none',
-                        }}
-                        value={formData.job}
-                        onChange={handleChange}
-                        required
-                        disabled={!selectedUpdateId}
-                      >
-                        <option value="" disabled>
-                          -- Pilih Job --
+                    <select
+                      id="job"
+                      name="job"
+                      className="w-full appearance-none rounded-xl py-3 px-4 text-sm font-sans transition-all outline-none border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+                      style={{
+                        color: 'var(--text-primary)',
+                      }}
+                      value={formData.job}
+                      onChange={handleChange}
+                      required
+                      disabled={!selectedUpdateId}
+                    >
+                      <option value="" disabled>
+                        -- Pilih Job --
+                      </option>
+                      {JOBS.map((j) => (
+                        <option key={j.value} value={j.value}>
+                          {j.label}
                         </option>
-                        {JOBS.map((j) => (
-                          <option key={j.value} value={j.value}>
-                            {j.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                      ))}
+                    </select>
                   </div>
                 </>
               )}
@@ -572,13 +496,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
           {/* Tab: General */}
           <div className={clsx('hidden animate-fadeUp', { '!block': activeTab === 'general' })}>
             <div
-              className="mb-6 text-[15px] font-light p-4 rounded-xl border-l-[3px]"
-              style={{
-                background: 'var(--bg-primary)',
-                borderColor: 'var(--text-primary)',
-                color: 'var(--text-secondary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-              }}
+              className="mb-6 text-xs leading-relaxed p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-[var(--text-secondary)] backdrop-blur-sm"
             >
               Statistik dasar karaktermu.
             </div>
@@ -588,13 +506,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
           {/* Tab: Quasi */}
           <div className={clsx('hidden animate-fadeUp', { '!block': activeTab === 'quasi' })}>
             <div
-              className="mb-6 text-[15px] font-light p-4 rounded-xl border-l-[3px]"
-              style={{
-                background: 'var(--bg-primary)',
-                borderColor: 'var(--text-primary)',
-                color: 'var(--text-secondary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-              }}
+              className="mb-6 text-xs leading-relaxed p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-[var(--text-secondary)] backdrop-blur-sm"
             >
               Statistik lanjutan (Quasi). Isi dalam bentuk angka murni tanpa persen (Contoh: 99.5
               untuk 99.5%). Untuk stats Minus (-), Jangan pakai tanda minus (Contoh: 5 Untuk -5)
@@ -605,13 +517,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
           {/* Tab: Special */}
           <div className={clsx('hidden animate-fadeUp', { '!block': activeTab === 'special' })}>
             <div
-              className="mb-6 text-[15px] font-light p-4 rounded-xl border-l-[3px]"
-              style={{
-                background: 'var(--bg-primary)',
-                borderColor: 'var(--text-primary)',
-                color: 'var(--text-secondary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-              }}
+              className="mb-6 text-xs leading-relaxed p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-[var(--text-secondary)] backdrop-blur-sm"
             >
               Statistik tambahan dari equipment atau modifier khusus.
             </div>
@@ -619,34 +525,16 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
           </div>
 
           <div
-            className="mt-10 pt-8 border-t flex justify-end"
-            style={{ borderColor: 'var(--border-color)' }}
+            className="mt-10 pt-8 border-t border-black/5 dark:border-white/10 flex justify-end"
           >
-            <button
+            <Button
               type="submit"
-              className="rounded-xl py-4 px-10 text-base font-semibold font-sans cursor-pointer transition-all duration-300 border-none relative group disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-              style={{
-                background: 'var(--bg-primary)',
-                boxShadow: 'var(--shadow-neumorph-sm)',
-                color: 'var(--text-primary)',
-              }}
-              disabled={isSubmitting}
+              variant="primary"
+              size="lg"
+              loading={isSubmitting}
             >
-              <span className="relative z-10">
-                {isSubmitting
-                  ? 'Mengirim...'
-                  : formMode === 'add'
-                    ? 'Kirim Data Stats'
-                    : 'Update Data Stats'}
-              </span>
-              <span
-                className="absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                style={{
-                  background: 'var(--bg-primary)',
-                  boxShadow: 'var(--shadow-neumorph)',
-                }}
-              ></span>
-            </button>
+              {formMode === 'add' ? 'Kirim Data Stats' : 'Update Data Stats'}
+            </Button>
           </div>
         </form>
       </div>
@@ -657,14 +545,14 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
         title={formMode === 'add' ? 'Submission Berhasil!' : 'Update Berhasil!'}
       >
         <div
-          className="text-center text-base mb-4 leading-relaxed"
+          className="text-center text-sm mb-4 leading-relaxed"
           style={{ color: 'var(--text-secondary)' }}
         >
           {formMode === 'add'
             ? 'Data karaktermu telah disimpan dan menunggu verifikasi dari Guild Master.'
             : 'Data karaktermu berhasil diubah dan dikembalikan ke status Pending untuk diverifikasi ulang.'}
         </div>
-        <div className="text-[56px] font-extrabold text-center bg-gradient-to-r from-amber-400 via-amber-500 to-orange-600 text-transparent bg-clip-text my-6 drop-shadow-[0_10px_30px_rgba(245,158,11,0.2)]">
+        <div className="text-5xl font-extrabold text-center bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-transparent bg-clip-text my-6 drop-shadow-sm tabular-nums">
           Score:{' '}
           {dialogResult.score !== null ? Math.round(dialogResult.score).toLocaleString() : 'N/A'}
         </div>

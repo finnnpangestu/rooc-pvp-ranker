@@ -10,15 +10,9 @@ interface EmptyStateProps {
 export function EmptyState({ message, className = '' }: EmptyStateProps) {
   return (
     <div
-      className={`p-[60px] text-center rounded-2xl border border-dashed mb-6 transition-colors ${className}`}
-      style={{
-        background: 'var(--bg-primary)',
-        borderColor: 'var(--border-color)',
-        boxShadow: 'var(--shadow-neumorph-inset)',
-        color: 'var(--text-muted)',
-      }}
+      className={`py-12 px-6 text-center rounded-3xl border border-dashed border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] mb-6 transition-colors ${className}`}
     >
-      <p className="text-[15px] m-0" style={{ color: 'var(--text-muted)' }}>
+      <p className="text-sm m-0 text-zinc-500 dark:text-zinc-400 font-medium leading-relaxed">
         {message}
       </p>
     </div>

@@ -304,42 +304,46 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const style = document.createElement('style')
     style.innerHTML = `
-      /* Neumorphism Theme for Driver.js */
+      /* Apple Glass Theme for Driver.js */
       .driver-popover {
         background-color: var(--bg-card) !important;
+        backdrop-filter: blur(24px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
         color: var(--text-primary) !important;
         border: 1px solid var(--border-color) !important;
-        border-radius: 16px !important;
-        box-shadow: var(--shadow-neumorph-lg) !important;
-        padding: 20px !important;
+        border-radius: 24px !important;
+        box-shadow: var(--shadow-modal) !important;
+        padding: 22px !important;
       }
       .driver-popover-title {
         color: var(--text-primary) !important;
         font-weight: 700 !important;
-        font-size: 18px !important;
-        margin-bottom: 12px !important; /* Adds space between title and description */
+        font-size: 17px !important;
+        letter-spacing: -0.02em !important;
+        margin-bottom: 8px !important;
       }
       .driver-popover-description {
         color: var(--text-secondary) !important;
-        font-size: 14px !important;
+        font-size: 13.5px !important;
         line-height: 1.5 !important;
       }
       .driver-popover-footer {
-        margin-top: 16px !important;
+        margin-top: 18px !important;
       }
       .driver-popover-footer button {
-        background-color: var(--bg-secondary) !important;
+        background-color: var(--bg-primary) !important;
         color: var(--text-primary) !important;
         border: 1px solid var(--border-color) !important;
-        border-radius: 8px !important;
-        box-shadow: var(--shadow-neumorph) !important;
+        border-radius: 12px !important;
+        box-shadow: var(--shadow-subtle) !important;
         text-shadow: none !important;
         padding: 6px 16px !important;
         font-weight: 600 !important;
-        transition: all 0.2s ease !important;
+        font-size: 13px !important;
+        transition: all 0.15s ease !important;
       }
-      .driver-popover-footer button:hover {
-        box-shadow: var(--shadow-neumorph-inset) !important;
+      .driver-popover-footer button:active {
+        transform: scale(0.97) !important;
       }
       .driver-popover-progress-text {
         color: var(--text-muted) !important;

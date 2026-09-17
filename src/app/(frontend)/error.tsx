@@ -22,18 +22,13 @@ export default function GlobalFrontendError({ error, reset }: RootErrorProps) {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 sm:p-6 transition-colors"
+      className="min-h-screen flex items-center justify-center p-4 sm:p-6 transition-colors apple-canvas"
       style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
     >
       <div
-        className="max-w-md w-full p-8 rounded-2xl flex flex-col items-center text-center border shadow-2xl backdrop-blur-md transition-colors"
-        style={{
-          background: 'var(--bg-card)',
-          borderColor: 'var(--border-color)',
-          boxShadow: 'var(--shadow-neumorph)',
-        }}
+        className="max-w-md w-full p-8 rounded-3xl flex flex-col items-center text-center border border-black/5 dark:border-white/10 shadow-2xl apple-glass transition-colors"
       >
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-rose-500/10 border border-rose-500/20 text-rose-500 mb-5">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-rose-500/10 border border-rose-500/20 text-rose-500 mb-5 shadow-sm">
           <Icon icon="fluent:plug-disconnected-24-filled" className="w-8 h-8" />
         </div>
 

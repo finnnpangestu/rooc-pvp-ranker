@@ -392,17 +392,12 @@ export function ReportWoeClient({
           return (
             <div key={party.id} className="mb-10">
               <h2
-                className="text-[20px] font-bold mb-4 pb-2 border-b flex items-center justify-between"
-                style={{ color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
+                className="text-[20px] font-bold mb-4 pb-2 border-b border-black/5 dark:border-white/10 flex items-center justify-between tracking-tight"
+                style={{ color: 'var(--text-primary)' }}
               >
                 <span>{party.name}</span>
                 <span
-                  className="text-sm px-3 py-1 rounded border"
-                  style={{
-                    background: 'var(--bg-secondary)',
-                    borderColor: 'var(--border-color)',
-                    color: 'var(--text-muted)',
-                  }}
+                  className="text-xs px-3 py-1 rounded-full border border-black/5 dark:border-white/10 bg-black/5 dark:bg-white/5 text-[var(--text-muted)] tabular-nums"
                 >
                   {party.memberCount}/5 Member
                 </span>
@@ -419,12 +414,7 @@ export function ReportWoeClient({
                   return (
                     <div
                       key={charId}
-                      className="rounded-xl p-5 flex flex-col gap-4 border transition-all"
-                      style={{
-                        background: 'var(--bg-secondary)',
-                        borderColor: 'var(--border-color)',
-                        boxShadow: 'var(--shadow-neumorph-sm)',
-                      }}
+                      className="apple-glass rounded-2xl p-5 flex flex-col gap-4 border border-black/5 dark:border-white/10 shadow-sm transition-all"
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
@@ -433,11 +423,11 @@ export function ReportWoeClient({
                             alt=""
                             width={32}
                             height={32}
-                            className="rounded object-cover"
+                            className="rounded-lg object-cover"
                           />
                           <div>
                             <div
-                              className="font-bold text-[15px]"
+                              className="font-bold text-[15px] tracking-tight"
                               style={{ color: 'var(--text-primary)' }}
                             >
                               {m.char.name}
@@ -451,10 +441,9 @@ export function ReportWoeClient({
                           </div>
                         </div>
 
-                        <label className="flex flex-col items-center gap-1 cursor-pointer">
+                        <label className="flex flex-col items-center gap-1 cursor-pointer select-none">
                           <span
-                            className="text-[11px] font-bold uppercase tracking-wider"
-                            style={{ color: data.is_present ? '#10b981' : 'var(--text-muted)' }}
+                            className={`text-[11px] font-semibold uppercase tracking-wider ${data.is_present ? 'text-[#34c759]' : 'text-neutral-400 dark:text-neutral-500'}`}
                           >
                             Hadir
                           </span>
@@ -471,16 +460,10 @@ export function ReportWoeClient({
                               }
                             />
                             <div
-                              className={`w-10 h-5 rounded-full transition-colors duration-300 ${data.is_present ? 'bg-emerald-500' : 'bg-gray-600'}`}
-                              style={{
-                                boxShadow: data.is_present
-                                  ? 'inset 0 2px 4px rgba(0,0,0,0.2)'
-                                  : 'var(--shadow-neumorph-inset)',
-                              }}
+                              className={`w-11 h-6 rounded-full transition-colors duration-200 relative p-0.5 ${data.is_present ? 'bg-[#34c759]' : 'bg-black/20 dark:bg-white/20'}`}
                             >
                               <div
-                                className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all duration-300 ${data.is_present ? 'left-6' : 'left-1'}`}
-                                style={{ boxShadow: 'var(--shadow-neumorph-sm)' }}
+                                className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${data.is_present ? 'translate-x-5' : 'translate-x-0'}`}
                               />
                             </div>
                           </div>
@@ -505,13 +488,7 @@ export function ReportWoeClient({
                                 }))
                                 setSwapTargetChar((prev) => ({ ...prev, [charId]: '' }))
                               }}
-                              className="w-full rounded-lg py-2 px-3 outline-none text-[14px]"
-                              style={{
-                                background: 'var(--bg-primary)',
-                                color: 'var(--text-primary)',
-                                boxShadow: 'var(--shadow-neumorph-inset)',
-                                border: 'none',
-                              }}
+                              className="w-full rounded-xl py-2 px-3 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] transition-all text-[var(--text-primary)]"
                             >
                               <option value="">-- Tetap di posisinya --</option>
                               {availableParties.map((p) => (
@@ -530,13 +507,7 @@ export function ReportWoeClient({
                                     [charId]: e.target.value,
                                   }))
                                 }
-                                className="w-full rounded-lg py-2 px-3 outline-none text-[13px]"
-                                style={{
-                                  background: 'var(--bg-primary)',
-                                  color: '#f59e0b',
-                                  boxShadow: 'var(--shadow-neumorph-inset)',
-                                  border: '1px solid rgba(245, 158, 11, 0.2)',
-                                }}
+                                className="w-full rounded-xl py-2 px-3 outline-none text-[13px] bg-black/5 dark:bg-white/5 border border-amber-500/30 focus:border-amber-500 text-amber-600 dark:text-amber-400 transition-all"
                               >
                                 <option value="">-- Pilih Target Swap --</option>
                                 {targetParty?.slots.map((s: PartySlot) => {
@@ -604,36 +575,24 @@ export function ReportWoeClient({
 
       <div
         id="tour-woe-report-list"
-        className="rounded-lg p-6 mb-8 transition-colors"
-        style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
+        className="apple-glass rounded-3xl p-6 sm:p-8 mb-8 border border-black/5 dark:border-white/10 shadow-sm transition-colors"
       >
-        <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+        <h2 className="text-xl font-bold mb-4 tracking-tight" style={{ color: 'var(--text-primary)' }}>
           Riwayat Laporan WoE
         </h2>
         {historyReports.length === 0 ? (
           <div
-            className="p-8 text-center rounded-lg border"
-            style={{
-              borderColor: 'var(--border-color)',
-              background: 'var(--bg-primary)',
-              color: 'var(--text-muted)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
+            className="p-8 text-center rounded-2xl border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] text-[var(--text-muted)]"
           >
             Belum ada report WoE. Klik tombol di atas untuk membuat.
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             {paginatedReports.map((report) => (
               <div
                 key={report.id}
                 onClick={() => setViewReport(report)}
-                className="p-5 rounded-lg border cursor-pointer transition-all"
-                style={{
-                  borderColor: 'var(--border-color)',
-                  background: 'var(--bg-primary)',
-                  boxShadow: 'var(--shadow-neumorph-sm)',
-                }}
+                className="p-5 rounded-2xl border border-black/5 dark:border-white/10 bg-white/60 dark:bg-white/[0.03] hover:bg-white/80 dark:hover:bg-white/[0.06] shadow-sm hover:shadow-md cursor-pointer transition-all apple-press"
               >
                 <div className="flex justify-between items-center">
                   <div>
@@ -693,13 +652,7 @@ export function ReportWoeClient({
               value={reportName}
               onChange={(e) => setReportName(e.target.value)}
               placeholder="Contoh: WoE 12 Agustus 2026"
-              className="w-full rounded-xl py-3 px-4 outline-none text-[14px]"
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-                border: 'none',
-              }}
+              className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all"
             />
           </div>
 
@@ -716,13 +669,7 @@ export function ReportWoeClient({
               value={matchRank}
               onChange={(e) => setMatchRank(Number(e.target.value))}
               placeholder="Contoh: 1"
-              className="w-full rounded-xl py-3 px-4 outline-none text-[14px]"
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-                border: 'none',
-              }}
+              className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all tabular-nums"
             />
           </div>
 
@@ -819,12 +766,7 @@ export function ReportWoeClient({
                         {partyName}
                       </h4>
                       <span
-                        className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-                        style={{
-                          background: 'var(--bg-secondary)',
-                          color: 'var(--text-muted)',
-                          boxShadow: 'var(--shadow-neumorph-inset)',
-                        }}
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-[var(--text-muted)] tabular-nums"
                       >
                         {members.length}/5
                       </span>
@@ -842,19 +784,13 @@ export function ReportWoeClient({
                         return (
                           <div
                             key={idx}
-                            className="flex flex-col items-center p-3 rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer hover:bg-black/[0.03] dark:hover:bg-white/5"
+                            className={`flex flex-col items-center p-3 rounded-2xl border transition-all duration-200 cursor-pointer apple-press ${
+                              isPresent
+                                ? 'bg-white/70 dark:bg-white/[0.04] border-emerald-500/20 shadow-sm hover:shadow-md'
+                                : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/5 dark:border-white/5 opacity-60'
+                            }`}
                             onClick={() => {
                               if (resolvedChar) setViewedMember(resolvedChar)
-                            }}
-                            style={{
-                              background: isPresent ? 'var(--bg-card)' : 'var(--bg-primary)',
-                              borderColor: isPresent
-                                ? 'rgba(16,185,129,0.2)'
-                                : 'var(--border-color)',
-                              boxShadow: isPresent
-                                ? 'var(--shadow-neumorph-sm)'
-                                : 'var(--shadow-neumorph-inset)',
-                              opacity: isPresent ? 1 : 0.6,
                             }}
                           >
                             <div className="relative mb-1.5">
@@ -863,18 +799,12 @@ export function ReportWoeClient({
                                 alt=""
                                 width={40}
                                 height={40}
-                                className="w-10 h-10 object-cover rounded-lg shadow-sm"
-                                style={{ border: '1px solid var(--border-color)' }}
+                                className="w-10 h-10 object-cover rounded-xl shadow-sm border border-black/5 dark:border-white/10"
                                 onError={(e) => (e.currentTarget.style.display = 'none')}
                               />
                               {!isPresent && (
                                 <div
-                                  className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold"
-                                  style={{
-                                    background: 'var(--bg-secondary)',
-                                    color: 'var(--text-muted)',
-                                    boxShadow: 'var(--shadow-neumorph-inset)',
-                                  }}
+                                  className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20 shadow-sm"
                                 >
                                   ✕
                                 </div>

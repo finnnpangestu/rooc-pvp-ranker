@@ -290,12 +290,7 @@ export function LineupExportModal({
       }}
     >
       <div
-        className="w-full max-w-6xl rounded-2xl flex flex-col border max-h-[90vh] overflow-hidden"
-        style={{
-          background: 'var(--bg-card)',
-          borderColor: 'var(--border-color)',
-          boxShadow: 'var(--shadow-neumorph-lg)',
-        }}
+        className="w-full max-w-6xl rounded-3xl flex flex-col border border-black/5 dark:border-white/10 max-h-[90vh] overflow-hidden apple-glass bg-white/95 dark:bg-zinc-900/95 shadow-2xl animate-slideIn"
       >
         {/* Modal Controls Header */}
         <div

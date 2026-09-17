@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import React, { useState } from 'react'
@@ -27,16 +28,15 @@ interface AxisConfig {
   key: keyof HexagonStats
   label: string
   subLabel: string
-  icon: string
 }
 
 const AXES: AxisConfig[] = [
-  { key: 'atk', label: 'ATK', subLabel: 'Offense & Burst', icon: '⚔️' },
-  { key: 'crit', label: 'CRIT', subLabel: 'Lethality & Crit', icon: '🎯' },
-  { key: 'agi', label: 'AGI', subLabel: 'Mobility & Speed', icon: '⚡' },
-  { key: 'def', label: 'DEF', subLabel: 'Survivability', icon: '🛡️' },
-  { key: 'cast', label: 'CAST', subLabel: 'Cadence & Execution', icon: '🔮' },
-  { key: 'utl', label: 'UTL', subLabel: 'Support & Sustain', icon: '✨' },
+  { key: 'atk', label: 'ATK', subLabel: 'Offense & Burst' },
+  { key: 'crit', label: 'CRIT', subLabel: 'Lethality & Crit' },
+  { key: 'agi', label: 'AGI', subLabel: 'Mobility & Speed' },
+  { key: 'def', label: 'DEF', subLabel: 'Survivability' },
+  { key: 'cast', label: 'CAST', subLabel: 'Cadence & Execution' },
+  { key: 'utl', label: 'UTL', subLabel: 'Support & Sustain' },
 ]
 
 export function HexagonRadarChart({
@@ -302,7 +302,6 @@ export function HexagonRadarChart({
                   fontWeight="bold"
                   className="font-sans transition-colors duration-150"
                 >
-                  {showIcons ? `${axis.icon} ` : ''}
                   {axis.label}
                 </text>
                 <text
@@ -383,22 +382,21 @@ export function HexagonRadarChart({
             return (
               <div
                 key={axis.key}
-                className="p-2.5 rounded-lg border flex flex-col justify-between"
+                className="p-3 rounded-2xl border flex flex-col justify-between transition-colors"
                 style={{
                   background: 'var(--bg-secondary)',
                   borderColor: 'var(--border-color)',
                 }}
               >
                 <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="font-bold flex items-center gap-1 text-gray-300">
-                    {showIcons && <span>{axis.icon}</span>}
+                  <span className="font-semibold flex items-center gap-1" style={{ color: 'var(--text-primary)' }}>
                     <span>{axis.label}</span>
                   </span>
                   {isCompare && diff !== 0 && (
                     <span
-                      className="text-[10px] font-bold px-1.5 py-0.2 rounded"
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                       style={{
-                        background: diff > 0 ? `${colorA}25` : `${colorB}25`,
+                        background: diff > 0 ? `${colorA}20` : `${colorB}20`,
                         color: diff > 0 ? colorA : colorB,
                       }}
                     >
@@ -407,27 +405,27 @@ export function HexagonRadarChart({
                   )}
                 </div>
 
-                <div className="text-xs text-gray-400 text-[11px] mb-1.5 truncate">
+                <div className="text-[11px] mb-2 truncate" style={{ color: 'var(--text-muted)' }}>
                   {axis.subLabel}
                 </div>
 
                 {isCompare ? (
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[11px] font-semibold">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-[11px] font-medium">
                       <span style={{ color: colorA }}>{labelA}</span>
-                      <span className="font-mono">{valA}/100</span>
+                      <span className="tabular-nums font-semibold">{valA}/100</span>
                     </div>
-                    <div className="w-full bg-black/10 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-black/8 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-300"
                         style={{ width: `${valA}%`, backgroundColor: colorA }}
                       />
                     </div>
-                    <div className="flex items-center justify-between text-[11px] font-semibold pt-0.5">
+                    <div className="flex items-center justify-between text-[11px] font-medium pt-0.5">
                       <span style={{ color: colorB }}>{labelB}</span>
-                      <span className="font-mono">{valB}/100</span>
+                      <span className="tabular-nums font-semibold">{valB}/100</span>
                     </div>
-                    <div className="w-full bg-black/10 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-black/8 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-300"
                         style={{ width: `${valB}%`, backgroundColor: colorB }}
@@ -436,15 +434,15 @@ export function HexagonRadarChart({
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        {axis.label}
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>
+                        Skor
                       </span>
-                      <span className="font-bold font-mono" style={{ color }}>
-                        {valSingle}
+                      <span className="font-bold tabular-nums" style={{ color }}>
+                        {valSingle}/100
                       </span>
                     </div>
-                    <div className="w-full bg-black/15 dark:bg-white/10 h-2 rounded-full overflow-hidden">
+                    <div className="w-full bg-black/8 dark:bg-white/10 h-2 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-300"
                         style={{ width: `${valSingle}%`, background: color }}

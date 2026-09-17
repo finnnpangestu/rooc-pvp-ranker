@@ -16,41 +16,28 @@ export function Pagination({
   if (totalPages <= 1) return null
 
   const btnBase =
-    'rounded-lg text-[13px] font-semibold font-sans cursor-pointer transition-all duration-200 flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none'
+    'py-1.5 px-3.5 rounded-xl text-xs font-medium cursor-pointer transition-all duration-150 flex items-center gap-1.5 bg-black/5 dark:bg-white/8 hover:bg-black/8 dark:hover:bg-white/12 border border-black/5 dark:border-white/10 active:scale-[0.97] select-none disabled:opacity-30 disabled:cursor-not-allowed disabled:transform-none'
 
   return (
-    <div
-      className={`flex items-center justify-between ${className}`}
-      style={{ borderColor: 'var(--border-color)' }}
-    >
+    <div className={`flex items-center justify-between gap-4 ${className}`}>
       <button
+        type="button"
         className={btnBase}
         disabled={currentPage === 1}
         onClick={() => onPageChange(currentPage - 1)}
-        style={{
-          background: 'var(--bg-primary)',
-          boxShadow: 'var(--shadow-neumorph-sm)',
-          color: 'var(--text-secondary)',
-          padding: '8px 16px',
-        }}
       >
         ❮ Prev
       </button>
 
-      <span className="text-[13px] font-medium" style={{ color: 'var(--text-muted)' }}>
-        Page <strong style={{ color: 'var(--text-primary)' }}>{currentPage}</strong> of {totalPages}
+      <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 tabular-nums">
+        Halaman <strong className="text-zinc-900 dark:text-white font-semibold">{currentPage}</strong> dari {totalPages}
       </span>
 
       <button
+        type="button"
         className={btnBase}
         disabled={currentPage === totalPages}
         onClick={() => onPageChange(currentPage + 1)}
-        style={{
-          background: 'var(--bg-primary)',
-          boxShadow: 'var(--shadow-neumorph-sm)',
-          color: 'var(--text-secondary)',
-          padding: '8px 16px',
-        }}
       >
         Next ❯
       </button>

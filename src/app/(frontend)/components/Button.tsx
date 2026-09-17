@@ -12,23 +12,23 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'border-none shadow-neumorph-sm hover:shadow-neumorph hover:-translate-y-[1px] active:shadow-neumorph-inset active:translate-y-0',
+    'bg-[#0071e3] hover:bg-[#0077ed] text-white shadow-sm hover:shadow active:bg-[#0062c4] border border-blue-400/20',
   amber:
-    'border-none shadow-neumorph-sm hover:shadow-neumorph hover:-translate-y-[1px] active:shadow-neumorph-inset active:translate-y-0',
+    'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 active:bg-amber-500/25',
   success:
-    'border-none shadow-neumorph-sm hover:shadow-neumorph hover:-translate-y-[1px] active:shadow-neumorph-inset active:translate-y-0',
+    'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 active:bg-emerald-500/25',
   danger:
-    'border shadow-neumorph-sm hover:shadow-neumorph hover:-translate-y-[1px] active:shadow-neumorph-inset active:translate-y-0',
+    'bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 active:bg-rose-500/25',
   destructive:
-    'border shadow-neumorph-sm hover:shadow-neumorph hover:-translate-y-[1px] active:shadow-neumorph-inset active:translate-y-0',
+    'bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 active:bg-rose-500/25',
   ghost:
-    'border shadow-neumorph-sm hover:shadow-neumorph hover:-translate-y-[1px] active:shadow-neumorph-inset active:translate-y-0',
+    'bg-black/5 dark:bg-white/8 hover:bg-black/10 dark:hover:bg-white/12 text-zinc-800 dark:text-zinc-200 border border-black/5 dark:border-white/10 active:bg-black/15 dark:active:bg-white/15',
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'py-1.5 px-3 text-[13px]',
-  md: 'py-2.5 px-5 text-sm',
-  lg: 'py-3.5 px-6 text-[15px]',
+  sm: 'py-1.5 px-3.5 text-[13px] rounded-lg tracking-[-0.01em]',
+  md: 'py-2 px-4.5 text-sm rounded-xl tracking-[-0.01em]',
+  lg: 'py-3 px-6 text-[15px] rounded-2xl tracking-[-0.01em]',
 }
 
 export function Button({
@@ -38,49 +38,13 @@ export function Button({
   disabled,
   className = '',
   children,
+  style,
   ...props
 }: ButtonProps) {
   const base =
-    'rounded-lg font-semibold font-sans cursor-pointer transition-all duration-200 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none'
+    'font-medium font-sans cursor-pointer transition-all duration-150 inline-flex items-center justify-center gap-2 select-none active:scale-[0.97] disabled:opacity-45 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none'
 
   const variantClass = variantStyles[variant] || variantStyles.ghost
-
-  // Dynamic styling based on variant and theme (handled via CSS variables)
-  let style: React.CSSProperties = {}
-  if (variant === 'primary') {
-    style = {
-      background: 'var(--bg-primary)',
-      color: 'var(--text-primary)',
-      boxShadow: 'var(--shadow-neumorph-sm)',
-    }
-  } else if (variant === 'amber') {
-    style = {
-      background: 'var(--bg-primary)',
-      color: '#f59e0b',
-      boxShadow: 'var(--shadow-neumorph-sm)',
-    }
-  } else if (variant === 'success') {
-    style = {
-      background: 'var(--bg-primary)',
-      color: '#10b981',
-      boxShadow: 'var(--shadow-neumorph-sm)',
-    }
-  } else if (variant === 'danger' || variant === 'destructive') {
-    style = {
-      background: 'var(--bg-primary)',
-      color: '#ef4444',
-      boxShadow: 'var(--shadow-neumorph-sm)',
-      borderColor: 'var(--border-color)',
-    }
-  } else {
-    // ghost
-    style = {
-      background: 'var(--bg-primary)',
-      color: 'var(--text-secondary)',
-      boxShadow: 'var(--shadow-neumorph-sm)',
-      borderColor: 'var(--border-color)',
-    }
-  }
 
   return (
     <button
@@ -92,13 +56,18 @@ export function Button({
       {loading ? (
         <>
           <svg
-            className="animate-spin w-4 h-4"
+            className="animate-spin w-4 h-4 text-current"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.5"
           >
-            <path d="M21 12a9 9 0 11-6.219-8.56" strokeLinecap="round" />
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
           </svg>
           {children}
         </>

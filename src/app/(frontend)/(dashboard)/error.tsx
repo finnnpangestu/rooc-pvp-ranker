@@ -24,14 +24,9 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
   return (
     <div className="min-h-[55vh] flex items-center justify-center p-4 sm:p-6">
       <div
-        className="max-w-lg w-full p-6 sm:p-8 rounded-2xl flex flex-col items-center text-center border transition-all"
-        style={{
-          background: 'var(--bg-card)',
-          borderColor: 'var(--border-color)',
-          boxShadow: 'var(--shadow-neumorph-lg)',
-        }}
+        className="max-w-lg w-full p-6 sm:p-8 rounded-3xl flex flex-col items-center text-center border border-black/5 dark:border-white/10 shadow-2xl apple-glass transition-all"
       >
-        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center bg-rose-500/10 border border-rose-500/20 text-rose-500 mb-5">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center bg-rose-500/10 border border-rose-500/20 text-rose-500 mb-5 shadow-sm">
           <Icon icon="fluent:database-warning-24-filled" className="w-8 h-8" />
         </div>
 

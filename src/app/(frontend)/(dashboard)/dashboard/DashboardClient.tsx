@@ -450,58 +450,45 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
     }
 
     return (
-      <div className="flex justify-center items-center min-h-[calc(100vh-160px)] relative">
+      <div className="flex justify-center items-center min-h-[calc(100vh-160px)] relative p-4">
         <div
-          className="rounded-2xl py-12 px-10 max-w-[480px] w-full text-center"
-          style={{
-            background: 'var(--bg-card)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          className="rounded-3xl py-12 px-8 sm:px-10 max-w-[480px] w-full text-center apple-glass bg-white/85 dark:bg-zinc-900/85 border border-black/5 dark:border-white/10 shadow-2xl"
         >
           <div
-            className="w-[72px] h-[72px] mx-auto mb-6 rounded-full flex items-center justify-center relative"
-            style={{
-              background: 'var(--bg-primary)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
+            className="w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center bg-indigo-500/10 text-indigo-500 border border-indigo-500/20"
           >
             <svg
               className="w-8 h-8"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.5"
-              style={{ color: 'var(--text-primary)' }}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               <path d="M12 8v8" />
               <path d="M8 12h8" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+          <h1 className="text-2xl font-bold tracking-tight mb-2" style={{ color: 'var(--text-primary)' }}>
             Buat Guild Baru
           </h1>
-          <p className="text-sm mb-8" style={{ color: 'var(--text-secondary)' }}>
-            Anda belum memiliki guild. Daftarkan guild Anda untuk mulai mengelola roster.
+          <p className="text-sm mb-8 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            Anda belum memiliki guild. Daftarkan guild Anda untuk mulai mengelola roster dan strategi PvP.
           </p>
           {error && (
-            <div className="text-red-300 bg-red-500/10 p-3 rounded-lg text-[13px] mb-4 border border-red-500/20">
+            <div className="text-rose-500 bg-rose-500/10 p-3.5 rounded-2xl text-xs mb-5 border border-rose-500/20 font-medium">
               {error}
             </div>
           )}
-          <form onSubmit={handleCreateGuild} className="flex flex-col gap-3">
+          <form onSubmit={handleCreateGuild} className="flex flex-col gap-3.5">
             <input
               type="text"
               placeholder="Nama Guild..."
               value={guildName}
               onChange={(e) => setGuildName(e.target.value)}
-              className="w-full rounded-lg py-3 px-4 font-sans transition-all duration-200 outline-none"
-              style={{
-                background: 'var(--bg-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-                color: 'var(--text-primary)',
-                border: 'none',
-              }}
+              className="w-full rounded-2xl py-3 px-4 text-sm font-medium transition-all duration-150 outline-none bg-black/4 dark:bg-white/6 border border-black/8 dark:border-white/10 text-zinc-900 dark:text-zinc-100 focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/20"
             />
             <Button
               type="submit"
@@ -545,14 +532,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
         </div>
         <button
           onClick={() => setIsDiscordModalOpen(true)}
-          className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 cursor-pointer w-fit hover:scale-102 active:scale-98"
-          style={{
-            background:
-              'linear-gradient(135deg, rgba(88, 101, 242, 0.18), rgba(88, 101, 242, 0.08))',
-            border: '1px solid rgba(88, 101, 242, 0.35)',
-            color: '#5865F2',
-            boxShadow: 'var(--shadow-neumorph-sm)',
-          }}
+          className="apple-press inline-flex items-center gap-2.5 px-4.5 py-2.5 rounded-2xl font-semibold text-xs sm:text-sm transition-all duration-150 cursor-pointer w-fit select-none bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/25 hover:bg-[#5865F2]/15 active:scale-[0.97]"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
@@ -561,18 +541,16 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
         </button>
       </div>
 
-      {/* Stat cards */}
+      {/* Stat cards - Apple Bento Grid */}
       <div
         id="tour-dashboard-stats"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
       >
         <div
-          className="rounded-xl p-5 flex items-center gap-4 transition-colors"
-          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
+          className="rounded-3xl p-5 flex items-center gap-4 transition-all apple-glass bg-white/70 dark:bg-zinc-900/60 border border-black/5 dark:border-white/10 shadow-sm hover:scale-[1.01]"
         >
           <div
-            className="p-3.5 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: 'var(--bg-primary)', boxShadow: 'var(--shadow-neumorph-inset)' }}
+            className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-indigo-500/10 text-indigo-500 border border-indigo-500/20"
           >
             <svg
               width="22"
@@ -580,10 +558,9 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{ color: 'var(--text-primary)' }}
             >
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
@@ -593,24 +570,22 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
           </div>
           <div className="min-w-0">
             <div
-              className="text-[11px] font-medium tracking-wide mb-0.5 truncate"
+              className="text-[10px] font-semibold uppercase tracking-[0.04em] mb-0.5 truncate"
               style={{ color: 'var(--text-muted)' }}
             >
               TOTAL MEMBER VERIF
             </div>
-            <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-2xl font-bold tracking-tight tabular-nums" style={{ color: 'var(--text-primary)' }}>
               {guild.total_characters || 0}
             </div>
           </div>
         </div>
 
         <div
-          className="rounded-xl p-5 flex items-center gap-4 transition-colors"
-          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
+          className="rounded-3xl p-5 flex items-center gap-4 transition-all apple-glass bg-white/70 dark:bg-zinc-900/60 border border-black/5 dark:border-white/10 shadow-sm hover:scale-[1.01]"
         >
           <div
-            className="p-3.5 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: 'var(--bg-primary)', boxShadow: 'var(--shadow-neumorph-inset)' }}
+            className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-amber-500/10 text-amber-500 border border-amber-500/20"
           >
             <svg
               width="22"
@@ -618,34 +593,31 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{ color: '#f59e0b' }}
             >
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
           </div>
           <div className="min-w-0">
             <div
-              className="text-[11px] font-medium tracking-wide mb-0.5 truncate"
+              className="text-[10px] font-semibold uppercase tracking-[0.04em] mb-0.5 truncate"
               style={{ color: 'var(--text-muted)' }}
             >
               TOTAL PVP SCORE
             </div>
-            <div className="text-2xl font-bold" style={{ color: '#f59e0b' }}>
+            <div className="text-2xl font-bold tracking-tight tabular-nums text-amber-500 dark:text-amber-400">
               {Math.round(Number(guild.total_pvp_score) || 0).toLocaleString('id-ID')}
             </div>
           </div>
         </div>
 
         <div
-          className="rounded-xl p-5 flex items-center gap-4 transition-colors"
-          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
+          className="rounded-3xl p-5 flex items-center gap-4 transition-all apple-glass bg-white/70 dark:bg-zinc-900/60 border border-black/5 dark:border-white/10 shadow-sm hover:scale-[1.01]"
         >
           <div
-            className="p-3.5 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: 'var(--bg-primary)', boxShadow: 'var(--shadow-neumorph-inset)' }}
+            className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
           >
             <svg
               width="22"
@@ -653,10 +625,9 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{ color: '#10b981' }}
             >
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
               <polyline points="22 4 12 14.01 9 11.01" />
@@ -664,24 +635,22 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
           </div>
           <div className="min-w-0">
             <div
-              className="text-[11px] font-medium tracking-wide mb-0.5 truncate"
+              className="text-[10px] font-semibold uppercase tracking-[0.04em] mb-0.5 truncate"
               style={{ color: 'var(--text-muted)' }}
             >
               TINGKAT KEHADIRAN
             </div>
-            <div className="text-2xl font-bold" style={{ color: '#10b981' }}>
+            <div className="text-2xl font-bold tracking-tight tabular-nums text-emerald-500 dark:text-emerald-400">
               {attendanceStats.averageRate}%
             </div>
           </div>
         </div>
 
         <div
-          className="rounded-xl p-5 flex items-center gap-4 transition-colors"
-          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
+          className="rounded-3xl p-5 flex items-center gap-4 transition-all apple-glass bg-white/70 dark:bg-zinc-900/60 border border-black/5 dark:border-white/10 shadow-sm hover:scale-[1.01]"
         >
           <div
-            className="p-3.5 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: 'var(--bg-primary)', boxShadow: 'var(--shadow-neumorph-inset)' }}
+            className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-sky-500/10 text-sky-500 border border-sky-500/20"
           >
             <svg
               width="22"
@@ -689,10 +658,9 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{ color: 'var(--text-primary)' }}
             >
               <circle cx="12" cy="12" r="10" />
               <path d="M12 8v4l3 3" />
@@ -700,12 +668,12 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
           </div>
           <div className="min-w-0">
             <div
-              className="text-[11px] font-medium tracking-wide mb-0.5 truncate"
+              className="text-[10px] font-semibold uppercase tracking-[0.04em] mb-0.5 truncate"
               style={{ color: 'var(--text-muted)' }}
             >
               PENDING VERIFIKASI
             </div>
-            <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-2xl font-bold tracking-tight tabular-nums" style={{ color: 'var(--text-primary)' }}>
               {members.filter((m) => !m?.isVerified).length}
             </div>
           </div>
@@ -714,12 +682,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
 
       {/* Combat Power Tier Pyramid */}
       <div
-        className="rounded-xl p-5 mb-8 transition-colors border"
-        style={{
-          background: 'var(--bg-card)',
-          borderColor: 'var(--border-color)',
-          boxShadow: 'var(--shadow-neumorph)',
-        }}
+        className="rounded-3xl p-6 mb-8 transition-colors border border-black/5 dark:border-white/10 apple-glass bg-white/70 dark:bg-zinc-900/60 shadow-sm"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <div>
@@ -868,12 +831,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Card: War Readiness */}
         <div
-          className="rounded-xl p-6 transition-colors border flex flex-col justify-between"
-          style={{
-            background: 'var(--bg-card)',
-            borderColor: 'var(--border-color)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          className="rounded-3xl p-6 transition-colors border border-black/5 dark:border-white/10 apple-glass bg-white/70 dark:bg-zinc-900/60 shadow-sm flex flex-col justify-between"
         >
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -891,12 +849,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
 
             {/* Guild League Slot Status */}
             <div
-              className="p-3.5 rounded-xl border mb-3"
-              style={{
-                background: 'var(--bg-primary)',
-                borderColor: 'var(--border-color)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-              }}
+              className="p-4 rounded-2xl border border-black/5 dark:border-white/10 mb-3 bg-black/[0.02] dark:bg-white/[0.04]"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
@@ -952,12 +905,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
 
             {/* WoE Raid Slot Status (8 Party 1 Raid) */}
             <div
-              className="p-3.5 rounded-xl border"
-              style={{
-                background: 'var(--bg-primary)',
-                borderColor: 'var(--border-color)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-              }}
+              className="p-4 rounded-2xl border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04]"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
@@ -1011,12 +959,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
 
         {/* Card: Attendance & Member Activity */}
         <div
-          className="rounded-xl p-6 transition-colors border flex flex-col justify-between"
-          style={{
-            background: 'var(--bg-card)',
-            borderColor: 'var(--border-color)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          className="rounded-3xl p-6 transition-colors border border-black/5 dark:border-white/10 apple-glass bg-white/70 dark:bg-zinc-900/60 shadow-sm flex flex-col justify-between"
         >
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -1045,32 +988,22 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
 
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div
-                className="p-3 rounded-lg text-center border"
-                style={{
-                  background: 'var(--bg-primary)',
-                  borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
-                }}
+                className="p-3 rounded-2xl text-center border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04]"
               >
                 <div className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
                   Total Kehadiran
                 </div>
-                <div className="text-lg font-bold text-emerald-400 mt-0.5">
+                <div className="text-lg font-bold text-emerald-500 dark:text-emerald-400 mt-0.5 tabular-nums">
                   {attendanceStats.totalPresent}x
                 </div>
               </div>
               <div
-                className="p-3 rounded-lg text-center border"
-                style={{
-                  background: 'var(--bg-primary)',
-                  borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
-                }}
+                className="p-3 rounded-2xl text-center border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04]"
               >
                 <div className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
                   Total Absen / Bolos
                 </div>
-                <div className="text-lg font-bold text-red-400 mt-0.5">
+                <div className="text-lg font-bold text-rose-500 dark:text-rose-400 mt-0.5 tabular-nums">
                   {attendanceStats.totalAbsent}x
                 </div>
               </div>
@@ -1148,12 +1081,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
 
       {/* Class Composition & Synergy Advisor */}
       <div
-        className="rounded-xl p-6 mb-8 transition-colors border"
-        style={{
-          background: 'var(--bg-card)',
-          borderColor: 'var(--border-color)',
-          boxShadow: 'var(--shadow-neumorph)',
-        }}
+        className="rounded-3xl p-6 mb-8 transition-colors border border-black/5 dark:border-white/10 apple-glass bg-white/70 dark:bg-zinc-900/60 shadow-sm"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2.5">
@@ -1170,129 +1098,103 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
 
         {/* 4 Role Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
-          <div
-            className="p-3.5 rounded-xl border text-left"
-            style={{
-              background: 'var(--bg-primary)',
-              borderColor: 'var(--border-color)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
-          >
-            <div className="flex items-center justify-between mb-1">
+          <div className="p-4 rounded-2xl border border-black/5 dark:border-white/10 text-left bg-black/[0.02] dark:bg-white/[0.03] transition-all hover:bg-black/[0.04] dark:hover:bg-white/[0.05]">
+            <div className="flex items-center justify-between mb-1.5">
               <span
-                className="text-xs font-bold inline-flex items-center gap-1.5"
+                className="text-xs font-semibold tracking-tight inline-flex items-center gap-1.5"
                 style={{ color: 'var(--text-primary)' }}
               >
                 Tanker / Frontline
               </span>
-              <span className="text-xs font-bold text-amber-400">
+              <span className="text-xs font-bold text-amber-500 tabular-nums">
                 {classComposition.tanks.pct}%
               </span>
             </div>
-            <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-2xl font-bold tracking-tight tabular-nums" style={{ color: 'var(--text-primary)' }}>
               {classComposition.tanks.count}{' '}
-              <span className="text-xs font-normal" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
                 Member
               </span>
             </div>
-            <div className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
+            <div className="text-[11px] mt-1 tracking-tight" style={{ color: 'var(--text-muted)' }}>
               Paladin, Lord Knight
             </div>
           </div>
 
-          <div
-            className="p-3.5 rounded-xl border text-left"
-            style={{
-              background: 'var(--bg-primary)',
-              borderColor: 'var(--border-color)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
-          >
-            <div className="flex items-center justify-between mb-1">
+          <div className="p-4 rounded-2xl border border-black/5 dark:border-white/10 text-left bg-black/[0.02] dark:bg-white/[0.03] transition-all hover:bg-black/[0.04] dark:hover:bg-white/[0.05]">
+            <div className="flex items-center justify-between mb-1.5">
               <span
-                className="text-xs font-bold inline-flex items-center gap-1.5"
+                className="text-xs font-semibold tracking-tight inline-flex items-center gap-1.5"
                 style={{ color: 'var(--text-primary)' }}
               >
                 Physical DPS
               </span>
-              <span className="text-xs font-bold text-red-400">
+              <span className="text-xs font-bold text-red-500 tabular-nums">
                 {classComposition.physical.pct}%
               </span>
             </div>
-            <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-2xl font-bold tracking-tight tabular-nums" style={{ color: 'var(--text-primary)' }}>
               {classComposition.physical.count}{' '}
-              <span className="text-xs font-normal" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
                 Member
               </span>
             </div>
-            <div className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
+            <div className="text-[11px] mt-1 tracking-tight" style={{ color: 'var(--text-muted)' }}>
               SinX, Sniper, Champ, Rebel, dll.
             </div>
           </div>
 
-          <div
-            className="p-3.5 rounded-xl border text-left"
-            style={{
-              background: 'var(--bg-primary)',
-              borderColor: 'var(--border-color)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
-          >
-            <div className="flex items-center justify-between mb-1">
+          <div className="p-4 rounded-2xl border border-black/5 dark:border-white/10 text-left bg-black/[0.02] dark:bg-white/[0.03] transition-all hover:bg-black/[0.04] dark:hover:bg-white/[0.05]">
+            <div className="flex items-center justify-between mb-1.5">
               <span
-                className="text-xs font-bold inline-flex items-center gap-1.5"
+                className="text-xs font-semibold tracking-tight inline-flex items-center gap-1.5"
                 style={{ color: 'var(--text-primary)' }}
               >
                 Magic DPS
               </span>
-              <span className="text-xs font-bold text-cyan-400">{classComposition.magic.pct}%</span>
+              <span className="text-xs font-bold text-cyan-500 tabular-nums">
+                {classComposition.magic.pct}%
+              </span>
             </div>
-            <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-2xl font-bold tracking-tight tabular-nums" style={{ color: 'var(--text-primary)' }}>
               {classComposition.magic.count}{' '}
-              <span className="text-xs font-normal" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
                 Member
               </span>
             </div>
-            <div className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
+            <div className="text-[11px] mt-1 tracking-tight" style={{ color: 'var(--text-muted)' }}>
               High Wizard, Prof, Biochem, dll.
             </div>
           </div>
 
-          <div
-            className="p-3.5 rounded-xl border text-left"
-            style={{
-              background: 'var(--bg-primary)',
-              borderColor: 'var(--border-color)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
-          >
-            <div className="flex items-center justify-between mb-1">
+          <div className="p-4 rounded-2xl border border-black/5 dark:border-white/10 text-left bg-black/[0.02] dark:bg-white/[0.03] transition-all hover:bg-black/[0.04] dark:hover:bg-white/[0.05]">
+            <div className="flex items-center justify-between mb-1.5">
               <span
-                className="text-xs font-bold inline-flex items-center gap-1.5"
+                className="text-xs font-semibold tracking-tight inline-flex items-center gap-1.5"
                 style={{ color: 'var(--text-primary)' }}
               >
                 Support / Utility
               </span>
-              <span className="text-xs font-bold text-emerald-400">
+              <span className="text-xs font-bold text-emerald-500 tabular-nums">
                 {classComposition.support.pct}%
               </span>
             </div>
-            <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-2xl font-bold tracking-tight tabular-nums" style={{ color: 'var(--text-primary)' }}>
               {classComposition.support.count}{' '}
-              <span className="text-xs font-normal" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
                 Member
               </span>
             </div>
-            <div className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
+            <div className="text-[11px] mt-1 tracking-tight" style={{ color: 'var(--text-muted)' }}>
               High Priest, Minstrel, Gypsy
             </div>
           </div>
         </div>
 
         {/* Job Breakdown Chips */}
-        <div className="mb-4">
-          <div className="text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>
-            Daftar Job dalam Guild:
+        <div className="mb-5">
+          <div className="text-xs font-semibold tracking-wider uppercase mb-2.5" style={{ color: 'var(--text-muted)' }}>
+            Daftar Job dalam Guild
           </div>
           <div className="flex flex-wrap gap-2">
             {Object.entries(classComposition.jobCounts)
@@ -1300,24 +1202,19 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
               .map(([job, count]) => (
                 <div
                   key={job}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium"
-                  style={{
-                    background: 'var(--bg-primary)',
-                    borderColor: 'var(--border-color)',
-                    boxShadow: 'var(--shadow-neumorph-sm)',
-                    color: 'var(--text-primary)',
-                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/5 dark:border-white/10 text-xs font-medium bg-black/[0.02] dark:bg-white/[0.04] hover:border-black/20 dark:hover:border-white/20 transition-all apple-press"
+                  style={{ color: 'var(--text-primary)' }}
                 >
                   <Image
                     src={getJobIcon(job)}
                     alt=""
                     width={18}
                     height={18}
-                    className="rounded-sm object-cover"
+                    className="rounded-full object-cover"
                     onError={(e) => (e.currentTarget.style.display = 'none')}
                   />
                   <span className="capitalize">{job.replace(/_/g, ' ')}</span>
-                  <span className="text-amber-500 font-bold ml-0.5">({count})</span>
+                  <span className="text-amber-500 font-bold tabular-nums ml-0.5">({count})</span>
                 </div>
               ))}
           </div>
@@ -1325,21 +1222,17 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
 
         {/* Tactical Advisor Box */}
         <div
-          className="p-4 rounded-xl border flex flex-col gap-2"
-          style={{
-            background: 'rgba(59, 130, 246, 0.05)',
-            borderColor: 'rgba(59, 130, 246, 0.2)',
-          }}
+          className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 backdrop-blur-sm flex flex-col gap-2"
         >
-          <div className="flex items-center gap-2 text-xs font-bold text-blue-400">
-            <span>Smart Synergy Advisor:</span>
+          <div className="flex items-center gap-2 text-xs font-bold text-blue-500 dark:text-blue-400">
+            <span className="tracking-tight">Smart Synergy Advisor</span>
           </div>
           <div className="flex flex-col gap-1.5 text-xs" style={{ color: 'var(--text-secondary)' }}>
             {classComposition.advice.map((adv, idx) => (
               <div key={idx} className="flex items-start gap-1.5">
                 <Icon
                   icon="fluent:arrow-right-16-filled"
-                  className="w-3 h-3 text-blue-400 shrink-0 mt-0.5"
+                  className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5"
                 />
                 <span>{adv}</span>
               </div>
@@ -1352,32 +1245,31 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div
           id="tour-dashboard-league"
-          className="rounded-lg p-6 flex flex-col justify-between transition-colors lg:col-span-1"
-          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
+          className="rounded-3xl p-6 flex flex-col justify-between transition-colors lg:col-span-1 apple-glass border border-black/5 dark:border-white/10 shadow-sm"
         >
           <div>
-            <h2 className="text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+            <h2 className="text-lg font-bold tracking-tight mb-1" style={{ color: 'var(--text-primary)' }}>
               Performa Guild League
             </h2>
           </div>
 
-          <div className="flex justify-between items-end mb-2">
+          <div className="flex justify-between items-end my-4">
             <div className="flex flex-col gap-1">
               <div
-                className="text-[36px] font-bold tracking-tight leading-none"
+                className="text-4xl font-bold tracking-tight leading-none tabular-nums"
                 style={{ color: '#10b981' }}
               >
                 {guild.gl_wins || 0}{' '}
-                <span className="text-[18px] font-medium" style={{ color: 'var(--text-muted)' }}>
+                <span className="text-base font-medium" style={{ color: 'var(--text-muted)' }}>
                   Wins
                 </span>
               </div>
               <div
-                className="text-[20px] font-bold tracking-tight leading-none"
+                className="text-2xl font-bold tracking-tight leading-none tabular-nums"
                 style={{ color: '#ef4444' }}
               >
                 {guild.gl_losses || 0}{' '}
-                <span className="text-[12px] font-medium" style={{ color: 'var(--text-muted)' }}>
+                <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
                   Losses
                 </span>
               </div>
@@ -1398,27 +1290,26 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                   .map((result: string, i: number) => (
                     <div
                       key={i}
-                      className="w-7 h-7 flex items-center justify-center rounded-full text-[12px] font-bold"
+                      className="w-7 h-7 flex items-center justify-center rounded-full text-[12px] font-bold border transition-all"
                       style={{
                         background:
                           result === 'W'
                             ? 'rgba(16, 185, 129, 0.15)'
                             : result === 'L'
                               ? 'rgba(239, 68, 68, 0.15)'
-                              : 'var(--bg-primary)',
+                              : 'rgba(0, 0, 0, 0.04)',
                         color:
                           result === 'W'
                             ? '#10b981'
                             : result === 'L'
                               ? '#ef4444'
                               : 'var(--text-muted)',
-                        boxShadow: result === '-' ? 'var(--shadow-neumorph-inset)' : 'none',
-                        border:
+                        borderColor:
                           result === 'W'
-                            ? '1px solid rgba(16, 185, 129, 0.3)'
+                            ? 'rgba(16, 185, 129, 0.3)'
                             : result === 'L'
-                              ? '1px solid rgba(239, 68, 68, 0.3)'
-                              : 'none',
+                              ? 'rgba(239, 68, 68, 0.3)'
+                              : 'var(--border-color)',
                       }}
                     >
                       {result}
@@ -1431,30 +1322,24 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
 
         <div
           id="tour-dashboard-performers"
-          className="rounded-lg p-6 transition-colors lg:col-span-2"
-          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
+          className="rounded-3xl p-6 transition-colors lg:col-span-2 apple-glass border border-black/5 dark:border-white/10 shadow-sm"
         >
           <div className="flex justify-between items-center mb-5">
             <div>
-              <h2 className="text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+              <h2 className="text-lg font-bold tracking-tight mb-1" style={{ color: 'var(--text-primary)' }}>
                 Top 5 Best Performers
               </h2>
             </div>
             <div
-              className="p-2 rounded-full flex items-center justify-center"
-              style={{
-                background: 'var(--bg-primary)',
-                boxShadow: 'var(--shadow-neumorph-inset)',
-                color: '#f59e0b',
-              }}
+              className="w-10 h-10 rounded-2xl flex items-center justify-center bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-sm"
             >
               <svg
-                width="24"
-                height="24"
+                width="22"
+                height="22"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.5"
+                strokeWidth="1.75"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
@@ -1469,28 +1354,18 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
               if (verifiedMembers.length === 0) {
                 return (
                   <div
-                    className="col-span-5 rounded-2xl p-8 flex flex-col items-center justify-center text-center mt-2 border"
-                    style={{
-                      background: 'var(--bg-primary)',
-                      borderColor: 'var(--border-color)',
-                      boxShadow: 'var(--shadow-neumorph-inset)',
-                    }}
+                    className="col-span-5 rounded-2xl p-8 flex flex-col items-center justify-center text-center mt-2 border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03]"
                   >
                     <div
-                      className="mb-3 p-3 rounded-full flex items-center justify-center"
-                      style={{
-                        background: 'var(--bg-secondary)',
-                        boxShadow: 'var(--shadow-neumorph-inset)',
-                        color: 'var(--text-muted)',
-                      }}
+                      className="mb-3 w-12 h-12 rounded-2xl flex items-center justify-center bg-black/[0.04] dark:bg-white/[0.06] text-[var(--text-muted)]"
                     >
                       <svg
-                        width="32"
-                        height="32"
+                        width="24"
+                        height="24"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth="1.5"
+                        strokeWidth="1.75"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
@@ -1501,12 +1376,12 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                       </svg>
                     </div>
                     <div
-                      className="text-[14px] font-semibold mb-1"
+                      className="text-sm font-semibold tracking-tight mb-1"
                       style={{ color: 'var(--text-primary)' }}
                     >
                       Belum Ada Member Terverifikasi
                     </div>
-                    <div className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
+                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
                       Harap verifikasi member di tabel manajemen roster.
                     </div>
                   </div>
@@ -1526,28 +1401,18 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
               if (!hasData) {
                 return (
                   <div
-                    className="col-span-5 rounded-2xl p-8 flex flex-col items-center justify-center text-center mt-2 border"
-                    style={{
-                      background: 'var(--bg-primary)',
-                      borderColor: 'var(--border-color)',
-                      boxShadow: 'var(--shadow-neumorph-inset)',
-                    }}
+                    className="col-span-5 rounded-2xl p-8 flex flex-col items-center justify-center text-center mt-2 border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03]"
                   >
                     <div
-                      className="mb-3 p-3 rounded-full flex items-center justify-center"
-                      style={{
-                        background: 'var(--bg-secondary)',
-                        boxShadow: 'var(--shadow-neumorph-inset)',
-                        color: 'var(--text-muted)',
-                      }}
+                      className="mb-3 w-12 h-12 rounded-2xl flex items-center justify-center bg-black/[0.04] dark:bg-white/[0.06] text-[var(--text-muted)]"
                     >
                       <svg
-                        width="32"
-                        height="32"
+                        width="24"
+                        height="24"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth="1.5"
+                        strokeWidth="1.75"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
@@ -1557,7 +1422,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                       </svg>
                     </div>
                     <div
-                      className="text-[14px] font-normal mb-1"
+                      className="text-sm font-semibold tracking-tight mb-1"
                       style={{ color: 'var(--text-primary)' }}
                     >
                       Data Report Masih Kosong
@@ -1569,33 +1434,35 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
               return top5.map((char, index) => (
                 <div
                   key={char.id}
-                  className="rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all duration-200 border relative"
-                  style={{
-                    background: 'var(--bg-primary)',
-                    borderColor: index === 0 ? 'rgba(251, 191, 36, 0.3)' : 'var(--border-color)',
-                    boxShadow: 'var(--shadow-neumorph-sm)',
-                  }}
+                  className={`rounded-2xl p-3.5 flex flex-col items-center justify-center text-center transition-all duration-200 apple-press border relative ${
+                    index === 0
+                      ? 'bg-amber-500/10 border-amber-500/30 shadow-sm'
+                      : 'bg-black/[0.02] dark:bg-white/[0.03] border-black/5 dark:border-white/10 hover:border-black/15 dark:hover:border-white/20'
+                  }`}
                 >
                   <div className="relative mb-2">
                     <Image
                       src={getJobIcon(char.job)}
                       alt=""
-                      width={40}
-                      height={40}
-                      className="object-cover rounded-[20%] shadow-sm"
+                      width={42}
+                      height={42}
+                      className="object-cover rounded-xl shadow-sm"
                       onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
+                    {index === 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 text-xs">👑</span>
+                    )}
                   </div>
                   <div
-                    className="font-semibold text-[13px] truncate w-full mb-1"
+                    className="font-semibold text-[13px] tracking-tight truncate w-full mb-1"
                     style={{ color: 'var(--text-primary)' }}
                   >
                     {char.name}{' '}
-                    <span className="text-amber-500">
+                    <span className="text-amber-500 font-bold tabular-nums">
                       ({Math.round(Number(char.pvp_score) || 0).toLocaleString('id-ID')})
                     </span>
                   </div>
-                  <div className="text-[18px] font-bold text-amber-400">
+                  <div className="text-lg font-bold text-amber-500 dark:text-amber-400 tabular-nums">
                     {Math.round(Number(char.calculatedGLScore) || 0).toLocaleString('id-ID')}
                   </div>
                 </div>
@@ -1609,17 +1476,16 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
       <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-6">
         <div
           id="tour-dashboard-woe"
-          className="rounded-lg flex flex-col h-[600px] overflow-hidden transition-colors"
-          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
+          className="rounded-3xl flex flex-col h-[600px] overflow-hidden transition-colors apple-glass border border-black/5 dark:border-white/10 shadow-sm"
         >
-          <div className="p-5 flex justify-between items-center gap-3 flex-wrap">
-            <h2 className="text-lg font-semibold m-0" style={{ color: 'var(--text-primary)' }}>
+          <div className="p-6 flex justify-between items-center gap-3 flex-wrap border-b border-black/5 dark:border-white/10">
+            <h2 className="text-lg font-bold tracking-tight m-0" style={{ color: 'var(--text-primary)' }}>
               Performa WoE
             </h2>
           </div>
           <div className="flex-1 p-5 relative flex items-center justify-center">
             {woeChartData.length === 0 ? (
-              <div className="text-center" style={{ color: 'var(--text-muted)' }}>
+              <div className="text-center text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
                 Belum ada data report WoE.
               </div>
             ) : (
@@ -1659,7 +1525,8 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                       backgroundColor: 'var(--bg-secondary)',
                       borderColor: 'var(--border-color)',
                       color: 'var(--text-primary)',
-                      borderRadius: '8px',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
                     }}
                     itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
                     labelFormatter={(label, payload) =>
@@ -1681,11 +1548,10 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
         </div>
 
         <div
-          className="rounded-lg flex flex-col h-[600px] overflow-hidden transition-colors"
-          style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-neumorph)' }}
+          className="rounded-3xl flex flex-col h-[600px] overflow-hidden transition-colors apple-glass border border-black/5 dark:border-white/10 shadow-sm"
         >
-          <div className="p-5 flex justify-between items-center gap-3 flex-wrap">
-            <h2 className="text-lg font-semibold m-0" style={{ color: 'var(--text-primary)' }}>
+          <div className="p-6 flex justify-between items-center gap-3 flex-wrap border-b border-black/5 dark:border-white/10">
+            <h2 className="text-lg font-bold tracking-tight m-0" style={{ color: 'var(--text-primary)' }}>
               Top Rank Internal
             </h2>
             <div className="flex items-center gap-3">
@@ -1717,20 +1583,19 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
           >
             <table className="w-full border-collapse text-sm">
               <thead
-                className="sticky top-0 shadow-md z-10 border-b"
-                style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)' }}
+                className="sticky top-0 z-10 border-b backdrop-blur-md bg-white/80 dark:bg-zinc-900/80 border-black/5 dark:border-white/10"
               >
                 <tr>
                   <th
-                    className="p-4 text-center font-medium w-[60px]"
+                    className="p-4 text-center text-xs font-semibold uppercase tracking-wider w-[60px]"
                     style={{ color: 'var(--text-muted)' }}
                   >
                     No
                   </th>
-                  <th className="p-4 text-left font-medium" style={{ color: 'var(--text-muted)' }}>
+                  <th className="p-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                     IGN
                   </th>
-                  <th className="p-4 text-right font-medium" style={{ color: 'var(--text-muted)' }}>
+                  <th className="p-4 text-right text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                     Score
                   </th>
                 </tr>
@@ -1740,7 +1605,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                   <tr>
                     <td
                       colSpan={3}
-                      className="p-8 text-center"
+                      className="p-8 text-center text-sm font-medium"
                       style={{ color: 'var(--text-muted)' }}
                     >
                       Belum ada member terverifikasi.
@@ -1750,11 +1615,11 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                   paginatedLeaderboard.map((char, idx) => (
                     <tr
                       key={char.id}
-                      className="border-b transition-colors hover:bg-black/[0.03] dark:hover:bg-white/5"
+                      className="border-b transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.04]"
                       style={{ borderColor: 'var(--border-color)' }}
                     >
                       <td
-                        className={`p-4 text-center font-bold ${idx === 0 && leaderboardPage === 1 ? 'text-amber-400' : ''}`}
+                        className={`p-4 text-center font-bold tabular-nums ${idx === 0 && leaderboardPage === 1 ? 'text-amber-500' : ''}`}
                         style={{
                           color:
                             idx === 0 && leaderboardPage === 1 ? '#f59e0b' : 'var(--text-muted)',
@@ -1762,10 +1627,10 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                       >
                         {(leaderboardPage - 1) * leaderboardLimit + idx + 1}
                       </td>
-                      <td className="p-4 font-medium" style={{ color: 'var(--text-primary)' }}>
+                      <td className="p-4 font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>
                         {char.name}
                       </td>
-                      <td className="p-4 text-right font-semibold text-amber-400">
+                      <td className="p-4 text-right font-bold tabular-nums text-amber-500 dark:text-amber-400">
                         {Math.round(Number(char.pvp_score) || 0).toLocaleString('id-ID')}
                       </td>
                     </tr>
@@ -1774,7 +1639,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
               </tbody>
             </table>
           </div>
-          <div className="p-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
+          <div className="p-4 border-t border-black/5 dark:border-white/10">
             <Pagination
               currentPage={leaderboardPage}
               totalPages={totalLeaderboardPages}
@@ -1787,49 +1652,39 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
       {/* === CARD RESOURCE === */}
       {resources.length > 0 && (
         <div
-          className="rounded-lg p-6 border mt-8"
-          style={{
-            background: 'var(--bg-card)',
-            borderColor: 'var(--border-color)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          className="rounded-3xl p-6 border border-black/5 dark:border-white/10 apple-glass mt-8 shadow-sm"
         >
-          <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+          <h2 className="text-lg font-bold tracking-tight mb-4" style={{ color: 'var(--text-primary)' }}>
             Resource Guild
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {resources.map((resource) => (
               <div
                 key={resource.id}
-                className="rounded-lg p-4 border"
-                style={{
-                  background: 'var(--bg-primary)',
-                  borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
-                }}
+                className="rounded-2xl p-4 border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] transition-all hover:bg-black/[0.04] dark:hover:bg-white/[0.05]"
               >
-                <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                <div className="text-sm font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>
                   {resource.name}
                 </div>
-                <div className="flex justify-between items-center mt-1">
+                <div className="flex justify-between items-center mt-1.5">
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     Total
                   </span>
-                  <span className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                  <span className="font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
                     {resource.total_quantity}
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mt-0.5">
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     Sisa
                   </span>
                   <span
-                    className={`font-bold ${resource.remaining_quantity === 0 ? 'text-red-400' : 'text-emerald-400'}`}
+                    className={`font-bold tabular-nums ${resource.remaining_quantity === 0 ? 'text-red-500' : 'text-emerald-500'}`}
                   >
                     {resource.remaining_quantity}
                   </span>
                 </div>
-                <div className="mt-2 w-full bg-black/10 dark:bg-gray-700/30 rounded-full h-1.5 overflow-hidden">
+                <div className="mt-2.5 w-full bg-black/10 dark:bg-white/10 rounded-full h-1.5 overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{
@@ -1907,43 +1762,33 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
         maxWidth={640}
       >
         <div className="flex flex-col gap-4 text-left">
-          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
             Teks di bawah diformat khusus menggunakan markdown Discord (lengkap dengan emoji, tebal,
             dan kutipan) agar rapi saat dibagikan ke channel briefing atau pengumuman guild kamu.
           </p>
 
           <div
-            className="p-4 rounded-xl font-mono text-xs overflow-y-auto max-h-[320px] whitespace-pre-wrap border select-all"
+            className="p-4 rounded-2xl font-mono text-xs overflow-y-auto max-h-[320px] whitespace-pre-wrap border border-black/10 dark:border-white/10 select-all bg-black/[0.03] dark:bg-white/[0.03]"
             style={{
-              background: 'var(--bg-primary)',
-              borderColor: 'var(--border-color)',
               color: 'var(--text-primary)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
             }}
           >
             {generateDiscordSummary()}
           </div>
 
           <div className="flex items-center justify-end gap-3 mt-2">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setIsDiscordModalOpen(false)}
-              className="px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer border transition-colors"
-              style={{
-                background: 'var(--bg-primary)',
-                borderColor: 'var(--border-color)',
-                color: 'var(--text-secondary)',
-              }}
             >
               Tutup
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
               onClick={handleCopyDiscord}
-              className="px-5 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all duration-200 border-none flex items-center gap-2"
-              style={{
-                background: copiedDiscord ? '#10b981' : '#5865F2',
-                color: '#ffffff',
-                boxShadow: 'var(--shadow-neumorph-sm)',
-              }}
+              className={`flex items-center gap-2 ${copiedDiscord ? '!bg-emerald-600' : '!bg-[#5865F2]'}`}
             >
               {copiedDiscord ? (
                 <>
@@ -1967,7 +1812,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                   <span>Salin Format Discord</span>
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </GlobalDialog>

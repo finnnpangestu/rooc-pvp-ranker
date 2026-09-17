@@ -1,92 +1,87 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import React, { useState, useEffect } from 'react'
 import { GlobalDialog } from './GlobalDialog'
-import { handleAuthError } from './SessionExpiredDialog'
-import { GENERAL_STATS, QUASI_STATS, SPECIAL_STATS } from '@/const/StatsLabels'
-import { updateCharacterStats } from '@/actions/stats/updateCharacter'
+import { Button } from './Button'
+import { TabBar, TabButton } from './TabBar'
 import { JOBS } from '@/const/JobLabels'
+import { updateCharacterStats } from '@/actions/stats/updateCharacter'
+import { GENERAL_STATS, QUASI_STATS, SPECIAL_STATS } from '@/const/StatsLabels'
+import type { Character, CharacterStatsInput, PopulatedMember } from '@/types'
 import clsx from 'clsx'
-import type { Character, PopulatedMember, CharacterStatsInput } from '@/types'
-import { formatErrorMessage } from '@/types'
 
-interface MemberUpdateDialogProps {
-  isOpen: boolean
-  onClose: (isUpdated?: boolean) => void
-  character: Character | PopulatedMember | null
+interface StatField {
+  name: string
+  label: string
+  required?: boolean
 }
 
-export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateDialogProps) {
-  const [formData, setFormData] = useState<CharacterStatsInput>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
+interface MemberUpdateDialogProps {
+  character: Character | PopulatedMember | null
+  isOpen: boolean
+  onClose: (isUpdated?: boolean) => void
+}
+
+const TABS = [
+  { id: 'general', label: 'General' },
+  { id: 'quasi', label: 'Quasi' },
+  { id: 'special', label: 'Special' },
+]
+
+export function MemberUpdateDialog({ character, isOpen, onClose }: MemberUpdateDialogProps) {
   const [activeTab, setActiveTab] = useState('general')
+  const [formData, setFormData] = useState<Partial<CharacterStatsInput>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    if (character && isOpen) {
+    if (character) {
+      const { pvp_score, ...rest } = character
       setFormData({
-        ...character,
-        pvp_score: character.pvp_score != null ? String(character.pvp_score) : null,
-        guild_id: String(character.guild_id || ''),
+        ...rest,
+        name: character.name,
+        job: character.job,
       })
-      setActiveTab('general')
     }
-  }, [character, isOpen])
+  }, [character])
 
   if (!character) return null
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
-    setFormData((prev: CharacterStatsInput) => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? (value ? Number(value) : undefined) : value,
+      [name]: type === 'number' ? (value === '' ? '' : Number(value)) : value,
     }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!character) return
-
     setIsSubmitting(true)
+    setError('')
 
     try {
-      // Format payload Data
-      const payloadData: Record<string, unknown> = { ...formData }
-
-      if (payloadData.guild_id) {
-        payloadData.guild_id = String(payloadData.guild_id)
+      const res = await updateCharacterStats(character.id, formData as CharacterStatsInput)
+      if (res.success) {
+        onClose(true)
+      } else {
+        setError(res.error || 'Gagal mengupdate stats')
       }
-
-      // GM updates auto-verify the character
-      const res = await updateCharacterStats(character.id, payloadData, true)
-      if (!res.success) {
-        if (handleAuthError(res)) return
-        throw new Error(res.message)
-      }
-
-      alert('Berhasil memperbarui karakter!')
-      onClose(true)
-    } catch (err: unknown) {
-      console.error(err)
-      alert(formatErrorMessage(err))
+    } catch {
+      setError('Terjadi kesalahan sistem.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const TABS = [
-    { id: 'general', label: 'General' },
-    { id: 'quasi', label: 'Quasi' },
-    { id: 'special', label: 'Special' },
-  ]
-
-  const renderSection = (fields: { name: string; label: string; required?: boolean }[]) => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  const renderSection = (fields: StatField[]) => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
       {fields.map((field) => (
         <div key={field.name} className="flex flex-col gap-1.5">
           <label
             htmlFor={field.name}
-            className="text-sm font-medium"
-            style={{ color: 'var(--text-secondary)' }}
+            className="text-[11px] font-semibold uppercase tracking-[0.03em] text-zinc-500 dark:text-zinc-400"
           >
             {field.label} {field.required && <span className="text-red-500 font-bold">*</span>}
           </label>
@@ -95,13 +90,7 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
             name={field.name}
             type="number"
             step="any"
-            className="w-full rounded-lg py-2.5 px-3 text-sm font-sans transition-all duration-200 outline-none"
-            style={{
-              background: 'var(--bg-primary)',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-              color: 'var(--text-primary)',
-              border: 'none',
-            }}
+            className="w-full rounded-xl py-2 px-3 text-sm font-medium transition-all duration-150 outline-none bg-black/4 dark:bg-white/6 border border-black/8 dark:border-white/10 text-zinc-900 dark:text-zinc-100 focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/20 tabular-nums"
             value={String(formData[field.name as keyof CharacterStatsInput] ?? '')}
             onChange={handleChange}
             required={field.required}
@@ -115,50 +104,35 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
   return (
     <GlobalDialog
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={() => onClose()}
       title={`Update Stats: ${character.name}`}
       maxWidth={700}
     >
-      <div
-        className="flex gap-2 p-2 rounded-xl mb-6 border overflow-x-auto scrollbar-none"
-        style={{
-          background: 'var(--bg-secondary)',
-          borderColor: 'var(--border-color)',
-          boxShadow: 'var(--shadow-neumorph-inset)',
-        }}
-      >
+      <TabBar className="mb-5">
         {TABS.map((tab) => (
-          <button
+          <TabButton
             key={tab.id}
-            type="button"
-            className={clsx(
-              'flex-1 py-2 px-4 text-sm font-semibold rounded-lg cursor-pointer transition-all duration-300 whitespace-nowrap border',
-              activeTab === tab.id
-                ? 'shadow-neumorph-inset'
-                : 'shadow-neumorph-sm hover:shadow-neumorph',
-            )}
-            style={{
-              background: activeTab === tab.id ? 'var(--bg-primary)' : 'var(--bg-secondary)',
-              color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-muted)',
-              borderColor: 'var(--border-color)',
-              boxShadow:
-                activeTab === tab.id ? 'var(--shadow-neumorph-inset)' : 'var(--shadow-neumorph-sm)',
-            }}
+            isActive={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.label}
-          </button>
+          </TabButton>
         ))}
-      </div>
+      </TabBar>
+
+      {error && (
+        <div className="text-xs p-3 rounded-xl mb-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 font-medium">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
-        <div className="max-h-[50vh] overflow-y-auto pr-2 mb-6">
-          <div className="flex flex-col gap-4 mb-4">
+        <div className="max-h-[50vh] overflow-y-auto pr-1 mb-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/5 dark:border-white/10">
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="name"
-                className="text-sm font-medium"
-                style={{ color: 'var(--text-secondary)' }}
+                className="text-[11px] font-semibold uppercase tracking-[0.03em] text-zinc-500 dark:text-zinc-400"
               >
                 IGN (In-Game Name) <span className="text-red-500 font-bold">*</span>
               </label>
@@ -166,13 +140,7 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
                 id="name"
                 name="name"
                 type="text"
-                className="w-full rounded-lg py-2.5 px-3 text-sm font-sans transition-all duration-200 outline-none"
-                style={{
-                  background: 'var(--bg-primary)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
-                  color: 'var(--text-primary)',
-                  border: 'none',
-                }}
+                className="w-full rounded-xl py-2 px-3 text-sm font-medium transition-all duration-150 outline-none bg-black/4 dark:bg-white/6 border border-black/8 dark:border-white/10 text-zinc-900 dark:text-zinc-100 focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/20"
                 value={formData.name || ''}
                 onChange={handleChange}
                 required
@@ -181,21 +149,14 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="job"
-                className="text-sm font-medium"
-                style={{ color: 'var(--text-secondary)' }}
+                className="text-[11px] font-semibold uppercase tracking-[0.03em] text-zinc-500 dark:text-zinc-400"
               >
                 Job <span className="text-red-500 font-bold">*</span>
               </label>
               <select
                 id="job"
                 name="job"
-                className="w-full rounded-lg py-2.5 px-3 text-sm font-sans transition-all duration-200 outline-none"
-                style={{
-                  background: 'var(--bg-primary)',
-                  boxShadow: 'var(--shadow-neumorph-inset)',
-                  color: 'var(--text-primary)',
-                  border: 'none',
-                }}
+                className="w-full rounded-xl py-2 px-3 text-sm font-medium transition-all duration-150 outline-none bg-black/4 dark:bg-white/6 border border-black/8 dark:border-white/10 text-zinc-900 dark:text-zinc-100 focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/20 cursor-pointer"
                 value={formData.job || ''}
                 onChange={handleChange}
                 required
@@ -223,34 +184,13 @@ export function MemberUpdateDialog({ isOpen, onClose, character }: MemberUpdateD
           </div>
         </div>
 
-        <div
-          className="flex justify-end gap-3 pt-4 border-t"
-          style={{ borderColor: 'var(--border-color)' }}
-        >
-          <button
-            type="button"
-            onClick={() => onClose()}
-            className="px-4 py-2 text-sm font-semibold rounded-lg cursor-pointer transition-all duration-300"
-            style={{
-              background: 'var(--bg-secondary)',
-              color: 'var(--text-primary)',
-              boxShadow: 'var(--shadow-neumorph-sm)',
-            }}
-          >
+        <div className="flex justify-end gap-3 pt-4 border-t border-black/5 dark:border-white/10">
+          <Button type="button" variant="ghost" size="md" onClick={() => onClose()}>
             Batal
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-6 py-2 text-sm font-semibold rounded-lg cursor-pointer transition-all duration-300 disabled:opacity-50"
-            style={{
-              background: 'var(--bg-primary)',
-              color: '#f59e0b',
-              boxShadow: 'var(--shadow-neumorph-inset)',
-            }}
-          >
+          </Button>
+          <Button type="submit" variant="primary" size="md" loading={isSubmitting}>
             {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
-          </button>
+          </Button>
         </div>
       </form>
     </GlobalDialog>

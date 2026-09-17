@@ -326,11 +326,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
         return (
           <div
             key={idx}
-            className="rounded-2xl p-4 flex flex-col h-full transition-colors"
-            style={{
-              background: 'var(--bg-card)',
-              boxShadow: 'var(--shadow-neumorph)',
-            }}
+            className="apple-glass rounded-2xl p-4 flex flex-col h-full border border-black/5 dark:border-white/10 shadow-sm transition-all"
           >
             <div className="flex justify-between items-start mb-3">
               <h3 className="text-[18px] font-semibold m-0" style={{ color: titleColor }}>
@@ -379,19 +375,14 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                         e.preventDefault()
                       }
                     }}
-                    className={`flex items-center p-2.5 rounded-xl border relative group transition-colors ${charObj ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} hover:opacity-80 ${
-                      draggedMember ? 'border-emerald-500/50 bg-emerald-500/5' : ''
+                    className={`flex items-center p-2.5 rounded-xl border relative group transition-all bg-white/70 dark:bg-white/[0.04] border-black/5 dark:border-white/10 shadow-sm hover:shadow-md ${charObj ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} hover:opacity-90 ${
+                      draggedMember ? 'border-emerald-500/50 bg-emerald-500/10' : ''
                     }`}
                     onClick={() => {
                       if (charObj) setViewedMember(charObj)
                     }}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={() => handleDropToSlot(type, idx, sIdx)}
-                    style={{
-                      background: 'var(--bg-primary)',
-                      borderColor: 'var(--border-color)',
-                      boxShadow: 'var(--shadow-neumorph-sm)',
-                    }}
                   >
                     {charObj ? (
                       <CharacterCard
@@ -462,11 +453,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
         {/* ELITE SECTION */}
         <div
-          className="rounded-3xl p-8 mb-10 transition-colors"
-          style={{
-            background: 'var(--bg-card)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          className="apple-glass rounded-3xl p-8 mb-10 border border-black/5 dark:border-white/10 shadow-sm transition-colors"
         >
           <section>
             <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
@@ -499,11 +486,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
         {/* SUB SECTION */}
         <div
-          className="rounded-3xl p-8 mb-10 transition-colors"
-          style={{
-            background: 'var(--bg-card)',
-            boxShadow: 'var(--shadow-neumorph)',
-          }}
+          className="apple-glass rounded-3xl p-8 mb-10 border border-black/5 dark:border-white/10 shadow-sm transition-colors"
         >
           <section>
             <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
@@ -611,24 +594,18 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
         className="w-[300px] shrink-0 sticky top-4 max-h-[calc(100vh-2rem)] flex flex-col"
       >
         <div
-          className="rounded-2xl flex flex-col flex-1 min-h-0"
-          style={{
-            background: 'var(--bg-secondary)',
-            boxShadow: 'var(--shadow-neumorph-lg)',
-            border: '1px solid var(--border-color)',
-          }}
+          className="apple-glass-heavy rounded-2xl flex flex-col flex-1 min-h-0 border border-black/5 dark:border-white/10 shadow-lg"
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDropToBench}
         >
           <div
-            className="p-4 border-b shrink-0 flex items-center justify-between"
-            style={{ borderColor: 'var(--border-color)' }}
+            className="p-4 border-b border-black/5 dark:border-white/10 shrink-0 flex items-center justify-between"
           >
             <div>
-              <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
+              <h2 className="font-bold text-lg tracking-tight" style={{ color: 'var(--text-primary)' }}>
                 Benched
               </h2>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-xs mt-0.5 tabular-nums" style={{ color: 'var(--text-muted)' }}>
                 {benchMembers.length} member belum masuk
               </p>
             </div>
@@ -643,12 +620,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                   e.stopPropagation()
                   handleDragStart(m, null, null, null)
                 }}
-                className="flex items-center p-2.5 rounded-xl cursor-grab active:cursor-grabbing hover:opacity-80 transition-all border"
-                style={{
-                  background: 'var(--bg-primary)',
-                  borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-sm)',
-                }}
+                className="flex items-center p-2.5 rounded-xl cursor-grab active:cursor-grabbing bg-white/70 dark:bg-white/[0.04] border border-black/5 dark:border-white/10 shadow-sm hover:shadow-md transition-all apple-press"
               >
                 <CharacterCard character={m} />
               </div>
@@ -684,24 +656,21 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
               <button
                 key={member.id}
                 onClick={() => addMemberToParty(member.id)}
-                className="flex items-center gap-3 p-3 rounded-xl border w-full text-left transition-all duration-200 font-sans text-[14px]"
+                className="flex items-center gap-3 p-3 rounded-2xl border border-black/5 dark:border-white/10 w-full text-left transition-all duration-200 font-sans text-sm apple-press bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06]"
                 style={{
-                  background: 'var(--bg-primary)',
-                  borderColor: 'var(--border-color)',
-                  boxShadow: 'var(--shadow-neumorph-sm)',
                   color: 'var(--text-primary)',
                 }}
               >
                 <Image
                   src={getJobIcon(member.job)}
                   alt=""
-                  width={24}
-                  height={24}
-                  className="object-cover rounded-[20%] flex-shrink-0"
+                  width={28}
+                  height={28}
+                  className="object-cover rounded-lg flex-shrink-0"
                 />
-                <span className="truncate">{member.name}</span>
-                <span className="text-[14px] text-amber-400 font-bold ml-auto flex-shrink-0">
-                  {Math.round(Number(member.pvp_score) || 0).toLocaleString()}
+                <span className="truncate font-medium">{member.name}</span>
+                <span className="text-sm text-amber-500 dark:text-amber-400 font-bold tabular-nums ml-auto flex-shrink-0">
+                  {Math.round(Number(member.pvp_score) || 0).toLocaleString('id-ID')}
                 </span>
               </button>
             ))}
