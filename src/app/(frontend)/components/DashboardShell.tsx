@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { Button } from './Button'
 import { Badge } from './Badge'
 import { logoutUser } from '@/actions/auth/logoutUser'
-import { ThemeProvider, useTheme } from './ThemeProvider'
+import { useTheme } from './ThemeProvider'
 import { TourProvider, useTour } from './TourProvider'
 import type { Guild } from '@/types'
 
@@ -520,7 +520,7 @@ function DashboardShellContent({
   )
 }
 
-// Wrapper dengan ThemeProvider
+// Wrapper dengan TourProvider
 export function DashboardShell({
   children,
   guild,
@@ -529,10 +529,8 @@ export function DashboardShell({
   guild: Guild | null | undefined
 }) {
   return (
-    <ThemeProvider>
-      <TourProvider>
-        <DashboardShellContent children={children} guild={guild} />
-      </TourProvider>
-    </ThemeProvider>
+    <TourProvider>
+      <DashboardShellContent children={children} guild={guild} />
+    </TourProvider>
   )
 }

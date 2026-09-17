@@ -333,7 +333,7 @@ export function LineupExportModal({
                   </span>
                 )}
                 {!isDownloading && !downloadSuccess && !errorMessage && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     Preview tampilan lineup kualitas tinggi
                   </span>
                 )}
@@ -366,17 +366,18 @@ export function LineupExportModal({
                 {isDownloading
                   ? 'Memproses Gambar...'
                   : downloadSuccess
-                    ? 'Download Ulang PNG'
-                    : 'Download PNG'}
+                    ? 'Download Ulang'
+                    : 'Download'}
               </span>
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-2 rounded-xl text-sm font-medium border hover:bg-white/5 transition-colors cursor-pointer"
+              className="px-3.5 py-2 rounded-xl text-sm font-medium border hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
               style={{
                 color: 'var(--text-secondary)',
                 borderColor: 'var(--border-color)',
+                background: 'var(--bg-secondary)',
               }}
             >
               Tutup
@@ -487,7 +488,6 @@ export function LineupExportModal({
                 {subParties.length > 0 && (
                   <div>
                     <div className="flex items-center gap-3 mb-3">
-                      <Icon icon="fluent:shield-20-filled" className="w-5 h-5 text-indigo-400" />
                       <h3 className="text-lg font-bold text-indigo-400 tracking-wide m-0">
                         Sub Parties
                       </h3>

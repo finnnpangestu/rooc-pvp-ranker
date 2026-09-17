@@ -10,9 +10,11 @@ import { MemberUpdateDialog } from './MemberUpdateDialog'
 import { toggleVerifyMember } from '@/actions/dashboard/toggleVerifyMember'
 import { deleteCharacter } from '@/actions/dashboard/deleteCharacter'
 import { JOB_LABELS } from '@/const/JobLabels'
-import type { Character, PopulatedMember } from '@/types'
+import type { Character, PopulatedMember, CharacterStatsInput } from '@/types'
 import Image from 'next/image'
 import { Icon } from '@iconify/react'
+import { HexagonRadarChart } from './HexagonRadarChart'
+import { calculateHexagonStats } from '@/utils/calculatePvPScore'
 import {
   LineChart,
   Line,
@@ -82,6 +84,11 @@ export function CharacterDetailModal({
     }
   }, [member])
 
+  const hexStats = React.useMemo(() => {
+    if (!member) return null
+    return calculateHexagonStats(member as unknown as CharacterStatsInput)
+  }, [member])
+
   const chartData = React.useMemo<ChartDataPoint[]>(() => {
     if (!member?.stat_history || member.stat_history.length <= 1) return []
     const totalCount = member.stat_history.length
@@ -111,90 +118,140 @@ export function CharacterDetailModal({
     <GlobalDialog isOpen={isOpen} onClose={onClose} title={`Detail: ${member.name}`} maxWidth={800}>
       <div>
         <div
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 p-4 rounded-lg border"
+          className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-6 p-4.5 rounded-xl border"
           style={{
             background: 'var(--bg-primary)',
             borderColor: 'var(--border-color)',
             boxShadow: 'var(--shadow-neumorph-inset)',
           }}
         >
-          {/* Bagian Kiri: Info Utama */}
-          <div className="flex items-center gap-4">
-            <Image
-              src={getJobIcon(member.job)}
-              alt=""
-              width={48}
-              height={48}
-              className="w-12 h-12 object-cover rounded-lg shadow-sm border"
-              style={{ borderColor: 'var(--border-color)' }}
-              onError={(e) => (e.currentTarget.style.display = 'none')}
-            />
-            <div>
-              <div className="font-semibold text-xl" style={{ color: 'var(--text-primary)' }}>
-                {JOB_LABELS[member.job] || member.job}
+          {/* Bagian Kiri: Info Utama Karakter & Kehadiran/Resource */}
+          <div className="flex flex-col gap-3 flex-1 w-full sm:w-auto">
+            {/* Header Nama & Job */}
+            <div className="flex items-center gap-3.5">
+              <Image
+                src={getJobIcon(member.job)}
+                alt=""
+                width={48}
+                height={48}
+                className="w-12 h-12 object-cover rounded-lg shadow-sm border shrink-0"
+                style={{ borderColor: 'var(--border-color)' }}
+                onError={(e) => (e.currentTarget.style.display = 'none')}
+              />
+              <div>
+                <div className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
+                  {member.name}
+                </div>
+                <div className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+                  {JOB_LABELS[member.job] || member.job}
+                </div>
+                <div className="text-xs text-amber-500 dark:text-amber-400 font-medium mt-1 flex items-center gap-1.5">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                  PvP Score: {Math.round(Number(member?.pvp_score || 0)).toLocaleString('id-ID')}
+                </div>
               </div>
-              <div className="text-sm text-amber-400 font-medium mt-1 flex items-center gap-1.5">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
+            </div>
+
+            {/* Kolom Vertikal: Kehadiran GL, WoE & Resource (Di Bawah Nama & Skor) */}
+            <div
+              className="flex flex-col gap-1.5 pt-2.5 border-t w-full max-w-sm"
+              style={{ borderColor: 'var(--border-color)' }}
+            >
+              <div
+                className="flex items-center justify-between gap-3 px-2.5 py-1.5 rounded-lg border transition-colors"
+                style={{
+                  background: 'var(--bg-secondary)',
+                  borderColor: 'var(--border-color)',
+                }}
+              >
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-wider"
+                  style={{ color: 'var(--text-muted)' }}
                 >
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg>
-                PvP Score: {Math.round(Number(member?.pvp_score || 0)).toLocaleString('id-ID')}
+                  Kehadiran GL
+                </span>
+                <div className="flex items-center gap-1 text-sm font-bold">
+                  <span className="text-emerald-500 dark:text-emerald-400">
+                    {member.gl_present_count || 0}
+                  </span>
+                  <span className="text-xs font-normal" style={{ color: 'var(--text-muted)' }}>
+                    /
+                  </span>
+                  <span className="text-rose-500 dark:text-red-400">
+                    {member.gl_absent_count || 0}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                className="flex items-center justify-between gap-3 px-2.5 py-1.5 rounded-lg border transition-colors"
+                style={{
+                  background: 'var(--bg-secondary)',
+                  borderColor: 'var(--border-color)',
+                }}
+              >
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-wider"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  Kehadiran WoE
+                </span>
+                <div className="flex items-center gap-1 text-sm font-bold">
+                  <span className="text-emerald-500 dark:text-emerald-400">
+                    {member.woe_present_count || 0}
+                  </span>
+                  <span className="text-xs font-normal" style={{ color: 'var(--text-muted)' }}>
+                    /
+                  </span>
+                  <span className="text-rose-500 dark:text-red-400">
+                    {member.woe_absent_count || 0}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                className="flex items-center justify-between gap-3 px-2.5 py-1.5 rounded-lg border transition-colors"
+                style={{
+                  background: 'var(--bg-secondary)',
+                  borderColor: 'var(--border-color)',
+                }}
+              >
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-wider"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  Resource
+                </span>
+                <span className="text-sm font-bold text-indigo-500 dark:text-indigo-400">
+                  {member.total_resources || 0}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Bagian Kanan: Info GL & Resource */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-4">
-            <div className="flex flex-col items-center">
-              <span
-                className="text-[11px] font-semibold uppercase tracking-wider mb-1"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                Kehadiran GL
-              </span>
-              <div className="flex items-center gap-1.5 text-lg font-bold">
-                <span className="text-emerald-400">{member.gl_present_count || 0}</span>
-                <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>
-                  /
-                </span>
-                <span className="text-red-400">{member.gl_absent_count || 0}</span>
-              </div>
+          {/* Bagian Kanan: Hexagon Radar Chart (Hoverable, Tanpa Icon & Tanpa 6 Kotak Bawah) */}
+          {hexStats && (
+            <div className="flex items-center justify-center shrink-0 w-full sm:w-auto">
+              <HexagonRadarChart
+                data={hexStats}
+                label={member.name}
+                color="#10b981"
+                size={220}
+                showIcons={false}
+                showLegend={false}
+                showSummaryCards={false}
+              />
             </div>
-            <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
-            <div className="flex flex-col items-center">
-              <span
-                className="text-[11px] font-semibold uppercase tracking-wider mb-1"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                Kehadiran WoE
-              </span>
-              <div className="flex items-center gap-1.5 text-lg font-bold">
-                <span className="text-emerald-400">{member.woe_present_count || 0}</span>
-                <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>
-                  /
-                </span>
-                <span className="text-red-400">{member.woe_absent_count || 0}</span>
-              </div>
-            </div>
-            <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
-            <div className="flex flex-col items-center">
-              <span
-                className="text-[11px] font-semibold uppercase tracking-wider mb-1"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                Resource
-              </span>
-              <span className="text-lg font-bold text-indigo-400">
-                {member.total_resources || 0}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
 
         <TabBar className="mb-6">
@@ -496,7 +553,7 @@ export function CharacterDetailModal({
                   return (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors hover:bg-white/5"
+                      className="p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors hover:bg-black/[0.03] dark:hover:bg-white/5"
                       style={{
                         background: 'var(--bg-primary)',
                         borderColor: 'var(--border-color)',
@@ -515,7 +572,7 @@ export function CharacterDetailModal({
                             >
                               {snap.note || 'Pembaruan stats'}
                             </span>
-                            <span className="text-[11px] text-gray-400">
+                            <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
                               {new Date(snap.date).toLocaleDateString('id-ID', {
                                 day: '2-digit',
                                 month: 'short',
@@ -525,10 +582,13 @@ export function CharacterDetailModal({
                               })}
                             </span>
                           </div>
-                          <div className="text-xs text-gray-400 mt-1 flex items-center gap-2 flex-wrap">
+                          <div
+                            className="text-xs mt-1 flex items-center gap-2 flex-wrap"
+                            style={{ color: 'var(--text-muted)' }}
+                          >
                             <span>
                               Job:{' '}
-                              <strong className="text-gray-300">
+                              <strong style={{ color: 'var(--text-primary)' }}>
                                 {JOB_LABELS[snap.job] || snap.job}
                               </strong>
                             </span>

@@ -13,9 +13,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login?reason=session_expired')
   }
 
-  const currentGuild = (await db.query.guilds.findFirst({
-    where: eq(guilds.guild_master_id, user.id),
-  })) || null
+  let currentGuild = null
+  try {
+    currentGuild =
+      (await db.query.guilds.findFirst({
+        where: eq(guilds.guild_master_id, user.id),
+      })) || null
+  } catch (error: unknown) {
+    console.error('Failed to query current guild in DashboardLayout:', error)
+  }
 
   return (
     <DashboardShell guild={currentGuild}>

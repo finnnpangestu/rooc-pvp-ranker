@@ -31,7 +31,7 @@ const DEFAULT_FORM: CharacterStatsInput = {
 }
 
 export function StatsForm({ guild, characters }: StatsFormProps) {
-  const { theme } = useTheme()
+  const { theme, toggleTheme } = useTheme()
   const isDark = theme === 'dark'
   const router = useRouter()
   const [formData, setFormData] = useState<CharacterStatsInput>({
@@ -246,6 +246,25 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                 className="w-3.5 h-3.5"
               />
               <span>{copiedLink ? 'Link Tersalin!' : 'Salin Link Guild'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-medium cursor-pointer transition-all border"
+              style={{
+                background: 'var(--bg-secondary)',
+                borderColor: 'var(--border-color)',
+                color: 'var(--text-secondary)',
+                boxShadow: 'var(--shadow-neumorph-sm)',
+              }}
+              title={isDark ? 'Beralih ke Light Mode' : 'Beralih ke Dark Mode'}
+            >
+              {isDark ? (
+                <Icon icon="fluent:weather-sunny-16-regular" className="w-3.5 h-3.5 text-amber-400" />
+              ) : (
+                <Icon icon="fluent:weather-moon-16-regular" className="w-3.5 h-3.5 text-indigo-500" />
+              )}
+              <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
           </div>
 

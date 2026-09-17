@@ -428,7 +428,14 @@ export function ReportGLClient({
                 style={{ color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
               >
                 <span>{party.name}</span>
-                <span className="text-sm px-3 py-1 rounded bg-white/5 text-gray-400">
+                <span
+                  className="text-sm px-3 py-1 rounded border"
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    borderColor: 'var(--border-color)',
+                    color: 'var(--text-muted)',
+                  }}
+                >
                   {party.memberCount}/5 Member
                 </span>
               </h2>
@@ -824,7 +831,7 @@ export function ReportGLClient({
                     return (
                       <div
                         key={idx}
-                        className="flex items-center justify-between p-2 rounded-lg border transition-all cursor-pointer hover:bg-white/5"
+                        className="flex items-center justify-between p-2 rounded-lg border transition-all cursor-pointer hover:bg-black/[0.03] dark:hover:bg-white/5"
                         onClick={() => setViewedMember(member.charObj)}
                         style={{
                           background: 'var(--bg-primary)',
@@ -1147,7 +1154,7 @@ export function ReportGLClient({
                         return (
                           <div
                             key={idx}
-                            className="flex flex-col items-center p-3 rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer hover:bg-white/5"
+                            className="flex flex-col items-center p-3 rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer hover:bg-black/[0.03] dark:hover:bg-white/5"
                             onClick={() => {
                               if (resolvedChar) setViewedMember(resolvedChar)
                             }}

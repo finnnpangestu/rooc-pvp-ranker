@@ -33,7 +33,12 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
 
   return (
-    <html lang="en" className={`${outfit.variable} ${poppins.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang="en"
+      data-theme="dark"
+      suppressHydrationWarning
+      className={`${outfit.variable} ${poppins.variable} ${jetbrainsMono.variable}`}
+    >
       <body>
         <main>
           <ThemeProvider>

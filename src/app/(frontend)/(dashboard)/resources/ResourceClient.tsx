@@ -645,7 +645,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                     setSelectedIds([])
                     setSelectionMode(null)
                   }}
-                  className="absolute right-2.5 p-0.5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                  className="absolute right-2.5 p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-gray-400 hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                   title="Hapus pencarian"
                 >
                   <Icon icon="fluent:dismiss-16-filled" className="w-3.5 h-3.5" />
@@ -773,7 +773,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                           <div
                             key={res.id}
                             onClick={() => handleToggleResourceFilter(res.id)}
-                            className="flex items-center justify-between p-2 rounded-xl cursor-pointer transition-colors hover:bg-white/5"
+                            className="flex items-center justify-between p-2 rounded-xl cursor-pointer transition-colors hover:bg-black/[0.03] dark:hover:bg-white/5"
                             style={{
                               background: isChecked ? 'rgba(129, 140, 248, 0.08)' : 'transparent',
                             }}
@@ -984,7 +984,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                     return (
                       <tr
                         key={dist.id}
-                        className={`border-b transition-all ${isDisabled ? 'opacity-50' : 'hover:bg-white/5'} ${isChecked ? 'bg-indigo-500/5' : ''}`}
+                        className={`border-b transition-all ${isDisabled ? 'opacity-50' : 'hover:bg-black/[0.03] dark:hover:bg-white/5'} ${isChecked ? 'bg-indigo-500/5' : ''}`}
                         style={{ borderColor: 'var(--border-color)' }}
                       >
                         <td className="p-3">
@@ -1031,7 +1031,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                           {dist.resource_id?.name || 'Unknown'}
                         </td>
                         <td
-                          className="p-4 flex items-center gap-2 cursor-pointer hover:bg-white/5 transition-colors"
+                          className="p-4 flex items-center gap-2 cursor-pointer hover:bg-black/[0.03] dark:hover:bg-white/5 transition-colors"
                           onClick={() => setViewedMember(dist.member_id || null)}
                         >
                           <Image

@@ -101,7 +101,7 @@ const getRankStyle = (rank: number, isDark: boolean) => {
 }
 
 export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
-  const { theme } = useTheme()
+  const { theme, toggleTheme } = useTheme()
   const isDark = theme === 'dark'
   const [guildSearch, setGuildSearch] = useState('')
 
@@ -111,7 +111,7 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
 
   return (
     <div
-      className="max-w-[1200px] my-10 mx-auto p-6 sm:p-10 rounded-3xl text-white font-sans relative overflow-hidden transition-colors border"
+      className="max-w-[1200px] my-10 mx-auto p-6 sm:p-10 rounded-3xl font-sans relative overflow-hidden transition-colors border"
       style={{
         background: 'var(--bg-card)',
         boxShadow: 'var(--shadow-neumorph)',
@@ -157,13 +157,33 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
               <button
                 type="button"
                 onClick={() => setGuildSearch('')}
-                className="absolute right-2.5 p-0.5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                className="absolute right-2.5 p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-gray-400 hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                 title="Hapus pencarian"
               >
                 <Icon icon="fluent:dismiss-16-filled" className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
+
+          {/* Theme Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center shrink-0"
+            style={{
+              background: 'var(--bg-secondary)',
+              borderColor: 'var(--border-color)',
+              color: 'var(--text-secondary)',
+              boxShadow: 'var(--shadow-neumorph-sm)',
+            }}
+            title={isDark ? 'Beralih ke Light Mode' : 'Beralih ke Dark Mode'}
+          >
+            {isDark ? (
+              <Icon icon="fluent:weather-sunny-24-regular" className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Icon icon="fluent:weather-moon-24-regular" className="w-4 h-4 text-indigo-500" />
+            )}
+          </button>
         </div>
       </div>
 
@@ -212,7 +232,7 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
                 return (
                   <tr
                     key={guild.id}
-                    className="border-b transition-colors duration-200 hover:bg-white/5"
+                    className="border-b transition-colors duration-200 hover:bg-black/[0.03] dark:hover:bg-white/5"
                     style={{ borderColor: 'var(--border-color)' }}
                   >
                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>

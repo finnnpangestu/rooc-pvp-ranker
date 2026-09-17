@@ -167,7 +167,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 p-0.5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                  className="absolute right-2.5 p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-gray-400 hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                   title="Hapus pencarian"
                 >
                   <Icon icon="fluent:dismiss-16-filled" className="w-3.5 h-3.5" />
@@ -268,7 +268,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                 paginatedMembers.map((char) => (
                   <tr
                     key={char.id}
-                    className="border-b transition-colors hover:bg-white/5"
+                    className="border-b transition-colors hover:bg-black/[0.03] dark:hover:bg-white/5"
                     style={{ borderColor: 'var(--border-color)' }}
                   >
                     <td className="p-4 font-medium" style={{ color: 'var(--text-primary)' }}>

@@ -456,7 +456,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
             onClick={() => setIsExportModalOpen(true)}
           >
             <Icon icon="fluent:arrow-download-20-filled" className="w-4 h-4 text-indigo-400" />
-            <span>Download Lineup PNG</span>
+            <span>Download Lineup</span>
           </Button>
         </div>
 
@@ -584,8 +584,11 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
               disabled={!localSetup || (!isEliteGenerated && !isSubGenerated)}
               onClick={() => setIsExportModalOpen(true)}
             >
-              <Icon icon="fluent:image-20-filled" className="w-5 h-5 text-indigo-400 mr-1.5" />
-              Download PNG
+              <Icon
+                icon="fluent:arrow-download-20-filled"
+                className="w-5 h-5 text-indigo-400 mr-1.5"
+              />
+              Download Lineup
             </Button>
             <Button
               id="tour-gl-save"

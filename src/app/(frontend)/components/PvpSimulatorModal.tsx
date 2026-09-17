@@ -3,7 +3,8 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { Icon } from '@iconify/react'
 import { JOB_LABELS, JOBS } from '@/const/JobLabels'
-import { calculatePvPScore } from '@/utils/calculatePvPScore'
+import { calculatePvPScore, calculateHexagonStats } from '@/utils/calculatePvPScore'
+import { HexagonRadarChart } from './HexagonRadarChart'
 import type { Character, CharacterStatsInput, PopulatedMember } from '@/types'
 import Image from 'next/image'
 
@@ -299,6 +300,16 @@ export function PvpSimulatorModal({
     return Number(charB.pvp_score) || calculatePvPScore(charB as unknown as CharacterStatsInput)
   }, [charB])
 
+  const hexA = useMemo(() => {
+    if (!charA) return null
+    return calculateHexagonStats(charA as unknown as CharacterStatsInput)
+  }, [charA])
+
+  const hexB = useMemo(() => {
+    if (!charB) return null
+    return calculateHexagonStats(charB as unknown as CharacterStatsInput)
+  }, [charB])
+
   const compareScoreDelta = Math.abs(scoreA - scoreB)
   const compareWinner = scoreA > scoreB ? 'A' : scoreA < scoreB ? 'B' : 'TIE'
 
@@ -345,7 +356,7 @@ export function PvpSimulatorModal({
                 className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                   activeTab === 'simulator'
                     ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-gray-400 hover:text-white'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/10'
                 }`}
               >
                 Stat Simulator
@@ -356,7 +367,7 @@ export function PvpSimulatorModal({
                 className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                   activeTab === 'compare'
                     ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-gray-400 hover:text-white'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/10'
                 }`}
               >
                 <Icon icon="fluent:arrow-swap-20-filled" className="w-4 h-4" />
@@ -367,7 +378,7 @@ export function PvpSimulatorModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
               <Icon icon="fluent:dismiss-24-regular" className="w-5 h-5" />
             </button>
@@ -444,7 +455,7 @@ export function PvpSimulatorModal({
                 <button
                   type="button"
                   onClick={handleResetToBaseline}
-                  className="px-3.5 py-2 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-all cursor-pointer hover:bg-white/5"
+                  className="px-3.5 py-2 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-all cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
                   style={{
                     color: 'var(--text-secondary)',
                     borderColor: 'var(--border-color)',
@@ -523,7 +534,7 @@ export function PvpSimulatorModal({
                     ? 'border-emerald-500/40 bg-emerald-500/10'
                     : scoreDelta < 0
                       ? 'border-rose-500/40 bg-rose-500/10'
-                      : 'border-gray-700 bg-gray-800/20'
+                      : 'border-[var(--border-color)] bg-[var(--bg-secondary)]'
                 }`}
               >
                 <span
@@ -536,10 +547,10 @@ export function PvpSimulatorModal({
                   <span
                     className={`text-2xl sm:text-3xl font-extrabold ${
                       scoreDelta > 0
-                        ? 'text-emerald-400'
+                        ? 'text-emerald-500 dark:text-emerald-400'
                         : scoreDelta < 0
-                          ? 'text-rose-400'
-                          : 'text-gray-400'
+                          ? 'text-rose-500 dark:text-rose-400'
+                          : 'text-[var(--text-muted)]'
                     }`}
                   >
                     {scoreDelta > 0
@@ -549,10 +560,10 @@ export function PvpSimulatorModal({
                   <span
                     className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                       scoreDelta > 0
-                        ? 'bg-emerald-500/20 text-emerald-300'
+                        ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300'
                         : scoreDelta < 0
-                          ? 'bg-rose-500/20 text-rose-300'
-                          : 'bg-gray-700 text-gray-300'
+                          ? 'bg-rose-500/20 text-rose-600 dark:text-rose-300'
+                          : 'bg-black/10 dark:bg-white/10 text-[var(--text-secondary)]'
                     }`}
                   >
                     {scoreDelta > 0
@@ -587,15 +598,24 @@ export function PvpSimulatorModal({
                     <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
                       Rekomendasi Optimasi {JOB_LABELS[simJob] || simJob}
                     </span>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-gray-300">
+                    <span
+                      className="text-[11px] px-2 py-0.5 rounded-full border"
+                      style={{
+                        background: 'var(--bg-secondary)',
+                        borderColor: 'var(--border-color)',
+                        color: 'var(--text-secondary)',
+                      }}
+                    >
                       {JOB_ARCHETYPES[simJob].role}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-300 m-0">
-                    <strong className="text-indigo-300">Fokus Bobot: </strong>
+                  <p className="text-xs m-0" style={{ color: 'var(--text-secondary)' }}>
+                    <strong className="text-indigo-500 dark:text-indigo-300">Fokus Bobot: </strong>
                     {JOB_ARCHETYPES[simJob].topWeights}
                   </p>
-                  <p className="text-xs text-gray-400 m-0">{JOB_ARCHETYPES[simJob].hint}</p>
+                  <p className="text-xs m-0" style={{ color: 'var(--text-muted)' }}>
+                    {JOB_ARCHETYPES[simJob].hint}
+                  </p>
                 </div>
               </div>
             )}
@@ -615,7 +635,7 @@ export function PvpSimulatorModal({
                       className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
                         activeStatCategory === cat
                           ? 'bg-indigo-600 text-white shadow-md'
-                          : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                          : 'bg-black/5 dark:bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-black/10 dark:hover:bg-white/10'
                       }`}
                     >
                       {cat === 'general'
@@ -687,7 +707,7 @@ export function PvpSimulatorModal({
                           <button
                             type="button"
                             onClick={() => handleQuickAdjust(stat.key, -stat.step)}
-                            className="w-7 h-7 rounded-lg border text-xs font-bold flex items-center justify-center hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                            className="w-7 h-7 rounded-lg border text-xs font-bold flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                             style={{
                               borderColor: 'var(--border-color)',
                               background: 'var(--bg-secondary)',
@@ -699,7 +719,7 @@ export function PvpSimulatorModal({
                           <button
                             type="button"
                             onClick={() => handleQuickAdjust(stat.key, stat.step)}
-                            className="w-7 h-7 rounded-lg border text-xs font-bold flex items-center justify-center hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                            className="w-7 h-7 rounded-lg border text-xs font-bold flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                             style={{
                               borderColor: 'var(--border-color)',
                               background: 'var(--bg-secondary)',
@@ -739,7 +759,6 @@ export function PvpSimulatorModal({
                   </span>
                   {compareWinner === 'A' && (
                     <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                      <Icon icon="fluent:trophy-16-filled" className="w-3.5 h-3.5" />
                       Skor Lebih Tinggi (+{Math.round(compareScoreDelta)})
                     </span>
                   )}
@@ -812,7 +831,6 @@ export function PvpSimulatorModal({
                   </span>
                   {compareWinner === 'B' && (
                     <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                      <Icon icon="fluent:trophy-16-filled" className="w-3.5 h-3.5" />
                       Skor Lebih Tinggi (+{Math.round(compareScoreDelta)})
                     </span>
                   )}
@@ -902,6 +920,45 @@ export function PvpSimulatorModal({
               </div>
             )}
 
+            {/* Visualisasi Perbandingan Hexagon Radar */}
+            {charA && charB && hexA && hexB && (
+              <div
+                className="p-5 rounded-xl border flex flex-col items-center"
+                style={{
+                  background: 'var(--bg-primary)',
+                  borderColor: 'var(--border-color)',
+                  boxShadow: 'var(--shadow-neumorph-inset)',
+                }}
+              >
+                <div
+                  className="w-full flex items-center justify-between mb-4 border-b pb-3"
+                  style={{ borderColor: 'var(--border-color)' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon icon="lucide:radar" className="w-5 h-5 text-indigo-400" />
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-gray-200 m-0">
+                      Analisis 6-Pilar Hexagon Stats
+                    </h4>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    Perbandingan Profil Kekuatan Karakter
+                  </span>
+                </div>
+
+                <HexagonRadarChart
+                  dataA={hexA}
+                  dataB={hexB}
+                  labelA={charA.name}
+                  labelB={charB.name}
+                  colorA="#10b981"
+                  colorB="#a855f7"
+                  size={340}
+                  showLegend={true}
+                  showSummaryCards={true}
+                />
+              </div>
+            )}
+
             {/* Tabel Perbandingan Stat Langsung */}
             {charA && charB && (
               <div
@@ -959,13 +1016,13 @@ export function PvpSimulatorModal({
                     return (
                       <div
                         key={row.key}
-                        className="px-4 py-3 flex items-center justify-between gap-4 hover:bg-white/5 transition-colors"
+                        className="px-4 py-3 flex items-center justify-between gap-4 hover:bg-black/[0.03] dark:hover:bg-white/5 transition-colors"
                       >
                         {/* Nilai A */}
                         <div className="w-1/3 flex items-center gap-2">
                           <span
                             className={`font-semibold ${
-                              isAHigher ? 'text-emerald-400' : 'text-gray-300'
+                              isAHigher ? 'text-emerald-500 dark:text-emerald-400' : 'text-[var(--text-primary)]'
                             }`}
                           >
                             {row.isPercent ? `${rawValA}%` : rawValA.toLocaleString('id-ID')}
@@ -973,22 +1030,22 @@ export function PvpSimulatorModal({
                           {isAHigher && (
                             <Icon
                               icon="fluent:triangle-right-16-filled"
-                              className="w-3.5 h-3.5 text-emerald-400 shrink-0"
+                              className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0"
                             />
                           )}
                         </div>
 
                         {/* Label & Dual Progress Bar */}
                         <div className="w-1/3 flex flex-col items-center gap-1">
-                          <span className="text-xs text-gray-400 font-medium">{row.label}</span>
-                          <div className="w-full h-1.5 bg-gray-800 rounded-full flex overflow-hidden">
+                          <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{row.label}</span>
+                          <div className="w-full h-1.5 bg-black/10 dark:bg-white/10 rounded-full flex overflow-hidden">
                             <div
                               className={`h-full transition-all ${
                                 isAHigher ? 'bg-emerald-500' : 'bg-indigo-500/60'
                               }`}
                               style={{ width: `${pctA / 2}%` }}
                             />
-                            <div className="w-0.5 bg-gray-950 h-full" />
+                            <div className="w-0.5 bg-[var(--border-color)] h-full" />
                             <div
                               className={`h-full transition-all ml-auto ${
                                 isBHigher ? 'bg-emerald-500' : 'bg-purple-500/60'
@@ -1003,12 +1060,12 @@ export function PvpSimulatorModal({
                           {isBHigher && (
                             <Icon
                               icon="fluent:triangle-left-16-filled"
-                              className="w-3.5 h-3.5 text-emerald-400 shrink-0"
+                              className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0"
                             />
                           )}
                           <span
                             className={`font-semibold ${
-                              isBHigher ? 'text-emerald-400' : 'text-gray-300'
+                              isBHigher ? 'text-emerald-500 dark:text-emerald-400' : 'text-[var(--text-primary)]'
                             }`}
                           >
                             {row.isPercent ? `${rawValB}%` : rawValB.toLocaleString('id-ID')}
@@ -1028,14 +1085,14 @@ export function PvpSimulatorModal({
           className="p-4 border-t flex items-center justify-between gap-3 flex-wrap"
           style={{ borderColor: 'var(--border-color)', background: 'var(--bg-secondary)' }}
         >
-          <div className="text-xs text-gray-400">
+          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
             {guildName && `Guild: ${guildName} • `}
             Total {allMembers.length} member siap disimulasikan
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-xl text-sm font-semibold border hover:bg-white/10 transition-colors cursor-pointer"
+            className="px-5 py-2 rounded-xl text-sm font-semibold border hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
             style={{
               borderColor: 'var(--border-color)',
               color: 'var(--text-primary)',

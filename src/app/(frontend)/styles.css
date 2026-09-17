@@ -6,7 +6,10 @@
   --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
 }
 
-:root {
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+:root,
+[data-theme='light'] {
   --bg-primary: #e8e8ec;
   --bg-secondary: #d1d1d6;
   --bg-card: #e8e8ec;
@@ -19,7 +22,7 @@
   --shadow-neumorph-inset:
     inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
   --shadow-neumorph-sm: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
-  --border-color: rgba(0, 0, 0, 0.06);
+  --border-color: rgba(0, 0, 0, 0.08);
   --badge-bg: #d1d1d6;
   --badge-text: #1c1c1e;
   --card-bg: #e8e8ec;
@@ -31,14 +34,14 @@
   --bg-card: #1c1c1e;
   --text-primary: #f0f0f2;
   --text-secondary: #a0a0a6;
-  --text-muted: #6e6e72;
+  --text-muted: #8e8e93;
   --shadow-light: #2a2a2e;
   --shadow-dark: #0e0e10;
   --shadow-neumorph: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
   --shadow-neumorph-inset:
     inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
   --shadow-neumorph-sm: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
-  --border-color: rgba(255, 255, 255, 0.06);
+  --border-color: rgba(255, 255, 255, 0.08);
   --badge-bg: #2a2a2e;
   --badge-text: #f0f0f2;
   --card-bg: #1c1c1e;
@@ -54,7 +57,7 @@
     height: 8px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-[#050508];
+    background-color: var(--bg-secondary);
   }
   ::-webkit-scrollbar-thumb {
     @apply bg-indigo-500/30 rounded-full hover:bg-indigo-500/50 transition-colors;
@@ -62,11 +65,12 @@
 
   html,
   body {
-    @apply h-full m-0 bg-gradient-to-br from-[#0f0f14] to-[#050508] text-slate-200 antialiased;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     font-family: var(--font-outfit), sans-serif;
     font-size: 18px;
     line-height: 32px;
-    background-attachment: fixed;
+    @apply h-full m-0 antialiased transition-colors duration-200;
   }
 
   @media (max-width: 1024px) {

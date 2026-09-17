@@ -61,23 +61,46 @@ docker compose up -d
 ```
 
 To view logs:
+
 ```bash
 docker compose logs -f app
 ```
 
+### Database Connection via SSH Tunnel (Remote VPS)
+
+If your PostgreSQL database is hosted on a remote VPS (e.g., Oracle Cloud) and you want to forward it securely to your local development environment (`localhost:5432`):
+
+```bash
+ssh -i <your-oracle-key> -L 5432:localhost:5432 ubuntu@<your-vps-ip>
+```
+
+Helpful options:
+
+- **Background / Tunnel Only**: Add the `-N` flag so the command establishes port forwarding without opening an interactive remote shell:
+
+  ```bash
+  ssh -i <your-oracle-key> -N -L 5432:localhost:5432 ubuntu@<your-vps-ip>
+  ```
+
+- **Oracle Linux Distributions**: Replace the username `ubuntu` with `opc`:
+
+  ```bash
+  ssh -i <your-oracle-key> -L 5432:localhost:5432 opc@<your-vps-ip>
+  ```
+
 ## Scripts
 
-| Command              | Purpose                                                      |
-| -------------------- | ------------------------------------------------------------ |
-| `npm run dev`        | Start Next.js development server with Turbopack              |
-| `npm run build`      | Production build (generates `.next/standalone`)              |
-| `npm run start`      | Run the built standalone production server                   |
-| `npm run lint`       | Lint codebase with ESLint 9 Flat Config                      |
-| `npm run db:push`    | Push Drizzle schema directly to PostgreSQL                   |
-| `npm run db:generate`| Generate Drizzle SQL migration files                         |
-| `npm run test:int`   | Run Vitest integration tests against the database            |
-| `npm run test:e2e`   | Run Playwright browser tests                                 |
-| `npm run test`       | Run all tests                                                |
+| Command               | Purpose                                           |
+| --------------------- | ------------------------------------------------- |
+| `npm run dev`         | Start Next.js development server with Turbopack   |
+| `npm run build`       | Production build (generates `.next/standalone`)   |
+| `npm run start`       | Run the built standalone production server        |
+| `npm run lint`        | Lint codebase with ESLint 9 Flat Config           |
+| `npm run db:push`     | Push Drizzle schema directly to PostgreSQL        |
+| `npm run db:generate` | Generate Drizzle SQL migration files              |
+| `npm run test:int`    | Run Vitest integration tests against the database |
+| `npm run test:e2e`    | Run Playwright browser tests                      |
+| `npm run test`        | Run all tests                                     |
 
 ## Project structure
 
@@ -103,4 +126,3 @@ Full breakdown, data model diagram, and request-flow explanation:
   [`docs/IMPROVEMENTS.md`](./docs/IMPROVEMENTS.md).
 - Knowledge graph guidelines:
   [`docs/SKILLS.md`](./docs/SKILLS.md).
-

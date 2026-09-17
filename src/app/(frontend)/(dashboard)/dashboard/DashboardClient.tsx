@@ -745,7 +745,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
         </div>
 
         {/* Multi-segmented Progress Bar */}
-        <div className="w-full h-3.5 rounded-full overflow-hidden flex bg-gray-800/40 p-0.5 border border-white/5 mb-3">
+        <div className="w-full h-3.5 rounded-full overflow-hidden flex bg-black/5 dark:bg-gray-800/40 p-0.5 border border-black/5 dark:border-white/5 mb-3">
           {powerTiers.s.pct > 0 && (
             <div
               title={`S-Tier: ${powerTiers.s.count} (${powerTiers.s.pct}%)`}
@@ -904,7 +904,6 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                     className="font-semibold text-xs inline-flex items-center gap-1.5"
                     style={{ color: 'var(--text-primary)' }}
                   >
-                    <Icon icon="fluent:trophy-24-filled" className="w-4 h-4 text-emerald-400" />
                     Guild League (8 Party Elite)
                   </span>
                   <span
@@ -923,7 +922,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                   {glStats.filled} / {glStats.total} Slot ({glStats.percent}%)
                 </span>
               </div>
-              <div className="w-full bg-gray-700/30 rounded-full h-2 overflow-hidden mb-2">
+              <div className="w-full bg-black/10 dark:bg-gray-700/30 rounded-full h-2 overflow-hidden mb-2">
                 <div
                   className="h-full rounded-full transition-all duration-300"
                   style={{
@@ -966,7 +965,6 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                     className="font-semibold text-xs inline-flex items-center gap-1.5"
                     style={{ color: 'var(--text-primary)' }}
                   >
-                    <Icon icon="fluent:shield-globe-24-filled" className="w-4 h-4 text-amber-400" />
                     {woeStats.raidCount > 1
                       ? `WoE Raid (${woeStats.raidCount} Raid, ${woeStats.partyCount} Party)`
                       : 'WoE Raid (1 Raid, 8 Party)'}
@@ -987,7 +985,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                   {woeStats.filled} / {woeStats.total} Member ({woeStats.percent}%)
                 </span>
               </div>
-              <div className="w-full bg-gray-700/30 rounded-full h-2 overflow-hidden mb-2">
+              <div className="w-full bg-black/10 dark:bg-gray-700/30 rounded-full h-2 overflow-hidden mb-2">
                 <div
                   className="h-full rounded-full transition-all duration-300"
                   style={{
@@ -1752,7 +1750,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                   paginatedLeaderboard.map((char, idx) => (
                     <tr
                       key={char.id}
-                      className="border-b transition-colors hover:bg-white/5"
+                      className="border-b transition-colors hover:bg-black/[0.03] dark:hover:bg-white/5"
                       style={{ borderColor: 'var(--border-color)' }}
                     >
                       <td
@@ -1831,7 +1829,7 @@ ${top5.map((c, i) => `${i + 1}. **${c.name}** (${c.job.replace(/_/g, ' ')}) — 
                     {resource.remaining_quantity}
                   </span>
                 </div>
-                <div className="mt-2 w-full bg-gray-700/30 rounded-full h-1.5 overflow-hidden">
+                <div className="mt-2 w-full bg-black/10 dark:bg-gray-700/30 rounded-full h-1.5 overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{

@@ -362,7 +362,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
               onClick={() => setIsExportModalOpen(true)}
             >
               <Icon icon="fluent:arrow-download-20-filled" className="w-4 h-4 text-indigo-400" />
-              <span>Download Lineup PNG</span>
+              <span>Download Lineup</span>
             </Button>
             <Button id="tour-woe-add-castle" variant="amber" size="md" onClick={handleAddRaid}>
               + Add Raid
