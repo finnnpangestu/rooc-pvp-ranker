@@ -124,7 +124,7 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
             Guild Leaderboard
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Peringkat guild berdasarkan total PvP score dari semua karakter terverifikasi.
+            Guild rankings based on the total PvP score of all verified characters.
           </p>
         </div>
 
@@ -136,13 +136,13 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
               className="w-4 h-4 absolute left-3 pointer-events-none"
               style={{ color: 'var(--text-secondary)' }}
             >
-              <title>Cari</title>
+              <title>Search</title>
             </Icon>
             <input
               type="text"
               value={guildSearch}
               onChange={(e) => setGuildSearch(e.target.value)}
-              placeholder="Cari nama guild..."
+              placeholder="Search guild name..."
               className="w-full pl-9 pr-8 py-2.5 text-sm rounded-xl outline-none border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
               style={{
                 color: 'var(--text-primary)',
@@ -153,7 +153,7 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
                 type="button"
                 onClick={() => setGuildSearch('')}
                 className="absolute right-2.5 p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-gray-400 hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                title="Hapus pencarian"
+                title="Clear search"
               >
                 <Icon icon="fluent:dismiss-16-filled" className="w-3.5 h-3.5" />
               </button>
@@ -168,7 +168,7 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
             style={{
               color: 'var(--text-secondary)',
             }}
-            title={isDark ? 'Beralih ke Light Mode' : 'Beralih ke Dark Mode'}
+            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
             {isDark ? (
               <Icon icon="fluent:weather-sunny-24-regular" className="w-4 h-4 text-amber-500" />
@@ -189,8 +189,8 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
               }}
             >
               <th style={{ padding: '12px 16px', textAlign: 'center', width: '80px' }}>Rank</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left' }}>Nama Guild</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center' }}>Jumlah Karakter</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left' }}>Guild Name</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center' }}>Total Characters</th>
               <th style={{ padding: '12px 16px', textAlign: 'right' }}>Total PvP Score</th>
             </tr>
           </thead>
@@ -205,14 +205,14 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
                     color: 'var(--text-muted)',
                   }}
                 >
-                  <p>Tidak ada guild yang ditemukan.</p>
+                  <p>No guilds found.</p>
                   {guildSearch && (
                     <button
                       type="button"
                       onClick={() => setGuildSearch('')}
                       className="text-xs text-indigo-400 hover:underline cursor-pointer mt-2"
                     >
-                      Reset Pencarian
+                      Reset Search
                     </button>
                   )}
                 </td>
@@ -257,7 +257,7 @@ export function LeaderboardClient({ allGuilds }: LeaderboardClientProps) {
                       }}
                     >
                       <span style={{ color: rank === 1 ? '#fbbf24' : 'var(--text-primary)' }}>
-                        {Math.round(Number(guild.total_pvp_score) || 0).toLocaleString('id-ID')}
+                        {Math.round(Number(guild.total_pvp_score) || 0).toLocaleString('en-US')}
                       </span>
                     </td>
                   </tr>

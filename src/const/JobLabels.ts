@@ -53,5 +53,5 @@ export const JOBS_OPTIONS = [
   { label: 'Summoner', value: 'summoner' },
   { label: 'Adept Novice', value: 'adept_novice' },
   { label: 'Rebellion', value: 'rebellion' },
-  { label: 'Any / Bebas', value: 'any' },
+  { label: 'Any / Flex', value: 'any' },
 ]

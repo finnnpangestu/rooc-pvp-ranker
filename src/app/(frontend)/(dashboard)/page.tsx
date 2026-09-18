@@ -10,7 +10,7 @@ import { eq, desc } from 'drizzle-orm'
 import type { Character, PartySetup, PopulatedResource, ReportWoe, WoeSetup } from '@/types'
 
 export const metadata = {
-  title: 'Dashboard Guild Master',
+  title: 'Guild Master Dashboard',
 }
 
 export default async function DashboardPage() {

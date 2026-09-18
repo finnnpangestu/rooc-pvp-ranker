@@ -9,7 +9,7 @@ import type { Character } from '@/types'
 
 export const metadata = {
   title: 'Submit Character Stats | ROOC PvP Ranker',
-  description: 'Form input stats karakter untuk kalkulasi score PvP.',
+  description: 'Character stats input form for PvP score calculation.',
 }
 
 export const dynamic = 'force-dynamic'
@@ -73,28 +73,24 @@ export default async function StatsPage({ searchParams }: PageProps) {
           <div className="absolute -top-[120px] left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(239,68,68,0.12)_0%,rgba(0,0,0,0)_70%)] z-0 pointer-events-none" />
 
           <div className="relative z-10 flex flex-col items-center gap-5">
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center border border-red-500/25 bg-red-500/10 text-red-500 shadow-sm"
-            >
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center border border-red-500/25 bg-red-500/10 text-red-500 shadow-sm">
               <Icon icon="fluent:shield-dismiss-24-filled" className="w-8 h-8" />
             </div>
 
             <div>
-              <div
-                className="inline-block py-1 px-3 text-xs font-semibold uppercase tracking-wider rounded-full mb-3 border border-red-500/20 bg-red-500/10 text-red-500"
-              >
-                Akses Terbatas
+              <div className="inline-block py-1 px-3 text-xs font-semibold uppercase tracking-wider rounded-full mb-3 border border-red-500/20 bg-red-500/10 text-red-500">
+                Restricted Access
               </div>
               <h1
                 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3"
                 style={{ color: 'var(--text-primary)' }}
               >
-                Guild Tidak Ditemukan
+                Guild Not Found
               </h1>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                Anda tidak termasuk ke dalam member guild. Silakan hubungi{' '}
-                <strong className="text-[var(--text-primary)]">Guild Master</strong> Anda untuk mendapatkan link
-                resmi yang direkomendasikan.
+                You do not belong to this guild. Please contact your{' '}
+                <strong className="text-[var(--text-primary)]">Guild Master</strong> to obtain the
+                recommended official link.
               </p>
             </div>
 
@@ -109,8 +105,8 @@ export default async function StatsPage({ searchParams }: PageProps) {
                 className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5"
               />
               <div>
-                Halaman input & update stats sekarang membutuhkan parameter Guild ID yang valid agar
-                data karakter tersimpan aman di guild yang sesuai.
+                The stats submission & update page requires a valid Guild ID parameter so character
+                data is securely recorded to the corresponding guild.
               </div>
             </div>
 
@@ -122,7 +118,7 @@ export default async function StatsPage({ searchParams }: PageProps) {
                   color: 'var(--text-primary)',
                 }}
               >
-                Lihat Leaderboard
+                View Leaderboard
               </Link>
             </div>
           </div>
@@ -132,7 +128,10 @@ export default async function StatsPage({ searchParams }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen py-6 px-4 apple-canvas" style={{ background: 'var(--bg-primary)' }}>
+    <main
+      className="min-h-screen py-6 px-4 apple-canvas"
+      style={{ background: 'var(--bg-primary)' }}
+    >
       <StatsForm guild={targetGuild} characters={guildCharacters} />
     </main>
   )

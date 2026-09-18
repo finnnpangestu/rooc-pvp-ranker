@@ -126,11 +126,11 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
           throw new Error(
             json.errors
               ? json.errors.map((err: { message: string }) => err.message).join(', ')
-              : 'Gagal mengirim data baru',
+              : 'Failed to submit new data',
           )
         resDoc = json.doc
       } else {
-        if (!selectedUpdateId) throw new Error('Harap pilih karakter yang ingin diupdate!')
+        if (!selectedUpdateId) throw new Error('Please select a character to update!')
         const res = await updateCharacterStats(selectedUpdateId, payloadData)
         if (!res.success) throw new Error(res.message)
         resDoc = res.data?.doc || null
@@ -156,7 +156,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
   )
 
   const TABS = [
-    { id: 'info', label: 'Informasi' },
+    { id: 'info', label: 'Information' },
     { id: 'general', label: 'General' },
     { id: 'quasi', label: 'Quasi' },
     { id: 'special', label: 'Special' },
@@ -230,13 +230,13 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
               style={{
                 color: copiedLink ? '#10b981' : 'var(--text-secondary)',
               }}
-              title="Salin tautan formulir ini untuk dibagikan"
+              title="Copy this form link to share"
             >
               <Icon
                 icon={copiedLink ? 'fluent:checkmark-16-filled' : 'fluent:copy-16-regular'}
                 className="w-3.5 h-3.5"
               />
-              <span>{copiedLink ? 'Link Tersalin!' : 'Salin Link Guild'}</span>
+              <span>{copiedLink ? 'Link Copied!' : 'Copy Guild Link'}</span>
             </button>
             <button
               type="button"
@@ -245,7 +245,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
               style={{
                 color: 'var(--text-secondary)',
               }}
-              title={isDark ? 'Beralih ke Light Mode' : 'Beralih ke Dark Mode'}
+              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {isDark ? (
                 <Icon
@@ -274,7 +274,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                     : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
                 )}
               >
-                Tambah Char
+                Add Character
               </button>
               <button
                 type="button"
@@ -286,7 +286,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                     : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
                 )}
               >
-                Update Char
+                Update Character
               </button>
             </div>
           </div>
@@ -294,16 +294,16 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
           <p style={{ color: 'var(--text-secondary)' }}>
             {formMode === 'add' ? (
               <>
-                Masukkan data stat karaktermu untuk berpartisipasi dalam rank PvP. <br />
+                Enter your character stats to participate in PvP rankings. <br />
                 <span className="text-[13px] italic">
-                  Note: Gunakan stats ketika tanpa menggunakan buff.
+                  Note: Use stats without any buffs applied.
                 </span>
               </>
             ) : (
               <>
-                Pilih karaktermu untuk memperbarui data stats terbaru (Mereset Verifikasi). <br />
+                Select your character to update with recent stats (Resets Verification). <br />
                 <span className="text-[13px] italic">
-                  Note: Gunakan stats ketika tanpa menggunakan buff.
+                  Note: Use stats without any buffs applied.
                 </span>
               </>
             )}
@@ -320,7 +320,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                 padding: '4px 0',
               }}
             >
-              Lihat Leaderboard →
+              View Leaderboard →
             </Link>
           </p>
         </div>
@@ -374,7 +374,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      placeholder="Nama Karakter"
+                      placeholder="Character Name"
                     />
                   </div>
 
@@ -390,7 +390,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                       onChange={(val) =>
                         setFormData((prev) => ({ ...prev, job: val as Character['job'] }))
                       }
-                      placeholder="-- Pilih Job --"
+                      placeholder="-- Select Job --"
                       options={JOBS.map((j) => ({
                         value: j.value,
                         label: j.label,
@@ -404,7 +404,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                       className="text-xs font-semibold uppercase tracking-wider"
                       style={{ color: 'var(--text-secondary)' }}
                     >
-                      Guild Terdaftar
+                      Registered Guild
                     </label>
                     <div
                       className="w-full rounded-xl py-3 px-4 text-sm font-sans flex items-center justify-between border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04]"
@@ -420,7 +420,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                         <span className="font-semibold">{guild.name}</span>
                       </div>
                       <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-semibold">
-                        Terverifikasi
+                        Verified
                       </span>
                     </div>
                   </div>
@@ -432,7 +432,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                       className="text-xs font-semibold uppercase tracking-wider"
                       style={{ color: 'var(--text-secondary)' }}
                     >
-                      Guild Terdaftar
+                      Registered Guild
                     </label>
                     <div
                       className="w-full rounded-xl py-3 px-4 text-sm font-sans flex items-center justify-between border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04]"
@@ -448,7 +448,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                         <span className="font-semibold">{guild.name}</span>
                       </div>
                       <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-semibold">
-                        Terverifikasi
+                        Verified
                       </span>
                     </div>
                   </div>
@@ -458,15 +458,15 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                       className="text-xs font-semibold uppercase tracking-wider"
                       style={{ color: 'var(--text-secondary)' }}
                     >
-                      Pilih Karakter (IGN) <span className="text-red-500 font-bold">*</span>
+                      Select Character (IGN) <span className="text-red-500 font-bold">*</span>
                     </label>
                     <CustomDropdown
                       value={selectedUpdateId}
                       onChange={(val) => handleSelectCharacter(val)}
                       placeholder={
                         filteredCharactersForUpdate.length === 0
-                          ? '-- Belum ada karakter di guild ini --'
-                          : '-- Pilih Karakter --'
+                          ? '-- No characters in this guild yet --'
+                          : '-- Select Character --'
                       }
                       disabled={filteredCharactersForUpdate.length === 0}
                       options={filteredCharactersForUpdate.map((c) => ({
@@ -483,14 +483,14 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
                       className="text-xs font-semibold uppercase tracking-wider"
                       style={{ color: 'var(--text-secondary)' }}
                     >
-                      Edit Job (Jika Pindah Job) <span className="text-red-500 font-bold">*</span>
+                      Edit Job (If Changed Job) <span className="text-red-500 font-bold">*</span>
                     </label>
                     <CustomDropdown
                       value={formData.job}
                       onChange={(val) =>
                         setFormData((prev) => ({ ...prev, job: val as Character['job'] }))
                       }
-                      placeholder="-- Pilih Job --"
+                      placeholder="-- Select Job --"
                       disabled={!selectedUpdateId}
                       options={JOBS.map((j) => ({
                         value: j.value,
@@ -507,7 +507,7 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
           {/* Tab: General */}
           <div className={clsx('hidden animate-fadeUp', { '!block': activeTab === 'general' })}>
             <div className="mb-6 text-xs leading-relaxed p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-[var(--text-secondary)] backdrop-blur-sm">
-              Statistik dasar karaktermu.
+              Your character&apos;s basic stats.
             </div>
             {renderSection(GENERAL_STATS)}
           </div>
@@ -515,8 +515,8 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
           {/* Tab: Quasi */}
           <div className={clsx('hidden animate-fadeUp', { '!block': activeTab === 'quasi' })}>
             <div className="mb-6 text-xs leading-relaxed p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-[var(--text-secondary)] backdrop-blur-sm">
-              Statistik lanjutan (Quasi). Isi dalam bentuk angka murni tanpa persen (Contoh: 99.5
-              untuk 99.5%). Untuk stats Minus (-), Jangan pakai tanda minus (Contoh: 5 Untuk -5)
+              Advanced stats (Quasi). Enter pure numbers without percentage signs (e.g. 99.5 for
+              99.5%). For minus stats (-), do not use a negative sign (e.g. 5 for -5).
             </div>
             {renderSection(QUASI_STATS)}
           </div>
@@ -524,14 +524,14 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
           {/* Tab: Special */}
           <div className={clsx('hidden animate-fadeUp', { '!block': activeTab === 'special' })}>
             <div className="mb-6 text-xs leading-relaxed p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-[var(--text-secondary)] backdrop-blur-sm">
-              Statistik tambahan dari equipment atau modifier khusus.
+              Additional stats from equipment or special modifiers.
             </div>
             {renderSection(SPECIAL_STATS)}
           </div>
 
           <div className="mt-10 pt-8 border-t border-black/5 dark:border-white/10 flex justify-end">
             <Button type="submit" variant="primary" size="lg" loading={isSubmitting}>
-              {formMode === 'add' ? 'Kirim Data Stats' : 'Update Data Stats'}
+              {formMode === 'add' ? 'Submit Stats Data' : 'Update Stats Data'}
             </Button>
           </div>
         </form>
@@ -540,19 +540,21 @@ export function StatsForm({ guild, characters }: StatsFormProps) {
       <GlobalDialog
         isOpen={dialogResult.isOpen}
         onClose={() => setDialogResult({ isOpen: false, score: null })}
-        title={formMode === 'add' ? 'Submission Berhasil!' : 'Update Berhasil!'}
+        title={formMode === 'add' ? 'Submission Successful!' : 'Update Successful!'}
       >
         <div
           className="text-center text-sm mb-4 leading-relaxed"
           style={{ color: 'var(--text-secondary)' }}
         >
           {formMode === 'add'
-            ? 'Data karaktermu telah disimpan dan menunggu verifikasi dari Guild Master.'
-            : 'Data karaktermu berhasil diubah dan dikembalikan ke status Pending untuk diverifikasi ulang.'}
+            ? 'Your character data has been submitted and is awaiting verification from the Guild Master.'
+            : 'Your character data has been updated and reset to Pending status for re-verification.'}
         </div>
         <div className="text-5xl font-extrabold text-center bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-transparent bg-clip-text my-6 drop-shadow-sm tabular-nums">
           Score:{' '}
-          {dialogResult.score !== null ? Math.round(dialogResult.score).toLocaleString() : 'N/A'}
+          {dialogResult.score !== null
+            ? Math.round(dialogResult.score).toLocaleString('en-US')
+            : 'N/A'}
         </div>
       </GlobalDialog>
     </>

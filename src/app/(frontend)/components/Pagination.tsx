@@ -30,7 +30,9 @@ export function Pagination({
       </button>
 
       <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 tabular-nums">
-        Halaman <strong className="text-zinc-900 dark:text-white font-semibold">{currentPage}</strong> dari {totalPages}
+        Halaman{' '}
+        <strong className="text-zinc-900 dark:text-white font-semibold">{currentPage}</strong> dari{' '}
+        {totalPages}
       </span>
 
       <button

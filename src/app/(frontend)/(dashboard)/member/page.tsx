@@ -9,7 +9,7 @@ import { eq } from 'drizzle-orm'
 import type { Character } from '@/types'
 
 export const metadata = {
-  title: 'Daftar Member Guild',
+  title: 'Guild Members',
 }
 
 export default async function MemberPage() {

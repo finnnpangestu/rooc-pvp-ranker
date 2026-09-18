@@ -14,11 +14,11 @@ export async function registerUser(formData: FormData) {
 
   const isHuman = await verifyTurnstileToken(turnstileToken)
   if (!isHuman) {
-    return { success: false, error: 'Verifikasi keamanan bot gagal. Silakan centang verifikasi.' }
+    return { success: false, error: 'Bot security verification failed. Please complete the verification.' }
   }
 
   if (!email || !password || !name) {
-    return { success: false, error: 'Semua field wajib diisi' }
+    return { success: false, error: 'All fields are required' }
   }
 
   try {
@@ -29,7 +29,7 @@ export async function registerUser(formData: FormData) {
     })
 
     if (existingUser) {
-      return { success: false, error: 'Email sudah digunakan' }
+      return { success: false, error: 'Email is already registered' }
     }
 
     const hashedPassword = await hashPassword(password)
@@ -47,7 +47,7 @@ export async function registerUser(formData: FormData) {
 
     return { success: true }
   } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : 'Gagal mendaftar'
+    const errorMsg = err instanceof Error ? err.message : 'Registration failed'
     return { success: false, error: errorMsg, message: errorMsg }
   }
 }

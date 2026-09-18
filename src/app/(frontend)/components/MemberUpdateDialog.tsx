@@ -67,10 +67,10 @@ export function MemberUpdateDialog({ character, isOpen, onClose }: MemberUpdateD
       if (res.success) {
         onClose(true)
       } else {
-        setError(res.error || 'Gagal mengupdate stats')
+        setError(res.error || 'Failed to update stats')
       }
     } catch {
-      setError('Terjadi kesalahan sistem.')
+      setError('A system error occurred.')
     } finally {
       setIsSubmitting(false)
     }
@@ -158,7 +158,7 @@ export function MemberUpdateDialog({ character, isOpen, onClose }: MemberUpdateD
                 onChange={(val) =>
                   setFormData((prev) => ({ ...prev, job: val as Character['job'] }))
                 }
-                placeholder="-- Pilih Job --"
+                placeholder="-- Select Job --"
                 size="sm"
                 options={JOBS.map((j) => ({
                   value: j.value,
@@ -182,10 +182,10 @@ export function MemberUpdateDialog({ character, isOpen, onClose }: MemberUpdateD
 
         <div className="flex justify-end gap-3 pt-4 border-t border-black/5 dark:border-white/10">
           <Button type="button" variant="ghost" size="md" onClick={() => onClose()}>
-            Batal
+            Cancel
           </Button>
           <Button type="submit" variant="primary" size="md" loading={isSubmitting}>
-            {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </form>

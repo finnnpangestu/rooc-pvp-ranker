@@ -1,15 +1,16 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
+import { toPng } from 'html-to-image'
 import { Icon } from '@iconify/react'
-import { JOB_LABELS, JOBS } from '@/const/JobLabels'
+import { JOB_LABELS } from '@/const/JobLabels'
 import { calculatePvPScore, calculateHexagonStats } from '@/utils/calculatePvPScore'
 import { HexagonRadarChart } from './HexagonRadarChart'
 import { CustomDropdown } from './CustomDropdown'
 import type { Character, CharacterStatsInput, PopulatedMember } from '@/types'
 import Image from 'next/image'
 
-interface PvpSimulatorModalProps {
+export interface PvpSimulatorModalProps {
   isOpen: boolean
   onClose: () => void
   initialCharacter?: Character | PopulatedMember | null
@@ -17,146 +18,398 @@ interface PvpSimulatorModalProps {
   guildName?: string
 }
 
-type SimulatorTab = 'simulator' | 'compare'
-type StatCategory = 'general' | 'quasi' | 'special'
+type StatCategory = 'all' | 'offensive' | 'defensive' | 'support' | 'elemental'
+
+interface StatRowDefinition {
+  key: string
+  label: string
+  category: 'offensive' | 'defensive' | 'support' | 'elemental'
+  isPercent?: boolean
+  description?: string
+}
+
+const STAT_MATRIX_CONFIGS: StatRowDefinition[] = [
+  // --- OFFENSIVE & CRITICAL ---
+  { key: 'patk', label: 'PATK', category: 'offensive', description: 'Physical Attack' },
+  { key: 'matk', label: 'MATK', category: 'offensive', description: 'Magic Attack' },
+  {
+    key: 'refine_patk',
+    label: 'Refine PATK',
+    category: 'offensive',
+    description: 'Refine Physical Attack',
+  },
+  {
+    key: 'refine_matk',
+    label: 'Refine MATK',
+    category: 'offensive',
+    description: 'Refine Magic Attack',
+  },
+  {
+    key: 'pdmg',
+    label: 'PDMG',
+    category: 'offensive',
+    isPercent: true,
+    description: 'Physical Damage Multiplier',
+  },
+  {
+    key: 'mdmg',
+    label: 'MDMG',
+    category: 'offensive',
+    isPercent: true,
+    description: 'Magic Damage Multiplier',
+  },
+  {
+    key: 'pdmg_bonus',
+    label: 'PDMG Bonus',
+    category: 'offensive',
+    description: 'Physical Damage Flat Bonus',
+  },
+  {
+    key: 'mdmg_bonus',
+    label: 'MDMG Bonus',
+    category: 'offensive',
+    description: 'Magic Damage Flat Bonus',
+  },
+  {
+    key: 'ignore_pdef',
+    label: 'Ignore PDEF',
+    category: 'offensive',
+    isPercent: true,
+    description: 'Physical Armor Penetration',
+  },
+  {
+    key: 'ignore_mdef',
+    label: 'Ignore MDEF',
+    category: 'offensive',
+    isPercent: true,
+    description: 'Magic Armor Penetration',
+  },
+  { key: 'critical', label: 'CRIT', category: 'offensive', description: 'Critical Rate' },
+  {
+    key: 'critical_damage',
+    label: 'CRIT DMG',
+    category: 'offensive',
+    isPercent: true,
+    description: 'Critical Damage %',
+  },
+  {
+    key: 'aspd',
+    label: 'ASPD',
+    category: 'offensive',
+    isPercent: true,
+    description: 'Attack Speed %',
+  },
+  { key: 'hit', label: 'HIT', category: 'offensive', description: 'Attack Hit / Accuracy Rate' },
+  { key: 'flee', label: 'FLEE', category: 'offensive', description: 'Dodge / Evasion Rate' },
+  {
+    key: 'pvp_dmg_bonus',
+    label: 'PvP DMG Bonus',
+    category: 'offensive',
+    description: 'PvP Mode Damage Bonus',
+  },
+  {
+    key: 'dmg_vs_demi_human',
+    label: 'DMG vs Demi-Human',
+    category: 'offensive',
+    isPercent: true,
+    description: 'Damage Bonus vs Demi-Human / Player',
+  },
+  {
+    key: 'dmg_vs_medium',
+    label: 'DMG vs Medium',
+    category: 'offensive',
+    isPercent: true,
+    description: 'Damage Bonus vs Medium Size Targets',
+  },
+
+  // --- DEFENSIVE & HP ---
+  {
+    key: 'max_hp',
+    label: 'Max HP',
+    category: 'defensive',
+    description: 'Maximum Hit Points',
+  },
+  { key: 'pdef', label: 'PDEF', category: 'defensive', description: 'Physical Defense' },
+  { key: 'mdef', label: 'MDEF', category: 'defensive', description: 'Magic Defense' },
+  {
+    key: 'refine_pdef',
+    label: 'Refine PDEF',
+    category: 'defensive',
+    description: 'Refine Physical Defense',
+  },
+  {
+    key: 'refine_mdef',
+    label: 'Refine MDEF',
+    category: 'defensive',
+    description: 'Refine Magic Defense',
+  },
+  {
+    key: 'pdmg_reduction',
+    label: 'P.DMG Reduction',
+    category: 'defensive',
+    isPercent: true,
+    description: 'Physical Damage Reduction',
+  },
+  {
+    key: 'mdmg_reduction',
+    label: 'M.DMG Reduction',
+    category: 'defensive',
+    isPercent: true,
+    description: 'Magic Damage Reduction',
+  },
+  {
+    key: 'critical_reduction',
+    label: 'CRIT Reduction',
+    category: 'defensive',
+    description: 'Critical Hit Resistance',
+  },
+  {
+    key: 'critical_damage_reduction',
+    label: 'CRIT DMG Reduction',
+    category: 'defensive',
+    isPercent: true,
+    description: 'Critical Damage Reduction',
+  },
+  {
+    key: 'pvp_dmg_reduction',
+    label: 'PvP DMG Reduction',
+    category: 'defensive',
+    description: 'PvP Mode Damage Reduction',
+  },
+  {
+    key: 'dmg_reduction_demi_human',
+    label: 'Demi-Human Red.',
+    category: 'defensive',
+    isPercent: true,
+    description: 'Damage Reduction from Demi-Human / Player',
+  },
+  {
+    key: 'dmg_reduction_medium',
+    label: 'Medium Red.',
+    category: 'defensive',
+    isPercent: true,
+    description: 'Damage Reduction from Medium Size Targets',
+  },
+
+  // --- SUPPORT & UTILITY ---
+  {
+    key: 'healing_done',
+    label: 'Healing Done',
+    category: 'support',
+    isPercent: true,
+    description: 'Healing Output Efficiency',
+  },
+  {
+    key: 'healing_taken',
+    label: 'Healing Taken',
+    category: 'support',
+    isPercent: true,
+    description: 'Healing Received Efficiency',
+  },
+  {
+    key: 'variable_cast',
+    label: 'Variable Cast (VCT)',
+    category: 'support',
+    isPercent: true,
+    description: 'Variable Cast Time Reduction',
+  },
+  {
+    key: 'fixed_cast',
+    label: 'Fixed Cast',
+    category: 'support',
+    description: 'Fixed Cast Time Reduction',
+  },
+  {
+    key: 'mspd',
+    label: 'Movement Speed (MSPD)',
+    category: 'support',
+    description: 'Movement Speed',
+  },
+
+  // --- ELEMENTAL RESISTANCE ---
+  {
+    key: 'neutral_dmg_reduction',
+    label: 'Neutral Reduction',
+    category: 'elemental',
+    isPercent: true,
+    description: 'Neutral Element Resistance',
+  },
+  {
+    key: 'fire_dmg_reduction',
+    label: 'Fire Reduction',
+    category: 'elemental',
+    isPercent: true,
+    description: 'Fire Element Resistance',
+  },
+  {
+    key: 'water_dmg_reduction',
+    label: 'Water Reduction',
+    category: 'elemental',
+    isPercent: true,
+    description: 'Water Element Resistance',
+  },
+  {
+    key: 'wind_dmg_reduction',
+    label: 'Wind Reduction',
+    category: 'elemental',
+    isPercent: true,
+    description: 'Wind Element Resistance',
+  },
+  {
+    key: 'earth_dmg_reduction',
+    label: 'Earth Reduction',
+    category: 'elemental',
+    isPercent: true,
+    description: 'Earth Element Resistance',
+  },
+  {
+    key: 'ghost_dmg_reduction',
+    label: 'Ghost Reduction',
+    category: 'elemental',
+    isPercent: true,
+    description: 'Ghost Element Resistance',
+  },
+  {
+    key: 'holy_dmg_reduction',
+    label: 'Holy Reduction',
+    category: 'elemental',
+    isPercent: true,
+    description: 'Holy Element Resistance',
+  },
+  {
+    key: 'poison_dmg_reduction',
+    label: 'Poison Reduction',
+    category: 'elemental',
+    isPercent: true,
+    description: 'Poison Element Resistance',
+  },
+]
 
 const getJobIcon = (jobValue: string) => `/icons/jobs/${jobValue}.png`
 
-const STAT_CONFIGS: Record<
-  StatCategory,
-  { key: string; label: string; step: number; isPercent?: boolean }[]
-> = {
-  general: [
-    { key: 'max_hp', label: 'Max HP', step: 5000 },
-    { key: 'patk', label: 'PATK', step: 100 },
-    { key: 'matk', label: 'MATK', step: 100 },
-    { key: 'pdef', label: 'PDEF', step: 50 },
-    { key: 'mdef', label: 'MDEF', step: 50 },
-    { key: 'refine_patk', label: 'Refine PATK', step: 50 },
-    { key: 'refine_matk', label: 'Refine MATK', step: 50 },
-    { key: 'refine_pdef', label: 'Refine PDEF', step: 50 },
-    { key: 'refine_mdef', label: 'Refine MDEF', step: 50 },
-    { key: 'hit', label: 'HIT', step: 20 },
-    { key: 'flee', label: 'FLEE', step: 20 },
-  ],
-  quasi: [
-    { key: 'pdmg', label: 'PDMG', step: 5, isPercent: true },
-    { key: 'mdmg', label: 'MDMG', step: 5, isPercent: true },
-    { key: 'pdmg_reduction', label: 'PDMG.R', step: 5, isPercent: true },
-    { key: 'mdmg_reduction', label: 'MDMG.R', step: 5, isPercent: true },
-    { key: 'ignore_pdef', label: 'Ignore PDEF', step: 5, isPercent: true },
-    { key: 'ignore_mdef', label: 'Ignore MDEF', step: 5, isPercent: true },
-    { key: 'pdmg_bonus', label: 'PDMG Bonus', step: 50 },
-    { key: 'mdmg_bonus', label: 'MDMG Bonus', step: 50 },
-    { key: 'pvp_dmg_bonus', label: 'PvP DMG Bonus', step: 100 },
-    { key: 'pvp_dmg_reduction', label: 'PvP DMG Red', step: 100 },
-    { key: 'critical', label: 'CRIT', step: 10 },
-    { key: 'critical_damage', label: 'CRIT DMG', step: 5, isPercent: true },
-    { key: 'critical_reduction', label: 'CRIT RES', step: 10 },
-    { key: 'critical_damage_reduction', label: 'CRIT DMG RES', step: 5, isPercent: true },
-    { key: 'aspd', label: 'ASPD', step: 5, isPercent: true },
-    { key: 'variable_cast', label: 'Variable CT', step: 5, isPercent: true },
-    { key: 'healing_done', label: 'Healing Done', step: 5, isPercent: true },
-    { key: 'healing_taken', label: 'Healing Taken', step: 5, isPercent: true },
-  ],
-  special: [
-    { key: 'dmg_vs_demi_human', label: 'DMG vs Demi', step: 5, isPercent: true },
-    { key: 'dmg_reduction_demi_human', label: 'DMG Red Demi', step: 5, isPercent: true },
-    { key: 'dmg_vs_medium', label: 'DMG vs Med', step: 5, isPercent: true },
-    { key: 'dmg_reduction_medium', label: 'DMG Red Med', step: 5, isPercent: true },
-    { key: 'neutral_dmg_bonus', label: 'Neutral Bonus', step: 5, isPercent: true },
-    { key: 'neutral_dmg_reduction', label: 'Neutral Red', step: 5, isPercent: true },
-    { key: 'fire_dmg_reduction', label: 'Fire Red', step: 5, isPercent: true },
-    { key: 'water_dmg_reduction', label: 'Water Red', step: 5, isPercent: true },
-    { key: 'wind_dmg_reduction', label: 'Wind Red', step: 5, isPercent: true },
-    { key: 'earth_dmg_reduction', label: 'Earth Red', step: 5, isPercent: true },
-    { key: 'ghost_dmg_reduction', label: 'Ghost Red', step: 5, isPercent: true },
-    { key: 'holy_dmg_reduction', label: 'Holy Red', step: 5, isPercent: true },
-    { key: 'poison_dmg_reduction', label: 'Poison Red', step: 5, isPercent: true },
-  ],
+// Cache in-memory untuk font Poppins agar render PNG instan dan selalu menggunakan font Poppins asli
+let cachedPoppinsEmbedCss: string | null = null
+
+function resolveNextMediaUrl(rawUrl: string): string {
+  if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://') || rawUrl.startsWith('data:')) {
+    return rawUrl
+  }
+  const clean = rawUrl.replace(/^[./]+/, '')
+  if (clean.startsWith('_next/')) {
+    return `${window.location.origin}/${clean}`
+  }
+  if (clean.startsWith('static/media/')) {
+    return `${window.location.origin}/_next/${clean}`
+  }
+  if (clean.startsWith('media/')) {
+    return `${window.location.origin}/_next/static/${clean}`
+  }
+  return `${window.location.origin}/_next/static/media/${clean}`
 }
 
-const JOB_ARCHETYPES: Record<string, { role: string; topWeights: string; hint: string }> = {
-  paladin: {
-    role: 'Primary Tanker & Damage Sponge',
-    topWeights: 'HP (2.2x), Reduksi DMG (2.2x), Utilitas (1.4x)',
-    hint: 'Prioritaskan Max HP, PDMG.R, MDMG.R, serta Reduksi Demi-Human & Medium untuk lonjakan skor tertinggi.',
-  },
-  lord_knight: {
-    role: 'Bruiser Frontliner',
-    topWeights: 'HP (1.8x), ATK (1.6x), Penetrasi (1.4x), DMG Bonus (1.4x)',
-    hint: 'Kombinasi seimbang antara Max HP dan PATK/Ignore PDEF memberikan efektivitas PvP maksimal.',
-  },
-  high_priest: {
-    role: 'Support & Healing Anchor',
-    topWeights: 'Utilitas (2.6x), Reduksi DMG (2.0x), HP (1.8x)',
-    hint: 'Healing Done, Healing Taken, Variable Cast, dan Reduksi Bertahan memberikan kontribusi skor terbesar.',
-  },
-  champion: {
-    role: 'Single Target Burst Eliminator',
-    topWeights: 'ATK (2.2x), Penetrasi (2.2x), DMG Bonus (2.0x), HP (1.6x)',
-    hint: 'Fokus pada PATK, Ignore PDEF, dan PvP DMG Bonus untuk memaksimalkan damage pukulan Asura.',
-  },
-  assassin_cross: {
-    role: 'Agile Assassin & Critical DPS',
-    topWeights: 'ATK (2.4x), Penetrasi (2.4x), DMG Bonus (2.2x)',
-    hint: 'Tingkatkan PATK, Ignore PDEF, CRIT DMG, dan Demi-Human Bonus untuk potensi burst tertingginya.',
-  },
-  stalker: {
-    role: 'Disabler & Utility Skirmisher',
-    topWeights: 'ATK (1.8x), Penetrasi (1.8x), Utilitas (1.8x), HP (1.6x)',
-    hint: 'Stat merata antara daya serang dan utilitas status memberikan rating optimal.',
-  },
-  high_wizard: {
-    role: 'Area Magic Nuker & Crowd Control',
-    topWeights: 'MATK (2.4x), Penetrasi (2.2x), DMG Bonus (2.2x)',
-    hint: 'Maksimalkan MATK, Ignore MDEF, Variable Cast reduction, dan Elemental Bonus.',
-  },
-  professor: {
-    role: 'Magic Disrupter & Mana Controller',
-    topWeights: 'Utilitas (2.2x), HP (1.8x), Reduksi DMG (1.6x), MATK (1.4x)',
-    hint: 'Daya tahan tinggi dan utilitas cast menjadi kunci peran Profesor di Guild League & WoE.',
-  },
-  sniper: {
-    role: 'Long Range Physical Carry',
-    topWeights: 'ATK (2.4x), Penetrasi (2.2x), DMG Bonus (2.0x)',
-    hint: 'PATK, Ignore PDEF, ASPD, dan Crit DMG adalah pilar utama kontribusi damage Sniper.',
-  },
-  minstrell: {
-    role: 'Party Buffer & Bard Support',
-    topWeights: 'Utilitas (2.8x), HP (1.8x), Reduksi DMG (1.8x)',
-    hint: 'Sangat mengutamakan Utilitas (Cast, ASPD, Healing) dan ketahanan hidup di garis belakang.',
-  },
-  gypsy: {
-    role: 'Party Buffer & Dancer Crowd Control',
-    topWeights: 'Utilitas (2.8x), HP (1.8x), Reduksi DMG (1.8x)',
-    hint: 'Utilitas skill, daya tahan HP, dan reduksi damage demi-human menjadikannya sulit ditumbangkan.',
-  },
-  mastersmith: {
-    role: 'Melee Heavy Striker & Buffer',
-    topWeights: 'ATK (2.2x), Penetrasi (2.0x), DMG Bonus (2.0x), HP (1.6x)',
-    hint: 'PATK masif dipadu Ignore PDEF tinggi menghasilkan damage Cart Termination mematikan.',
-  },
-  biochemist: {
-    role: 'Ranged Potion Thrower & Plant Burst',
-    topWeights: 'ATK/MATK (2.0x), HP (1.8x), Penetrasi (1.8x), DMG Bonus (1.8x)',
-    hint: 'Kombinasi hybrid ATK, MATK, dan Ignore DEF/MDEF mendongkrak skor Acid Demonstration.',
-  },
-  summoner: {
-    role: 'Doran Magic / Physical Hybrid',
-    topWeights: 'HP (1.8x), ATK/MATK (1.8x), Utilitas (1.8x), Penetrasi (1.6x)',
-    hint: 'Fleksibel antara magic atau physical build dengan ketahanan HP yang solid.',
-  },
-  adept_novice: {
-    role: 'Versatile All-Rounder',
-    topWeights: 'ATK/MATK (2.0x), Penetrasi (1.8x), DMG Bonus (1.8x), Utilitas (1.8x)',
-    hint: 'Memiliki konversi skor serba bisa dengan skala damage dan penetrasi tinggi.',
-  },
-  rebellion: {
-    role: 'Firearms Rapid Fire Burst',
-    topWeights: 'ATK (2.6x), Penetrasi (2.4x), DMG Bonus (2.4x)',
-    hint: 'Pembobotan offensive tertinggi di game. Fokus mutlak pada PATK, Ignore PDEF, dan DMG Bonus.',
-  },
+async function getPoppinsFontEmbedCss(): Promise<string> {
+  if (cachedPoppinsEmbedCss) return cachedPoppinsEmbedCss
+  if (typeof document === 'undefined') return ''
+
+  const fontFaceRules: string[] = []
+  const promises: Promise<void>[] = []
+  const processedUrls = new Set<string>()
+
+  try {
+    if (document.fonts) {
+      await document.fonts.ready
+    }
+
+    for (const sheet of Array.from(document.styleSheets)) {
+      try {
+        const cssRules = Array.from(sheet.cssRules || [])
+        for (const rule of cssRules) {
+          if (rule.type === CSSRule.FONT_FACE_RULE) {
+            const fontFace = rule as CSSFontFaceRule
+            const family = fontFace.style.getPropertyValue('font-family') || ''
+            const src = fontFace.style.getPropertyValue('src') || ''
+            const cssText = fontFace.cssText || ''
+
+            const isPoppins =
+              family.toLowerCase().includes('poppins') || cssText.toLowerCase().includes('poppins')
+
+            if (isPoppins) {
+              const urlMatch = src.match(/url\((?:['"]?)(.*?)(?:['"]?)\)/)
+              const weightMatch = cssText.match(/font-weight:\s*([^;]+)/)
+              const styleMatch = cssText.match(/font-style:\s*([^;]+)/)
+
+              const weight = weightMatch ? weightMatch[1].trim() : '400'
+              const style = styleMatch ? styleMatch[1].trim() : 'normal'
+
+              if (urlMatch && urlMatch[1]) {
+                const fontUrl = urlMatch[1]
+                const fullUrl = resolveNextMediaUrl(fontUrl)
+
+                if (!processedUrls.has(fullUrl)) {
+                  processedUrls.add(fullUrl)
+                  const p = fetch(fullUrl)
+                    .then((res) => {
+                      if (!res.ok) return null
+                      return res.blob()
+                    })
+                    .then((blob) => {
+                      if (!blob) return
+                      return new Promise<void>((resolve, reject) => {
+                        const reader = new FileReader()
+                        reader.onloadend = () => {
+                          const base64 = reader.result as string
+                          fontFaceRules.push(
+                            `@font-face { font-family: 'Poppins'; src: url('${base64}') format('woff2'); font-weight: ${weight}; font-style: ${style}; font-display: swap; }`,
+                          )
+                          resolve()
+                        }
+                        reader.onerror = reject
+                        reader.readAsDataURL(blob)
+                      })
+                    })
+                    .catch(() => {
+                      // Abaikan jika fetch font gagal secara diam-diam tanpa memicu error berlebih
+                    })
+
+                  promises.push(p)
+                }
+              }
+            }
+          }
+        }
+      } catch {
+        // Cross-origin stylesheet access restricted, ignore
+      }
+    }
+
+    if (promises.length > 0) {
+      await Promise.all(promises)
+    }
+  } catch (err: unknown) {
+    console.warn('Error reading stylesheets for Poppins font:', err)
+  }
+
+  const baseFontStyles = `
+#member-compare-export-canvas {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+#member-compare-export-canvas *:not(.font-mono) {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+#member-compare-export-canvas .font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+`
+
+  if (fontFaceRules.length > 0) {
+    cachedPoppinsEmbedCss = fontFaceRules.join('\n') + '\n' + baseFontStyles
+  } else {
+    cachedPoppinsEmbedCss =
+      '@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap");\n' +
+      baseFontStyles
+  }
+
+  return cachedPoppinsEmbedCss
 }
 
 export function PvpSimulatorModal({
@@ -166,17 +419,7 @@ export function PvpSimulatorModal({
   allMembers = [],
   guildName,
 }: PvpSimulatorModalProps) {
-  const [activeTab, setActiveTab] = useState<SimulatorTab>('simulator')
-  const [selectedMemberId, setSelectedMemberId] = useState<string>(initialCharacter?.id || '')
-  const [activeStatCategory, setActiveStatCategory] = useState<StatCategory>('general')
-
-  // State untuk Simulator
-  const [simJob, setSimJob] = useState<string>(initialCharacter?.job || 'paladin')
-  const [simStats, setSimStats] = useState<Record<string, number>>({})
-  const [baseStats, setBaseStats] = useState<Record<string, number>>({})
-  const [baseScore, setBaseScore] = useState<number>(0)
-
-  // State untuk Compare Karakter
+  // State Pemilihan Kandidat Komparasi
   const [compareIdA, setCompareIdA] = useState<string>(
     initialCharacter?.id || allMembers[0]?.id || '',
   )
@@ -186,102 +429,39 @@ export function PvpSimulatorModal({
       '',
   )
 
-  // Inisialisasi simulator dari karakter yang dipilih
-  const loadCharacterIntoSimulator = (char: Character | PopulatedMember | null | undefined) => {
-    if (!char) {
-      setSimJob('paladin')
-      const emptyStats: Record<string, number> = {}
-      setSimStats(emptyStats)
-      setBaseStats(emptyStats)
-      setBaseScore(0)
-      return
-    }
+  // State Filter Kategori & Pencarian Stat (di UI Interaktif)
+  const [activeCategory, setActiveCategory] = useState<StatCategory>('all')
+  const [statSearchQuery, setStatSearchQuery] = useState<string>('')
 
-    setSimJob(char.job || 'paladin')
-    const extracted: Record<string, number> = {}
+  // State Ekspor PNG
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [downloadSuccess, setDownloadSuccess] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const exportCanvasRef = useRef<HTMLDivElement>(null)
+  const isDownloadingRef = useRef(false)
 
-    const allKeys = [
-      ...STAT_CONFIGS.general.map((s) => s.key),
-      ...STAT_CONFIGS.quasi.map((s) => s.key),
-      ...STAT_CONFIGS.special.map((s) => s.key),
-    ]
-
-    for (const key of allKeys) {
-      const val = (char as unknown as Record<string, unknown>)[key]
-      extracted[key] = val !== undefined && val !== null ? Number(val) || 0 : 0
-    }
-
-    setSimStats(extracted)
-    setBaseStats(extracted)
-
-    const initialScore =
-      Number(char.pvp_score) || calculatePvPScore({ ...extracted, job: char.job })
-    setBaseScore(initialScore)
-  }
-
-  // Load awal atau saat initialCharacter berubah
+  // Inisialisasi saat modal dibuka atau target awal berubah
   useEffect(() => {
     if (initialCharacter) {
-      setSelectedMemberId(initialCharacter.id)
-      loadCharacterIntoSimulator(initialCharacter)
       setCompareIdA(initialCharacter.id)
+      const other = allMembers.find((m) => m.id !== initialCharacter.id)
+      if (other && !compareIdB) {
+        setCompareIdB(other.id)
+      }
     } else if (allMembers.length > 0) {
-      setSelectedMemberId(allMembers[0].id)
-      loadCharacterIntoSimulator(allMembers[0])
-      setCompareIdA(allMembers[0].id)
-      if (allMembers[1]) {
-        setCompareIdB(allMembers[1].id)
-      }
+      if (!compareIdA) setCompareIdA(allMembers[0].id)
+      if (!compareIdB && allMembers[1]) setCompareIdB(allMembers[1].id)
     }
-  }, [initialCharacter, isOpen])
+  }, [initialCharacter, isOpen, allMembers, compareIdA, compareIdB])
 
-  // Menangani penggantian karakter dropdown di simulator
-  const handleSelectMember = (memberId: string) => {
-    setSelectedMemberId(memberId)
-    if (!memberId) {
-      loadCharacterIntoSimulator(null)
-      return
+  // Pre-load font Poppins saat modal dibuka agar proses unduh seketika
+  useEffect(() => {
+    if (isOpen) {
+      getPoppinsFontEmbedCss().catch(() => {})
     }
-    const target = allMembers.find((m) => m.id === memberId)
-    if (target) {
-      loadCharacterIntoSimulator(target)
-    }
-  }
+  }, [isOpen])
 
-  // Hitung Skor Real-Time Simulator
-  const currentSimScore = useMemo(() => {
-    const payload: CharacterStatsInput = {
-      ...simStats,
-      job: simJob as Character['job'],
-    }
-    return calculatePvPScore(payload)
-  }, [simStats, simJob])
-
-  const scoreDelta = currentSimScore - baseScore
-  const scorePercentDelta = baseScore > 0 ? (scoreDelta / baseScore) * 100 : 0
-
-  const handleStatChange = (key: string, value: number) => {
-    setSimStats((prev) => ({
-      ...prev,
-      [key]: Math.max(0, value),
-    }))
-  }
-
-  const handleQuickAdjust = (key: string, delta: number) => {
-    setSimStats((prev) => {
-      const current = prev[key] || 0
-      return {
-        ...prev,
-        [key]: Math.max(0, current + delta),
-      }
-    })
-  }
-
-  const handleResetToBaseline = () => {
-    setSimStats({ ...baseStats })
-  }
-
-  // Resolusi data untuk Compare Karakter
+  // Karakter A dan B
   const charA = useMemo(
     () => allMembers.find((m) => m.id === compareIdA) || null,
     [allMembers, compareIdA],
@@ -291,16 +471,18 @@ export function PvpSimulatorModal({
     [allMembers, compareIdB],
   )
 
+  // Skor PvP (dihitung dinamis menggunakan formula balance engine terbaru)
   const scoreA = useMemo(() => {
     if (!charA) return 0
-    return Number(charA.pvp_score) || calculatePvPScore(charA as unknown as CharacterStatsInput)
+    return calculatePvPScore(charA as unknown as CharacterStatsInput)
   }, [charA])
 
   const scoreB = useMemo(() => {
     if (!charB) return 0
-    return Number(charB.pvp_score) || calculatePvPScore(charB as unknown as CharacterStatsInput)
+    return calculatePvPScore(charB as unknown as CharacterStatsInput)
   }, [charB])
 
+  // Data Radar 6-Pilar
   const hexA = useMemo(() => {
     if (!charA) return null
     return calculateHexagonStats(charA as unknown as CharacterStatsInput)
@@ -314,452 +496,707 @@ export function PvpSimulatorModal({
   const compareScoreDelta = Math.abs(scoreA - scoreB)
   const compareWinner = scoreA > scoreB ? 'A' : scoreA < scoreB ? 'B' : 'TIE'
 
+  // Filter Stat Matrix (untuk tampilan interaktif dalam dialog)
+  const filteredStats = useMemo(() => {
+    return STAT_MATRIX_CONFIGS.filter((stat) => {
+      const matchCategory = activeCategory === 'all' || stat.category === activeCategory
+      const matchQuery =
+        !statSearchQuery ||
+        stat.label.toLowerCase().includes(statSearchQuery.toLowerCase()) ||
+        stat.key.toLowerCase().includes(statSearchQuery.toLowerCase()) ||
+        (stat.description && stat.description.toLowerCase().includes(statSearchQuery.toLowerCase()))
+      return matchCategory && matchQuery
+    })
+  }, [activeCategory, statSearchQuery])
+
+  // Stat per kategori untuk Canvas Export Rekreasi (Seluruh 43 Stat)
+  const offensiveStats = useMemo(
+    () => STAT_MATRIX_CONFIGS.filter((s) => s.category === 'offensive'),
+    [],
+  )
+  const defensiveStats = useMemo(
+    () => STAT_MATRIX_CONFIGS.filter((s) => s.category === 'defensive'),
+    [],
+  )
+  const supportStats = useMemo(
+    () => STAT_MATRIX_CONFIGS.filter((s) => s.category === 'support'),
+    [],
+  )
+  const elementalStats = useMemo(
+    () => STAT_MATRIX_CONFIGS.filter((s) => s.category === 'elemental'),
+    [],
+  )
+
+  // Penghitungan Skor Keunggulan Stat
+  const statWins = useMemo(() => {
+    if (!charA || !charB) return { aWins: 0, bWins: 0, ties: 0 }
+    let aWins = 0
+    let bWins = 0
+    let ties = 0
+
+    for (const stat of STAT_MATRIX_CONFIGS) {
+      const valA = Number((charA as unknown as Record<string, unknown>)[stat.key] || 0)
+      const valB = Number((charB as unknown as Record<string, unknown>)[stat.key] || 0)
+      if (valA > valB) aWins++
+      else if (valB > valA) bWins++
+      else ties++
+    }
+
+    return { aWins, bWins, ties }
+  }, [charA, charB])
+
+  // Handler Download Gambar PNG (Dirender instan dari Canvas Standalone Rekreasi Penuh dengan Poppins Asli)
+  const handleDownloadPng = useCallback(async () => {
+    if (!exportCanvasRef.current || isDownloadingRef.current || !charA || !charB) return
+    isDownloadingRef.current = true
+    setIsDownloading(true)
+    setErrorMessage(null)
+
+    try {
+      const cleanNameA = (charA.name || 'MemberA').replace(/[^a-zA-Z0-9_-]/g, '_')
+      const cleanNameB = (charB.name || 'MemberB').replace(/[^a-zA-Z0-9_-]/g, '_')
+      const today = new Date().toISOString().slice(0, 10)
+      const fileName = `Comparison-${cleanNameA}-vs-${cleanNameB}-${today}.png`
+
+      // 1. Ambil font embed CSS base64 untuk Poppins (instan dari cache in-memory)
+      const fontEmbedCSS = await getPoppinsFontEmbedCss()
+
+      // 2. Pastikan avatar gambar job sudah ter-decode di canvas
+      if (exportCanvasRef.current) {
+        const imgElements = exportCanvasRef.current.querySelectorAll('img')
+        await Promise.all(
+          Array.from(imgElements).map((img) => {
+            if (img.complete) return Promise.resolve()
+            return new Promise<void>((resolve) => {
+              img.onload = () => resolve()
+              img.onerror = () => resolve()
+              setTimeout(resolve, 300)
+            })
+          }),
+        )
+      }
+
+      // 3. Jeda singkat agar browser menyelesaikan reflow
+      await new Promise((resolve) => setTimeout(resolve, 60))
+
+      // 4. Render canvas ke PNG dengan font Poppins yang ter-embed murni
+      const dataUrl = await toPng(exportCanvasRef.current, {
+        pixelRatio: 2,
+        backgroundColor: '#0b0d14',
+        fontEmbedCSS,
+        cacheBust: false,
+      })
+
+      if (!dataUrl) {
+        throw new Error('Failed to convert member comparison to PNG format.')
+      }
+
+      const link = document.createElement('a')
+      link.download = fileName
+      link.href = dataUrl
+      document.body.appendChild(link)
+      link.click()
+      setTimeout(() => {
+        link.remove()
+      }, 300)
+
+      setDownloadSuccess(true)
+      setTimeout(() => setDownloadSuccess(false), 3000)
+    } catch (err: unknown) {
+      console.error('Export PNG failed:', err)
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : 'An error occurred while downloading comparison image.',
+      )
+    } finally {
+      isDownloadingRef.current = false
+      setIsDownloading(false)
+    }
+  }, [charA, charB])
+
+  // Helper render baris stat untuk template ekspor PNG
+  const renderCanvasRows = (stats: StatRowDefinition[]) => {
+    if (!charA || !charB) return null
+    return stats.map((row) => {
+      const rawValA = Number((charA as unknown as Record<string, unknown>)[row.key] || 0)
+      const rawValB = Number((charB as unknown as Record<string, unknown>)[row.key] || 0)
+
+      const maxVal = Math.max(rawValA, rawValB, 1)
+      const pctA = Math.min(100, Math.round((rawValA / maxVal) * 100))
+      const pctB = Math.min(100, Math.round((rawValB / maxVal) * 100))
+
+      const isAHigher = rawValA > rawValB
+      const isBHigher = rawValB > rawValA
+      const diff = Math.round(Math.abs(rawValA - rawValB))
+
+      const displayValA = row.isPercent
+        ? `${Math.round(rawValA)}%`
+        : rawValA.toLocaleString('en-US')
+      const displayValB = row.isPercent
+        ? `${Math.round(rawValB)}%`
+        : rawValB.toLocaleString('en-US')
+      const displayDiff = row.isPercent ? `${diff}%` : diff.toLocaleString('en-US')
+
+      return (
+        <div
+          key={row.key}
+          className="px-6 py-3.5 flex items-center justify-between gap-4 border-b border-white/[0.04]"
+        >
+          {/* Nilai Kandidat A */}
+          <div className="w-[140px] flex items-center gap-2.5 shrink-0">
+            <span
+              className={`font-mono text-base tracking-tight ${
+                isAHigher ? 'text-emerald-400 font-black' : 'text-gray-300 font-bold'
+              }`}
+            >
+              {displayValA}
+            </span>
+            {isAHigher && (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0 whitespace-nowrap flex items-center gap-1">
+                <Icon icon="fluent:chevron-up-24-filled" className="w-3 h-3 shrink-0" />
+                <span>+{displayDiff}</span>
+              </span>
+            )}
+          </div>
+
+          {/* Label Stat & Centered Dual Bar (Panjang & Lebar Maksimal) */}
+          <div className="flex-1 flex flex-col items-center justify-center min-w-0 px-2">
+            <span className="text-sm font-bold text-gray-100 text-center tracking-wide whitespace-nowrap">
+              {row.label}
+            </span>
+            <div className="w-full max-w-[680px] h-3 bg-white/10 rounded-full flex overflow-hidden mt-2 shadow-inner">
+              <div
+                className={`h-full ${isAHigher ? 'bg-emerald-500' : 'bg-emerald-500/35'}`}
+                style={{ width: `${pctA / 2}%` }}
+              />
+              <div className="w-0.5 bg-white/20 h-full shrink-0" />
+              <div
+                className={`h-full ml-auto ${isBHigher ? 'bg-purple-500' : 'bg-purple-500/35'}`}
+                style={{ width: `${pctB / 2}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Nilai Kandidat B */}
+          <div className="w-[140px] flex items-center justify-end gap-2.5 text-right shrink-0">
+            {isBHigher && (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 shrink-0 whitespace-nowrap flex items-center gap-1">
+                <Icon icon="fluent:chevron-up-24-filled" className="w-3 h-3 shrink-0" />
+                <span>+{displayDiff}</span>
+              </span>
+            )}
+            <span
+              className={`font-mono text-base tracking-tight ${
+                isBHigher ? 'text-purple-400 font-black' : 'text-gray-300 font-bold'
+              }`}
+            >
+              {displayValB}
+            </span>
+          </div>
+        </div>
+      )
+    })
+  }
+
   if (!isOpen) return null
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/40 dark:bg-black/65 backdrop-blur-xl animate-fadeIn"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div
-        className="w-full max-w-5xl rounded-3xl flex flex-col max-h-[92vh] overflow-hidden border border-black/5 dark:border-white/10 shadow-2xl transition-all bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl animate-slideIn"
-      >
-        {/* Header Modal */}
+    <>
+      {/* =========================================================================
+          DEDICATED FULL-HEIGHT EXPORT CANVAS (RECREATED STANDALONE DARK MODE)
+          Canvas ini khusus ditargetkan oleh html-to-image sehingga seluruh isi
+          dari atas ke bawah tertangkap utuh tanpa batasan scroll atau clipping.
+         ========================================================================= */}
+      {charA && charB && (
         <div
-          className="p-5 sm:p-6 border-b border-black/5 dark:border-white/10 flex items-center justify-between gap-4 flex-wrap bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl"
+          style={{
+            position: 'fixed',
+            left: '-9999px',
+            top: 0,
+            width: '1080px',
+            zIndex: -9999,
+            pointerEvents: 'none',
+            opacity: 1,
+          }}
         >
-          <div className="flex items-center gap-3">
-            <div>
-              <h2 className="text-xl font-bold m-0 tracking-tight" style={{ color: 'var(--text-primary)' }}>
-                PvP Lab & Simulator
-              </h2>
-              <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                Simulasi optimasi stat, uji perubahan job, dan bandingkan performa antar member.
-              </p>
-            </div>
-          </div>
-
-          {/* Tab Navigasi Utama */}
-          <div className="flex items-center gap-2">
-            <div
-              className="flex p-1 rounded-2xl bg-black/5 dark:bg-white/8 border border-black/5 dark:border-white/10"
-            >
-              <button
-                type="button"
-                onClick={() => setActiveTab('simulator')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer select-none active:scale-[0.98] ${
-                  activeTab === 'simulator'
-                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-semibold shadow-sm'
-                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                }`}
-              >
-                Stat Simulator
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('compare')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer select-none active:scale-[0.98] ${
-                  activeTab === 'compare'
-                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-semibold shadow-sm'
-                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                }`}
-              >
-                <Icon icon="fluent:arrow-swap-20-filled" className="w-4 h-4" />
-                Compare Member
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all cursor-pointer select-none active:scale-90"
-              aria-label="Close"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Konten Tab: Simulator */}
-        {activeTab === 'simulator' && (
-          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
-            {/* Control Bar: Pilih Member & Job */}
-            <div
-              className="p-4.5 rounded-2xl border border-black/5 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 bg-black/[0.02] dark:bg-white/[0.04] backdrop-blur-md"
-            >
-              <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
-                <div className="flex flex-col gap-1 w-full sm:w-64">
-                  <label
-                    className="text-[11px] font-semibold uppercase"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
-                    Pilih Member Guild
-                  </label>
-                  <CustomDropdown
-                    value={selectedMemberId}
-                    onChange={(val) => handleSelectMember(val)}
-                    placeholder="-- Template Kosong / Custom --"
-                    options={[
-                      { value: '', label: '-- Template Kosong / Custom --' },
-                      ...allMembers.map((m) => ({
-                        value: m.id,
-                        label: m.name,
-                        sublabel: `${JOB_LABELS[m.job] || m.job} • ${Math.round(Number(m.pvp_score || 0))} pts`,
-                        icon: getJobIcon(m.job),
-                      })),
-                    ]}
-                  />
+          <div
+            ref={exportCanvasRef}
+            id="member-compare-export-canvas"
+            className="w-[1080px] p-8 flex flex-col gap-6"
+            style={{
+              background: '#0b0d14',
+              color: '#f3f4f6',
+              fontFamily: "'Poppins', -apple-system, BlinkMacSystemFont, sans-serif",
+            }}
+          >
+            {/* 1. Header Banner Branding */}
+            <div className="flex items-center justify-between pb-6 border-b border-white/10 gap-6">
+              <div className="flex flex-col gap-2 min-w-0 flex-1">
+                {/* Guild Badge & Title in one clean row */}
+                <div className="flex items-center gap-3">
+                  {guildName && (
+                    <div className="px-3 py-1 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                      <Icon icon="fluent:shield-task-20-filled" className="w-4 h-4 text-blue-400" />
+                      <span className="text-xs font-bold text-blue-300 tracking-wider uppercase">
+                        {guildName}
+                      </span>
+                    </div>
+                  )}
+                  <h1 className="text-2xl font-extrabold text-white tracking-tight m-0 whitespace-nowrap">
+                    Head-to-Head Member Comparison
+                  </h1>
                 </div>
 
-                <div className="flex flex-col gap-1 w-full sm:w-56">
-                  <label
-                    className="text-[11px] font-semibold uppercase"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
-                    Target Job
-                  </label>
-                  <CustomDropdown
-                    value={simJob}
-                    onChange={(val) => setSimJob(val)}
-                    placeholder="-- Target Job --"
-                    options={JOBS.map((j) => ({
-                      value: j.value,
-                      label: j.label,
-                      icon: getJobIcon(j.value),
-                    }))}
-                  />
+                {/* Subtitle Row with Bullets */}
+                <div className="flex items-center gap-2 text-xs text-gray-400 font-medium whitespace-nowrap">
+                  <span className="text-gray-300">ROOC PvP Ranker</span>
+                  <span className="text-gray-600">•</span>
+                  <span>Official Analytics Infographic</span>
+                  <span className="text-gray-600">•</span>
+                  <span>
+                    Created:{' '}
+                    {new Date().toLocaleDateString('en-US', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                <button
-                  type="button"
-                  onClick={handleResetToBaseline}
-                  className="px-3.5 py-2 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-all cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
-                  style={{
-                    color: 'var(--text-secondary)',
-                    borderColor: 'var(--border-color)',
-                    background: 'var(--bg-secondary)',
-                  }}
-                  title="Kembalikan semua stat ke nilai awal karakter"
-                >
-                  <Icon icon="fluent:arrow-reset-20-filled" className="w-4 h-4 text-amber-400" />
-                  Reset ke Asli
-                </button>
-              </div>
-            </div>
-
-            {/* Score Comparison Hero Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* Card Base Score */}
-              <div
-                className="p-4 rounded-xl border flex flex-col justify-between"
-                style={{ background: 'var(--bg-primary)', borderColor: 'var(--border-color)' }}
-              >
-                <span
-                  className="text-xs font-semibold uppercase"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  Skor Awal (Baseline)
-                </span>
-                <div
-                  className="text-2xl sm:text-3xl font-bold mt-2"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  {Math.round(baseScore).toLocaleString('id-ID')}
-                </div>
-                <span className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
-                  {selectedMemberId ? 'Dari data karakter asli' : 'Template default'}
+              {/* Top-Right Badge */}
+              <div className="px-4 py-2 rounded-xl bg-white/[0.04] border border-white/10 flex items-center gap-2 shrink-0 whitespace-nowrap">
+                <Icon
+                  icon="fluent:arrow-swap-20-filled"
+                  className="w-4 h-4 text-blue-400 shrink-0"
+                />
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-200 whitespace-nowrap">
+                  PvP Analytics Infographic
                 </span>
               </div>
+            </div>
 
-              {/* Card Simulated Score */}
+            {/* 2. Dua Kartu Profil Kandidat */}
+            <div className="grid grid-cols-2 gap-5">
+              {/* Profil A */}
               <div
-                className="p-4 rounded-xl border flex flex-col justify-between relative overflow-hidden"
+                className="p-5 rounded-2xl border flex items-center justify-between gap-4"
                 style={{
-                  background:
-                    'linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(124, 58, 237, 0.15))',
-                  borderColor: 'rgba(99, 102, 241, 0.4)',
-                  boxShadow: '0 0 20px rgba(99, 102, 241, 0.15)',
+                  background: 'rgba(16, 185, 129, 0.05)',
+                  borderColor:
+                    compareWinner === 'A' ? 'rgba(16, 185, 129, 0.5)' : 'rgba(255, 255, 255, 0.08)',
+                  boxShadow: compareWinner === 'A' ? '0 0 24px rgba(16, 185, 129, 0.12)' : 'none',
                 }}
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-300">
-                    Skor Simulasi
-                  </span>
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[11px] font-semibold border border-indigo-500/30">
+                <div className="flex items-center gap-4 min-w-0 flex-1">
+                  <div className="relative shrink-0">
                     <Image
-                      width={14}
-                      height={14}
-                      src={getJobIcon(simJob)}
+                      width={56}
+                      height={56}
+                      src={getJobIcon(charA.job)}
                       alt=""
-                      className="w-3.5 h-3.5 object-cover rounded-full"
-                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                      unoptimized
+                      className="w-14 h-14 object-cover rounded-2xl border border-emerald-500/30 shadow-md"
                     />
-                    {JOB_LABELS[simJob] || simJob}
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#0b0d14] flex items-center justify-center text-[9px] font-black text-white">
+                      A
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block whitespace-nowrap">
+                      Candidate A
+                    </span>
+                    <h3 className="text-xl font-extrabold text-white tracking-tight truncate m-0 mt-0.5">
+                      {charA.name}
+                    </h3>
+                    <p className="text-xs text-gray-400 m-0 mt-0.5 truncate">
+                      {JOB_LABELS[charA.job] || charA.job}
+                    </p>
                   </div>
                 </div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-white mt-2">
-                  {Math.round(currentSimScore).toLocaleString('id-ID')}
+
+                <div className="text-right shrink-0 min-w-[150px] flex flex-col items-end justify-center">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block whitespace-nowrap">
+                    PvP Score
+                  </span>
+                  <div className="flex items-center gap-2 my-0.5 whitespace-nowrap">
+                    <div className="text-3xl font-black text-amber-400 font-mono tracking-tight">
+                      {Math.round(scoreA).toLocaleString('en-US')}
+                    </div>
+                    {compareWinner === 'A' && (
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap flex items-center gap-1">
+                        <Icon icon="fluent:chevron-up-24-filled" className="w-3 h-3 shrink-0" />+
+                        {Math.round(compareScoreDelta).toLocaleString('en-US')} pts
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <span className="text-[11px] text-indigo-300/80 mt-1">
-                  Dihitung otomatis via engine PvP ROOC
-                </span>
               </div>
 
-              {/* Card Delta */}
+              {/* Profil B */}
               <div
-                className={`p-4 rounded-xl border flex flex-col justify-between ${
-                  scoreDelta > 0
-                    ? 'border-emerald-500/40 bg-emerald-500/10'
-                    : scoreDelta < 0
-                      ? 'border-rose-500/40 bg-rose-500/10'
-                      : 'border-[var(--border-color)] bg-[var(--bg-secondary)]'
-                }`}
+                className="p-5 rounded-2xl border flex items-center justify-between gap-4"
+                style={{
+                  background: 'rgba(168, 85, 247, 0.05)',
+                  borderColor:
+                    compareWinner === 'B' ? 'rgba(168, 85, 247, 0.5)' : 'rgba(255, 255, 255, 0.08)',
+                  boxShadow: compareWinner === 'B' ? '0 0 24px rgba(168, 85, 247, 0.12)' : 'none',
+                }}
               >
-                <span
-                  className="text-xs font-semibold uppercase"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  Perubahan Skor (Delta)
-                </span>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span
-                    className={`text-2xl sm:text-3xl font-extrabold ${
-                      scoreDelta > 0
-                        ? 'text-emerald-500 dark:text-emerald-400'
-                        : scoreDelta < 0
-                          ? 'text-rose-500 dark:text-rose-400'
-                          : 'text-[var(--text-muted)]'
-                    }`}
-                  >
-                    {scoreDelta > 0
-                      ? `+${Math.round(scoreDelta).toLocaleString('id-ID')}`
-                      : Math.round(scoreDelta).toLocaleString('id-ID')}
-                  </span>
-                  <span
-                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      scoreDelta > 0
-                        ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300'
-                        : scoreDelta < 0
-                          ? 'bg-rose-500/20 text-rose-600 dark:text-rose-300'
-                          : 'bg-black/10 dark:bg-white/10 text-[var(--text-secondary)]'
-                    }`}
-                  >
-                    {scoreDelta > 0
-                      ? `+${scorePercentDelta.toFixed(1)}%`
-                      : `${scorePercentDelta.toFixed(1)}%`}
-                  </span>
+                <div className="flex items-center gap-4 min-w-0 flex-1">
+                  <div className="relative shrink-0">
+                    <Image
+                      width={56}
+                      height={56}
+                      src={getJobIcon(charB.job)}
+                      alt=""
+                      unoptimized
+                      className="w-14 h-14 object-cover rounded-2xl border border-purple-500/30 shadow-md"
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-purple-500 border-2 border-[#0b0d14] flex items-center justify-center text-[9px] font-black text-white">
+                      B
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-purple-400 block whitespace-nowrap">
+                      Candidate B
+                    </span>
+                    <h3 className="text-xl font-extrabold text-white tracking-tight truncate m-0 mt-0.5">
+                      {charB.name}
+                    </h3>
+                    <p className="text-xs text-gray-400 m-0 mt-0.5 truncate">
+                      {JOB_LABELS[charB.job] || charB.job}
+                    </p>
+                  </div>
                 </div>
-                <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                  {scoreDelta > 0
-                    ? 'Peningkatan performa PvP tercapai'
-                    : scoreDelta < 0
-                      ? 'Penurunan performa dibanding baseline'
-                      : 'Nilai sama dengan baseline'}
-                </span>
+
+                <div className="text-right shrink-0 min-w-[150px] flex flex-col items-end justify-center">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block whitespace-nowrap">
+                    PvP Score
+                  </span>
+                  <div className="flex items-center gap-2 my-0.5 whitespace-nowrap">
+                    <div className="text-3xl font-black text-amber-400 font-mono tracking-tight">
+                      {Math.round(scoreB).toLocaleString('en-US')}
+                    </div>
+                    {compareWinner === 'B' && (
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 whitespace-nowrap flex items-center gap-1">
+                        <Icon icon="fluent:chevron-up-24-filled" className="w-3 h-3 shrink-0" />+
+                        {Math.round(compareScoreDelta).toLocaleString('en-US')} pts
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Role & Weight Insights */}
-            {JOB_ARCHETYPES[simJob] && (
+            {/* 3. Head to Head Summary Bar */}
+            <div
+              className="p-4 rounded-2xl border flex items-center justify-between gap-4"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                borderColor: 'rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center border border-amber-500/25 shrink-0">
+                  <Icon icon="fluent:chart-multiple-20-filled" className="w-5 h-5" />
+                </div>
+                <div className="text-sm font-semibold text-gray-200 truncate">
+                  {compareWinner === 'TIE' ? (
+                    'Both characters have very balanced overall performance!'
+                  ) : (
+                    <span>
+                      <strong
+                        className={compareWinner === 'A' ? 'text-emerald-400' : 'text-purple-400'}
+                      >
+                        {compareWinner === 'A' ? charA.name : charB.name}
+                      </strong>{' '}
+                      leads by{' '}
+                      <strong className="text-amber-400 font-mono">
+                        +{Math.round(compareScoreDelta).toLocaleString('en-US')} pts
+                      </strong>{' '}
+                      against{' '}
+                      <strong className="text-gray-300">
+                        {compareWinner === 'A' ? charB.name : charA.name}
+                      </strong>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs font-semibold shrink-0">
+                <span className="px-3 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 whitespace-nowrap">
+                  {charA.name}: {statWins.aWins} Stats Won
+                </span>
+                <span className="px-3 py-1.5 rounded-xl bg-purple-500/15 text-purple-300 border border-purple-500/25 whitespace-nowrap">
+                  {charB.name}: {statWins.bWins} Stats Won
+                </span>
+                {statWins.ties > 0 && (
+                  <span className="px-3 py-1.5 rounded-xl bg-white/5 text-gray-400 border border-white/10 whitespace-nowrap">
+                    {statWins.ties} Stats Tied
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 4. Analisis 6-Pilar Hexagon Radar Chart */}
+            {hexA && hexB && (
               <div
-                className="p-4 rounded-xl border flex items-start gap-3"
+                className="p-6 rounded-3xl border flex flex-col items-center"
                 style={{
-                  background: 'var(--bg-secondary)',
-                  borderColor: 'rgba(99, 102, 241, 0.25)',
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  borderColor: 'rgba(255, 255, 255, 0.08)',
                 }}
               >
-                <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 shrink-0 mt-0.5">
-                  <Icon icon="fluent:lightbulb-24-regular" className="w-5 h-5" />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                      Rekomendasi Optimasi {JOB_LABELS[simJob] || simJob}
-                    </span>
-                    <span
-                      className="text-[11px] px-2 py-0.5 rounded-full border"
-                      style={{
-                        background: 'var(--bg-secondary)',
-                        borderColor: 'var(--border-color)',
-                        color: 'var(--text-secondary)',
-                      }}
-                    >
-                      {JOB_ARCHETYPES[simJob].role}
-                    </span>
+                <div className="w-full flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Icon icon="lucide:radar" className="w-5 h-5 text-blue-400" />
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-white m-0">
+                      Summary
+                    </h4>
                   </div>
-                  <p className="text-xs m-0" style={{ color: 'var(--text-secondary)' }}>
-                    <strong className="text-indigo-500 dark:text-indigo-300">Fokus Bobot: </strong>
-                    {JOB_ARCHETYPES[simJob].topWeights}
-                  </p>
-                  <p className="text-xs m-0" style={{ color: 'var(--text-muted)' }}>
-                    {JOB_ARCHETYPES[simJob].hint}
-                  </p>
+                  <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
+                    ROOC Character Profile & Performance Comparison
+                  </span>
                 </div>
+
+                <HexagonRadarChart
+                  dataA={hexA}
+                  dataB={hexB}
+                  labelA={charA.name}
+                  labelB={charB.name}
+                  colorA="#10b981"
+                  colorB="#a855f7"
+                  size={360}
+                  showLegend={true}
+                  showSummaryCards={true}
+                />
               </div>
             )}
 
-            {/* Stat Adjustment Tabs */}
-            <div className="space-y-4">
+            {/* 5. Matriks Perbandingan Seluruh Stat (1 Kolom Vertikal Penuh: Ukuran Teks Lebih Besar & Jelas) */}
+            <div className="flex flex-col gap-6 w-full">
+              {/* Card 1: Attack */}
               <div
-                className="flex items-center justify-between border-b pb-3"
-                style={{ borderColor: 'var(--border-color)' }}
+                className="rounded-2xl border overflow-hidden"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  borderColor: 'rgba(255, 255, 255, 0.08)',
+                }}
               >
-                <div className="flex items-center gap-2">
-                  {(['general', 'quasi', 'special'] as StatCategory[]).map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setActiveStatCategory(cat)}
-                      className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
-                        activeStatCategory === cat
-                          ? 'bg-indigo-600 text-white shadow-md'
-                          : 'bg-black/5 dark:bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-black/10 dark:hover:bg-white/10'
-                      }`}
-                    >
-                      {cat === 'general'
-                        ? 'General Stats'
-                        : cat === 'quasi'
-                          ? 'Quasi & Reduksi'
-                          : 'Special & Elemental'}
-                    </button>
-                  ))}
+                <div className="px-6 py-3.5 bg-white/[0.04] border-b border-white/10 flex items-center justify-between">
+                  <span className="text-base font-extrabold uppercase tracking-wider text-rose-400 flex items-center gap-2.5 whitespace-nowrap">
+                    Attack
+                  </span>
+                  <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
+                    Physical / Magic / Penetration / Crit
+                  </span>
                 </div>
-                <span className="text-xs hidden sm:inline" style={{ color: 'var(--text-muted)' }}>
-                  Gunakan tombol +/- untuk simulasi cepat
-                </span>
+                <div>{renderCanvasRows(offensiveStats)}</div>
               </div>
 
-              {/* Grid Form Input Stat */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {STAT_CONFIGS[activeStatCategory].map((stat) => {
-                  const currentValue = simStats[stat.key] || 0
-                  const baseValue = baseStats[stat.key] || 0
-                  const diff = currentValue - baseValue
+              {/* Card 2: Defense */}
+              <div
+                className="rounded-2xl border overflow-hidden"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  borderColor: 'rgba(255, 255, 255, 0.08)',
+                }}
+              >
+                <div className="px-6 py-3.5 bg-white/[0.04] border-b border-white/10 flex items-center justify-between">
+                  <span className="text-base font-extrabold uppercase tracking-wider text-emerald-400 flex items-center gap-2.5 whitespace-nowrap">
+                    Defense
+                  </span>
+                  <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
+                    HP / DEF / Physical & Magic Reduction
+                  </span>
+                </div>
+                <div>{renderCanvasRows(defensiveStats)}</div>
+              </div>
 
-                  return (
-                    <div
-                      key={stat.key}
-                      className="p-3.5 rounded-2xl border flex flex-col justify-between gap-2 transition-all bg-black/[0.02] dark:bg-white/[0.04]"
-                      style={{
-                        borderColor: diff !== 0 ? 'rgba(99, 102, 241, 0.5)' : 'var(--border-color)',
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span
-                          className="text-xs font-medium"
-                          style={{ color: 'var(--text-secondary)' }}
-                        >
-                          {stat.label}
-                        </span>
-                        {diff !== 0 && (
-                          <span
-                            className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                              diff > 0
-                                ? 'bg-emerald-500/20 text-emerald-400'
-                                : 'bg-rose-500/20 text-rose-400'
-                            }`}
-                          >
-                            {diff > 0 ? `+${diff}` : diff}
-                            {stat.isPercent ? '%' : ''}
-                          </span>
-                        )}
-                      </div>
+              {/* Card 3: Utility */}
+              <div
+                className="rounded-2xl border overflow-hidden"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  borderColor: 'rgba(255, 255, 255, 0.08)',
+                }}
+              >
+                <div className="px-6 py-3.5 bg-white/[0.04] border-b border-white/10 flex items-center justify-between">
+                  <span className="text-base font-extrabold uppercase tracking-wider text-sky-400 flex items-center gap-2.5 whitespace-nowrap">
+                    Utility
+                  </span>
+                  <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
+                    Heal Done & Taken / Cast / Movement Speed
+                  </span>
+                </div>
+                <div>{renderCanvasRows(supportStats)}</div>
+              </div>
 
-                      <div className="flex items-center gap-1.5">
-                        <input
-                          type="number"
-                          value={currentValue}
-                          onChange={(e) => handleStatChange(stat.key, Number(e.target.value) || 0)}
-                          className="w-full px-2.5 py-1.5 text-sm font-semibold rounded-lg border outline-none focus:border-indigo-500 transition-colors"
-                          style={{
-                            background: 'var(--bg-secondary)',
-                            color: 'var(--text-primary)',
-                            borderColor: 'var(--border-color)',
-                          }}
-                        />
-
-                        {/* Quick Step Buttons */}
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => handleQuickAdjust(stat.key, -stat.step)}
-                            className="w-7 h-7 rounded-lg border text-xs font-bold flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                            style={{
-                              borderColor: 'var(--border-color)',
-                              background: 'var(--bg-secondary)',
-                            }}
-                            title={`-${stat.step}`}
-                          >
-                            -
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleQuickAdjust(stat.key, stat.step)}
-                            className="w-7 h-7 rounded-lg border text-xs font-bold flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                            style={{
-                              borderColor: 'var(--border-color)',
-                              background: 'var(--bg-secondary)',
-                            }}
-                            title={`+${stat.step}`}
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+              {/* Card 4: Elemental Reduction */}
+              <div
+                className="rounded-2xl border overflow-hidden"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  borderColor: 'rgba(255, 255, 255, 0.08)',
+                }}
+              >
+                <div className="px-6 py-3.5 bg-white/[0.04] border-b border-white/10 flex items-center justify-between">
+                  <span className="text-base font-extrabold uppercase tracking-wider text-cyan-400 flex items-center gap-2.5 whitespace-nowrap">
+                    Elemental Reduction
+                  </span>
+                  <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
+                    8 Elements Resistance (Neutral, Fire, Water, Wind, Earth, Ghost, Holy, Poison)
+                  </span>
+                </div>
+                <div>{renderCanvasRows(elementalStats)}</div>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* Konten Tab: Compare Karakter */}
-        {activeTab === 'compare' && (
+            {/* 6. Footer Watermark */}
+            <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-gray-400 font-medium">
+              <span>ROOC PvP Ranker & Guild Management System</span>
+              <span className="font-mono text-gray-500">ragnatool.my.id</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          INTERACTIVE MODAL DIALOG (TAMPILAN INTERAKTIF PENGGUNA)
+         ========================================================================= */}
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/40 dark:bg-black/65 backdrop-blur-xl animate-fadeIn"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose()
+        }}
+      >
+        <div className="w-full max-w-5xl rounded-3xl flex flex-col max-h-[92vh] overflow-hidden border border-black/5 dark:border-white/10 shadow-2xl transition-all bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl animate-slideIn">
+          {/* Header Modal */}
+          <div className="p-5 sm:p-6 border-b border-black/5 dark:border-white/10 flex items-center justify-between gap-4 flex-wrap bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-500/20 shadow-sm">
+                <Icon icon="fluent:arrow-swap-20-filled" className="w-5 h-5" />
+              </div>
+              <div>
+                <h2
+                  className="text-xl font-bold m-0 tracking-tight"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  Member Comparison
+                </h2>
+                <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                  Compare comprehensive stats, 6-pillar radar chart, and performance advantages
+                  between two members.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              {/* Tombol Download PNG Header */}
+              <button
+                type="button"
+                onClick={handleDownloadPng}
+                disabled={isDownloading || !charA || !charB}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700 text-white border-blue-500 shadow-sm"
+                title="Download member comparison result in high-resolution PNG format"
+              >
+                {isDownloading ? (
+                  <>
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span>Preparing PNG...</span>
+                  </>
+                ) : downloadSuccess ? (
+                  <>
+                    <Icon icon="fluent:checkmark-20-filled" className="w-4 h-4 text-emerald-300" />
+                    <span>Saved!</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon icon="fluent:arrow-download-20-filled" className="w-4 h-4" />
+                    <span>Download PNG</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all cursor-pointer select-none active:scale-90"
+                aria-label="Close"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Error Alert jika download gagal */}
+          {errorMessage && (
+            <div className="mx-6 mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon icon="fluent:error-circle-20-filled" className="w-4 h-4 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setErrorMessage(null)}
+                className="text-red-400 hover:text-red-300 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* Konten Utama Komparasi Interaktif */}
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
-            {/* Header Picker Dua Karakter */}
+            {/* Header Pemilihan Dua Kandidat */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Karakter A */}
+              {/* Kandidat A */}
               <div
-                className="p-4.5 rounded-2xl border flex flex-col gap-3 bg-black/[0.02] dark:bg-white/[0.04]"
+                className="p-4.5 rounded-2xl border flex flex-col gap-3 bg-black/[0.02] dark:bg-white/[0.04] transition-all"
                 style={{
                   borderColor:
-                    compareWinner === 'A' ? 'rgba(52, 211, 153, 0.4)' : 'var(--border-color)',
+                    compareWinner === 'A' ? 'rgba(16, 185, 129, 0.5)' : 'var(--border-color)',
+                  boxShadow: compareWinner === 'A' ? '0 4px 20px rgba(16, 185, 129, 0.08)' : 'none',
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                    Kandidat A
-                  </span>
-                  {compareWinner === 'A' && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                      Skor Lebih Tinggi (+{Math.round(compareScoreDelta)})
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                      Candidate A
                     </span>
-                  )}
+                  </div>
                 </div>
 
                 <CustomDropdown
                   value={compareIdA}
                   onChange={(val) => setCompareIdA(val)}
-                  placeholder="-- Pilih Kandidat A --"
+                  placeholder="-- Select Candidate A --"
                   options={allMembers.map((m) => ({
                     value: m.id,
                     label: m.name,
-                    sublabel: JOB_LABELS[m.job] || m.job,
+                    sublabel: `${JOB_LABELS[m.job] || m.job} • ${Math.round(calculatePvPScore(m as unknown as CharacterStatsInput))} pts`,
                     icon: getJobIcon(m.job),
                   }))}
                 />
 
                 {charA && (
                   <div
-                    className="flex items-center gap-3 pt-2 border-t"
+                    className="flex items-center gap-3 pt-3 border-t"
                     style={{ borderColor: 'var(--border-color)' }}
                   >
                     <Image
@@ -767,7 +1204,7 @@ export function PvpSimulatorModal({
                       height={48}
                       src={getJobIcon(charA.job)}
                       alt=""
-                      className="w-12 h-12 object-cover rounded-xl border border-white/10 shadow-sm"
+                      className="w-12 h-12 object-cover rounded-2xl border border-black/10 dark:border-white/10 shadow-sm"
                       onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
                     <div>
@@ -777,54 +1214,62 @@ export function PvpSimulatorModal({
                       >
                         {charA.name}
                       </h4>
-                      <p className="text-xs text-gray-400 m-0">
+                      <p className="text-xs m-0" style={{ color: 'var(--text-muted)' }}>
                         {JOB_LABELS[charA.job] || charA.job}
                       </p>
                     </div>
                     <div className="ml-auto text-right">
-                      <span className="text-xs text-gray-400 block">PvP Score</span>
-                      <strong className="text-lg font-bold text-amber-400">
-                        {Math.round(scoreA).toLocaleString('id-ID')}
-                      </strong>
+                      <span className="text-[11px] block" style={{ color: 'var(--text-muted)' }}>
+                        PvP Score
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <strong className="text-lg font-extrabold text-amber-500 dark:text-amber-400">
+                          {Math.round(scoreA).toLocaleString('en-US')}
+                        </strong>
+                        {compareWinner === 'A' && (
+                          <span className="text-[11px] font-bold px-2 py-0.5 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                            +{Math.round(compareScoreDelta).toLocaleString('en-US')} pts
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Karakter B */}
+              {/* Kandidat B */}
               <div
-                className="p-4.5 rounded-2xl border flex flex-col gap-3 bg-black/[0.02] dark:bg-white/[0.04]"
+                className="p-4.5 rounded-2xl border flex flex-col gap-3 bg-black/[0.02] dark:bg-white/[0.04] transition-all"
                 style={{
                   borderColor:
-                    compareWinner === 'B' ? 'rgba(52, 211, 153, 0.4)' : 'var(--border-color)',
+                    compareWinner === 'B' ? 'rgba(168, 85, 247, 0.5)' : 'var(--border-color)',
+                  boxShadow: compareWinner === 'B' ? '0 4px 20px rgba(168, 85, 247, 0.08)' : 'none',
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-purple-400">
-                    Kandidat B
-                  </span>
-                  {compareWinner === 'B' && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                      Skor Lebih Tinggi (+{Math.round(compareScoreDelta)})
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-purple-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                      Candidate B
                     </span>
-                  )}
+                  </div>
                 </div>
 
                 <CustomDropdown
                   value={compareIdB}
                   onChange={(val) => setCompareIdB(val)}
-                  placeholder="-- Pilih Kandidat B --"
+                  placeholder="-- Select Candidate B --"
                   options={allMembers.map((m) => ({
                     value: m.id,
                     label: m.name,
-                    sublabel: JOB_LABELS[m.job] || m.job,
+                    sublabel: `${JOB_LABELS[m.job] || m.job} • ${Math.round(calculatePvPScore(m as unknown as CharacterStatsInput))} pts`,
                     icon: getJobIcon(m.job),
                   }))}
                 />
 
                 {charB && (
                   <div
-                    className="flex items-center gap-3 pt-2 border-t"
+                    className="flex items-center gap-3 pt-3 border-t"
                     style={{ borderColor: 'var(--border-color)' }}
                   >
                     <Image
@@ -832,7 +1277,7 @@ export function PvpSimulatorModal({
                       height={48}
                       src={getJobIcon(charB.job)}
                       alt=""
-                      className="w-12 h-12 object-cover rounded-xl border border-white/10 shadow-sm"
+                      className="w-12 h-12 object-cover rounded-2xl border border-black/10 dark:border-white/10 shadow-sm"
                       onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
                     <div>
@@ -842,70 +1287,93 @@ export function PvpSimulatorModal({
                       >
                         {charB.name}
                       </h4>
-                      <p className="text-xs text-gray-400 m-0">
+                      <p className="text-xs m-0" style={{ color: 'var(--text-muted)' }}>
                         {JOB_LABELS[charB.job] || charB.job}
                       </p>
                     </div>
                     <div className="ml-auto text-right">
-                      <span className="text-xs text-gray-400 block">PvP Score</span>
-                      <strong className="text-lg font-bold text-amber-400">
-                        {Math.round(scoreB).toLocaleString('id-ID')}
-                      </strong>
+                      <span className="text-[11px] block" style={{ color: 'var(--text-muted)' }}>
+                        PvP Score
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <strong className="text-lg font-extrabold text-amber-500 dark:text-amber-400">
+                          {Math.round(scoreB).toLocaleString('en-US')}
+                        </strong>
+                        {compareWinner === 'B' && (
+                          <span className="text-[11px] font-bold px-2 py-0.5 text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                            +{Math.round(compareScoreDelta).toLocaleString('en-US')} pts
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Banner Perbandingan Head to Head */}
+            {/* Head to Head Comparison Result Banner */}
             {charA && charB && (
               <div
-                className="p-4 rounded-xl border text-center relative overflow-hidden"
-                style={{
-                  background:
-                    'linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8))',
-                  borderColor: 'var(--border-color)',
-                }}
+                className="p-4 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left bg-black/[0.02] dark:bg-white/[0.03]"
+                style={{ borderColor: 'var(--border-color)' }}
               >
-                <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                  {compareWinner === 'TIE' ? (
-                    'Kedua karakter memiliki skor PvP yang seimbang!'
-                  ) : (
-                    <span>
-                      <strong className="text-emerald-400">
-                        {compareWinner === 'A' ? charA.name : charB.name}
-                      </strong>{' '}
-                      unggul{' '}
-                      <strong className="text-amber-400">
-                        +{Math.round(compareScoreDelta).toLocaleString('id-ID')} pts
-                      </strong>{' '}
-                      dibanding{' '}
-                      <strong className="text-gray-300">
-                        {compareWinner === 'A' ? charB.name : charA.name}
-                      </strong>
-                    </span>
-                  )}
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 border border-amber-500/20">
+                    <Icon icon="fluent:chart-multiple-20-filled" className="w-5 h-5" />
+                  </div>
+                  <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {compareWinner === 'TIE' ? (
+                      'Both characters have very balanced overall performance!'
+                    ) : (
+                      <span>
+                        <strong
+                          className={compareWinner === 'A' ? 'text-emerald-500' : 'text-purple-500'}
+                        >
+                          {compareWinner === 'A' ? charA.name : charB.name}
+                        </strong>{' '}
+                        leads by{' '}
+                        <strong className="text-amber-500">
+                          +{Math.round(compareScoreDelta).toLocaleString('en-US')} pts
+                        </strong>{' '}
+                        against{' '}
+                        <strong style={{ color: 'var(--text-secondary)' }}>
+                          {compareWinner === 'A' ? charB.name : charA.name}
+                        </strong>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Stat Win Counters */}
+                <div className="flex items-center gap-2 text-xs font-semibold shrink-0">
+                  <span className="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+                    {charA.name}: {statWins.aWins} Stats
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/25">
+                    {charB.name}: {statWins.bWins} Stats
+                  </span>
                 </div>
               </div>
             )}
 
-            {/* Visualisasi Perbandingan Hexagon Radar */}
+            {/* Visualisasi Perbandingan 6-Pilar Hexagon Radar */}
             {charA && charB && hexA && hexB && (
-              <div
-                className="p-5 rounded-3xl border border-black/5 dark:border-white/10 flex flex-col items-center bg-black/[0.02] dark:bg-white/[0.04]"
-              >
+              <div className="p-5 rounded-3xl border border-black/5 dark:border-white/10 flex flex-col items-center bg-black/[0.02] dark:bg-white/[0.04]">
                 <div
                   className="w-full flex items-center justify-between mb-4 border-b pb-3"
                   style={{ borderColor: 'var(--border-color)' }}
                 >
                   <div className="flex items-center gap-2">
-                    <Icon icon="lucide:radar" className="w-5 h-5 text-indigo-400" />
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-gray-200 m-0">
-                      Analisis 6-Pilar Hexagon Stats
+                    <Icon icon="lucide:radar" className="w-5 h-5 text-blue-500" />
+                    <h4
+                      className="text-sm font-bold uppercase tracking-wider m-0"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      Summary
                     </h4>
                   </div>
-                  <span className="text-xs text-gray-400">
-                    Perbandingan Profil Kekuatan Karakter
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    ROOC Character Profile Comparison
                   </span>
                 </div>
 
@@ -923,150 +1391,266 @@ export function PvpSimulatorModal({
               </div>
             )}
 
-            {/* Tabel Perbandingan Stat Langsung */}
+            {/* Matriks Perbandingan Stat Lengkap (Interaktif) */}
             {charA && charB && (
               <div
-                className="rounded-xl border overflow-hidden"
+                className="rounded-3xl border overflow-hidden shadow-sm"
                 style={{ background: 'var(--bg-primary)', borderColor: 'var(--border-color)' }}
               >
+                {/* Header Matriks & Filter Toolbar */}
                 <div
-                  className="px-4 py-3 border-b flex items-center justify-between text-xs font-bold uppercase tracking-wider"
+                  className="p-4 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+                  style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)' }}
+                >
+                  <div>
+                    <h3
+                      className="text-sm font-bold uppercase tracking-wider m-0"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      Detail
+                    </h3>
+                    <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                      Displaying key stats across all jobs (Offense, Defense, Support & Elemental).
+                    </p>
+                  </div>
+
+                  {/* Search Bar Stat */}
+                  <div className="w-full sm:w-56 relative">
+                    <Icon
+                      icon="fluent:search-20-regular"
+                      className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
+                    />
+                    <input
+                      type="text"
+                      value={statSearchQuery}
+                      onChange={(e) => setStatSearchQuery(e.target.value)}
+                      placeholder="Search stat (CRIT, ASPD, Heal...)"
+                      className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border outline-none transition-colors bg-white dark:bg-zinc-800"
+                      style={{
+                        borderColor: 'var(--border-color)',
+                        color: 'var(--text-primary)',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Category Pills */}
+                <div
+                  className="px-4 py-2.5 border-b flex items-center gap-1.5 overflow-x-auto"
+                  style={{ borderColor: 'var(--border-color)', background: 'var(--bg-primary)' }}
+                >
+                  {[
+                    { id: 'all', label: 'All' },
+                    { id: 'offensive', label: 'Attack' },
+                    { id: 'defensive', label: 'Defense' },
+                    { id: 'support', label: 'Support' },
+                    {
+                      id: 'elemental',
+                      label: 'Elemental Reduction',
+                    },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveCategory(tab.id as StatCategory)}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                        activeCategory === tab.id
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-black/5 dark:bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/10 dark:hover:bg-white/10'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Table Column Headers */}
+                <div
+                  className="px-4 py-2.5 border-b flex items-center justify-between text-xs font-bold uppercase tracking-wider"
                   style={{
                     background: 'var(--bg-secondary)',
                     borderColor: 'var(--border-color)',
                     color: 'var(--text-muted)',
                   }}
                 >
-                  <span className="w-1/3 text-left">{charA.name}</span>
-                  <span className="w-1/3 text-center">Stat Metric</span>
-                  <span className="w-1/3 text-right">{charB.name}</span>
+                  <div className="w-[140px] sm:w-[160px] shrink-0 flex items-center gap-2 text-left">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span className="truncate">{charA.name}</span>
+                  </div>
+                  <div className="flex-1 text-center font-bold">Stat Metric</div>
+                  <div className="w-[140px] sm:w-[160px] shrink-0 flex items-center justify-end gap-2 text-right">
+                    <span className="truncate">{charB.name}</span>
+                    <span className="w-2 h-2 rounded-full bg-purple-500" />
+                  </div>
                 </div>
 
-                <div className="divide-y divide-white/5 text-sm">
-                  {[
-                    { label: 'Max HP', key: 'max_hp' },
-                    { label: 'PATK', key: 'patk' },
-                    { label: 'MATK', key: 'matk' },
-                    { label: 'PDEF', key: 'pdef' },
-                    { label: 'MDEF', key: 'mdef' },
-                    { label: 'PDMG Reduction', key: 'pdmg_reduction', isPercent: true },
-                    { label: 'MDMG Reduction', key: 'mdmg_reduction', isPercent: true },
-                    {
-                      label: 'Demi-Human Reduction',
-                      key: 'dmg_reduction_demi_human',
-                      isPercent: true,
-                    },
-                    { label: 'Medium Reduction', key: 'dmg_reduction_medium', isPercent: true },
-                    { label: 'PvP DMG Reduction', key: 'pvp_dmg_reduction' },
-                    { label: 'Ignore PDEF', key: 'ignore_pdef' },
-                    { label: 'Ignore MDEF', key: 'ignore_mdef' },
-                    { label: 'CRIT RES', key: 'critical_reduction' },
-                    { label: 'CRIT DMG RES', key: 'critical_damage_reduction', isPercent: true },
-                  ].map((row) => {
-                    const rawValA = Number(
-                      (charA as unknown as Record<string, unknown>)[row.key] || 0,
-                    )
-                    const rawValB = Number(
-                      (charB as unknown as Record<string, unknown>)[row.key] || 0,
-                    )
+                {/* Rows List Interaktif (dengan Scrollbar nyaman) */}
+                <div className="divide-y divide-black/5 dark:divide-white/5 text-sm max-h-[480px] overflow-y-auto">
+                  {filteredStats.length === 0 ? (
+                    <div className="p-8 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+                      No stats match your search &quot;{statSearchQuery}&quot;
+                    </div>
+                  ) : (
+                    filteredStats.map((row) => {
+                      const rawValA = Number(
+                        (charA as unknown as Record<string, unknown>)[row.key] || 0,
+                      )
+                      const rawValB = Number(
+                        (charB as unknown as Record<string, unknown>)[row.key] || 0,
+                      )
 
-                    const maxVal = Math.max(rawValA, rawValB, 1)
-                    const pctA = Math.round((rawValA / maxVal) * 100)
-                    const pctB = Math.round((rawValB / maxVal) * 100)
+                      const maxVal = Math.max(rawValA, rawValB, 1)
+                      const pctA = Math.min(100, Math.round((rawValA / maxVal) * 100))
+                      const pctB = Math.min(100, Math.round((rawValB / maxVal) * 100))
 
-                    const isAHigher = rawValA > rawValB
-                    const isBHigher = rawValB > rawValA
+                      const isAHigher = rawValA > rawValB
+                      const isBHigher = rawValB > rawValA
+                      const diff = Math.round(Math.abs(rawValA - rawValB))
 
-                    return (
-                      <div
-                        key={row.key}
-                        className="px-4 py-3 flex items-center justify-between gap-4 hover:bg-black/[0.03] dark:hover:bg-white/5 transition-colors"
-                      >
-                        {/* Nilai A */}
-                        <div className="w-1/3 flex items-center gap-2">
-                          <span
-                            className={`font-semibold ${
-                              isAHigher ? 'text-emerald-500 dark:text-emerald-400' : 'text-[var(--text-primary)]'
-                            }`}
-                          >
-                            {row.isPercent ? `${rawValA}%` : rawValA.toLocaleString('id-ID')}
-                          </span>
-                          {isAHigher && (
-                            <Icon
-                              icon="fluent:triangle-right-16-filled"
-                              className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0"
-                            />
-                          )}
-                        </div>
+                      const displayValA = row.isPercent
+                        ? `${Math.round(rawValA)}%`
+                        : rawValA.toLocaleString('en-US')
+                      const displayValB = row.isPercent
+                        ? `${Math.round(rawValB)}%`
+                        : rawValB.toLocaleString('en-US')
+                      const displayDiff = row.isPercent ? `${diff}%` : diff.toLocaleString('en-US')
 
-                        {/* Label & Dual Progress Bar */}
-                        <div className="w-1/3 flex flex-col items-center gap-1">
-                          <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{row.label}</span>
-                          <div className="w-full h-1.5 bg-black/10 dark:bg-white/10 rounded-full flex overflow-hidden">
-                            <div
-                              className={`h-full transition-all ${
-                                isAHigher ? 'bg-emerald-500' : 'bg-indigo-500/60'
+                      return (
+                        <div
+                          key={row.key}
+                          className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors"
+                        >
+                          {/* Nilai Kandidat A */}
+                          <div className="w-[140px] sm:w-[160px] shrink-0 flex items-center gap-2">
+                            <span
+                              className={`font-bold font-mono ${
+                                isAHigher
+                                  ? 'text-emerald-600 dark:text-emerald-400 font-extrabold'
+                                  : 'text-[var(--text-primary)]'
                               }`}
-                              style={{ width: `${pctA / 2}%` }}
-                            />
-                            <div className="w-0.5 bg-[var(--border-color)] h-full" />
-                            <div
-                              className={`h-full transition-all ml-auto ${
-                                isBHigher ? 'bg-emerald-500' : 'bg-purple-500/60'
+                            >
+                              {displayValA}
+                            </span>
+                            {isAHigher && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shrink-0 flex items-center gap-0.5">
+                                <Icon
+                                  icon="fluent:chevron-up-24-filled"
+                                  className="w-2.5 h-2.5 shrink-0"
+                                />
+                                <span>+{displayDiff}</span>
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Nama Stat & Dual Progress Bar (Panjang & Lebar Maksimal) */}
+                          <div className="flex-1 flex flex-col items-center justify-center gap-1.5 min-w-0 px-2">
+                            <span
+                              className="text-xs font-semibold text-center truncate max-w-full"
+                              style={{ color: 'var(--text-primary)' }}
+                              title={row.description}
+                            >
+                              {row.label}
+                            </span>
+                            <div className="w-full max-w-[500px] h-3 bg-black/10 dark:bg-white/10 rounded-full flex overflow-hidden shadow-inner">
+                              {/* Bar A (ke arah kiri dari tengah atau 50-50) */}
+                              <div
+                                className={`h-full transition-all ${
+                                  isAHigher ? 'bg-emerald-500' : 'bg-emerald-500/40'
+                                }`}
+                                style={{ width: `${pctA / 2}%` }}
+                              />
+                              <div className="w-0.5 bg-[var(--border-color)] h-full shrink-0" />
+                              <div
+                                className={`h-full transition-all ml-auto ${
+                                  isBHigher ? 'bg-purple-500' : 'bg-purple-500/40'
+                                }`}
+                                style={{ width: `${pctB / 2}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Nilai Kandidat B */}
+                          <div className="w-[140px] sm:w-[160px] shrink-0 flex items-center justify-end gap-2 text-right">
+                            {isBHigher && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 shrink-0 flex items-center gap-0.5">
+                                <Icon
+                                  icon="fluent:chevron-up-24-filled"
+                                  className="w-2.5 h-2.5 shrink-0"
+                                />
+                                <span>+{displayDiff}</span>
+                              </span>
+                            )}
+                            <span
+                              className={`font-bold font-mono ${
+                                isBHigher
+                                  ? 'text-purple-600 dark:text-purple-400 font-extrabold'
+                                  : 'text-[var(--text-primary)]'
                               }`}
-                              style={{ width: `${pctB / 2}%` }}
-                            />
+                            >
+                              {displayValB}
+                            </span>
                           </div>
                         </div>
-
-                        {/* Nilai B */}
-                        <div className="w-1/3 flex items-center justify-end gap-2 text-right">
-                          {isBHigher && (
-                            <Icon
-                              icon="fluent:triangle-left-16-filled"
-                              className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0"
-                            />
-                          )}
-                          <span
-                            className={`font-semibold ${
-                              isBHigher ? 'text-emerald-500 dark:text-emerald-400' : 'text-[var(--text-primary)]'
-                            }`}
-                          >
-                            {row.isPercent ? `${rawValB}%` : rawValB.toLocaleString('id-ID')}
-                          </span>
-                        </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })
+                  )}
                 </div>
               </div>
             )}
           </div>
-        )}
 
-        {/* Footer Modal */}
-        <div
-          className="p-4 border-t flex items-center justify-between gap-3 flex-wrap"
-          style={{ borderColor: 'var(--border-color)', background: 'var(--bg-secondary)' }}
-        >
-          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            {guildName && `Guild: ${guildName} • `}
-            Total {allMembers.length} member siap disimulasikan
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-2 rounded-xl text-sm font-semibold border hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
-            style={{
-              borderColor: 'var(--border-color)',
-              color: 'var(--text-primary)',
-              background: 'var(--bg-primary)',
-            }}
+          {/* Footer Modal */}
+          <div
+            className="p-4 border-t flex items-center justify-between gap-3 flex-wrap"
+            style={{ borderColor: 'var(--border-color)', background: 'var(--bg-secondary)' }}
           >
-            Tutup
-          </button>
+            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              {guildName && `Guild: ${guildName} • `}
+              Total {allMembers.length} registered guild members
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Tombol Download PNG Footer */}
+              <button
+                type="button"
+                onClick={handleDownloadPng}
+                disabled={isDownloading || !charA || !charB}
+                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700 text-white border-blue-500 shadow-sm"
+              >
+                {isDownloading ? (
+                  <>
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span>Preparing PNG...</span>
+                  </>
+                ) : downloadSuccess ? (
+                  <>
+                    <Icon icon="fluent:checkmark-20-filled" className="w-4 h-4 text-emerald-300" />
+                    <span>Saved!</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon icon="fluent:arrow-download-20-filled" className="w-4 h-4" />
+                    <span>Download PNG</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2 rounded-xl text-sm font-semibold border hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                style={{
+                  borderColor: 'var(--border-color)',
+                  color: 'var(--text-primary)',
+                  background: 'var(--bg-primary)',
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }

@@ -52,10 +52,10 @@ export default function RegisterPage() {
     >
       <div className="w-full max-w-[420px] p-8 sm:p-10 rounded-3xl text-center apple-glass shadow-2xl border border-black/5 dark:border-white/10 transition-all">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
-          Register Guild Master
+          Guild Master Registration
         </h1>
         <p className="text-sm mt-1.5 mb-6" style={{ color: 'var(--text-secondary)' }}>
-          Daftarkan diri sebagai pemimpin guild
+          Register as a guild leader
         </p>
 
         {error && (
@@ -70,7 +70,7 @@ export default function RegisterPage() {
               className="block text-xs font-semibold uppercase tracking-wider mb-2"
               style={{ color: 'var(--text-muted)' }}
             >
-              Nama Lengkap / IGN
+              Full Name / IGN
             </label>
             <input
               type="text"
@@ -127,27 +127,27 @@ export default function RegisterPage() {
             className="w-full mt-4"
             loading={isLoading}
           >
-            Daftar Sekarang
+            Register Now
           </Button>
         </form>
 
         <p className="mt-6 text-sm" style={{ color: 'var(--text-muted)' }}>
-          Sudah punya akun?{' '}
+          Already have an account?{' '}
           <Link
             href="/login"
             className="font-semibold text-blue-500 hover:text-blue-600 transition-colors"
           >
-            Login di sini
+            Sign in here
           </Link>
         </p>
       </div>
 
-      <GlobalDialog isOpen={isDialogOpen} onClose={handleCloseDialog} title="Registrasi Berhasil!">
+      <GlobalDialog isOpen={isDialogOpen} onClose={handleCloseDialog} title="Registration Successful!">
         <div style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-          Akun Guild Master kamu berhasil dibuat!
+          Your Guild Master account has been created successfully!
           <br />
           <br />
-          Sekarang kamu bisa login menggunakan email dan password yang telah didaftarkan.
+          You can now sign in using your registered email and password.
           <br />
           <br />
           <Button
@@ -156,7 +156,7 @@ export default function RegisterPage() {
             className="w-full"
             onClick={handleCloseDialog}
           >
-            Lanjut ke Login
+            Continue to Sign In
           </Button>
         </div>
       </GlobalDialog>

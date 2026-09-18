@@ -12,7 +12,7 @@ export async function createCharacter(
 ): Promise<ActionResult<{ doc: Character }>> {
   try {
     if (!payloadData.name || !payloadData.job || !payloadData.guild_id) {
-      return actionError('Nama, Job, dan Guild wajib diisi')
+      return actionError('Name, Job, and Guild are required')
     }
 
     const computedScore = calculatePvPScore(payloadData)
@@ -23,7 +23,7 @@ export async function createCharacter(
         date: new Date().toISOString(),
         pvp_score: computedScore,
         job: String(payloadData.job || ''),
-        note: 'Pendaftaran stats awal',
+        note: 'Initial stats registration',
         hp: Number(payloadData.max_hp || 0),
         patk: Number(payloadData.patk || 0),
         matk: Number(payloadData.matk || 0),
@@ -60,7 +60,7 @@ export async function createCharacter(
       await updateGuildTotals(createdDoc.guild_id)
     }
 
-    return actionSuccess({ doc: createdDoc }, 'Berhasil menambahkan karakter')
+    return actionSuccess({ doc: createdDoc }, 'Character added successfully')
   } catch (error: unknown) {
     return actionError(formatErrorMessage(error))
   }

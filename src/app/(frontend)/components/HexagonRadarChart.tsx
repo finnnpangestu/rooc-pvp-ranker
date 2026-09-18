@@ -45,8 +45,8 @@ export function HexagonRadarChart({
   color = '#10b981',
   dataA,
   dataB,
-  labelA = 'Kandidat A',
-  labelB = 'Kandidat B',
+  labelA = 'Candidate A',
+  labelB = 'Candidate B',
   colorA = '#10b981',
   colorB = '#a855f7',
   size = 320,
@@ -369,92 +369,6 @@ export function HexagonRadarChart({
           )}
         </svg>
       </div>
-
-      {/* Rangkuman 6 Pilar (Cards / Metrics) - Opsional */}
-      {showSummaryCards && (
-        <div className="w-full mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-          {AXES.map((axis) => {
-            const valSingle = data ? data[axis.key] || 0 : 0
-            const valA = dataA ? dataA[axis.key] || 0 : 0
-            const valB = dataB ? dataB[axis.key] || 0 : 0
-            const diff = valA - valB
-
-            return (
-              <div
-                key={axis.key}
-                className="p-3 rounded-2xl border flex flex-col justify-between transition-colors"
-                style={{
-                  background: 'var(--bg-secondary)',
-                  borderColor: 'var(--border-color)',
-                }}
-              >
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="font-semibold flex items-center gap-1" style={{ color: 'var(--text-primary)' }}>
-                    <span>{axis.label}</span>
-                  </span>
-                  {isCompare && diff !== 0 && (
-                    <span
-                      className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                      style={{
-                        background: diff > 0 ? `${colorA}20` : `${colorB}20`,
-                        color: diff > 0 ? colorA : colorB,
-                      }}
-                    >
-                      {diff > 0 ? `+${diff} ${labelA}` : `+${Math.abs(diff)} ${labelB}`}
-                    </span>
-                  )}
-                </div>
-
-                <div className="text-[11px] mb-2 truncate" style={{ color: 'var(--text-muted)' }}>
-                  {axis.subLabel}
-                </div>
-
-                {isCompare ? (
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-[11px] font-medium">
-                      <span style={{ color: colorA }}>{labelA}</span>
-                      <span className="tabular-nums font-semibold">{valA}/100</span>
-                    </div>
-                    <div className="w-full bg-black/8 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-300"
-                        style={{ width: `${valA}%`, backgroundColor: colorA }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] font-medium pt-0.5">
-                      <span style={{ color: colorB }}>{labelB}</span>
-                      <span className="tabular-nums font-semibold">{valB}/100</span>
-                    </div>
-                    <div className="w-full bg-black/8 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-300"
-                        style={{ width: `${valB}%`, backgroundColor: colorB }}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>
-                        Skor
-                      </span>
-                      <span className="font-bold tabular-nums" style={{ color }}>
-                        {valSingle}/100
-                      </span>
-                    </div>
-                    <div className="w-full bg-black/8 dark:bg-white/10 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-300"
-                        style={{ width: `${valSingle}%`, background: color }}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
     </div>
   )
 }

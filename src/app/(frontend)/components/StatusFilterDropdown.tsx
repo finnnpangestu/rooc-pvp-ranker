@@ -61,7 +61,7 @@ export function StatusFilterDropdown({
         return {
           icon: 'fluent:filter-24-regular',
           iconColor: 'var(--text-muted)',
-          label: 'Semua Status',
+          label: 'All Status',
           count: totalCount,
           countBg: 'var(--badge-bg)',
           countText: 'var(--text-secondary)',
@@ -103,7 +103,7 @@ export function StatusFilterDropdown({
                 color: '#ff9f0a',
                 border: '1px solid rgba(255, 159, 10, 0.35)',
               }}
-              title={`${pendingCount} member pending`}
+              title={`${pendingCount} pending members`}
             >
               {pendingCount}
             </span>
@@ -144,7 +144,7 @@ export function StatusFilterDropdown({
           >
             <div className="flex items-center gap-2">
               <Icon icon="fluent:people-24-regular" className="w-4 h-4 text-indigo-400" />
-              <span>Semua Status</span>
+              <span>All Status</span>
             </div>
             {totalCount !== undefined && (
               <span className="text-xs opacity-60 tabular-nums font-semibold">{totalCount}</span>

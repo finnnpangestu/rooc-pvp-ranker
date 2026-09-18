@@ -116,7 +116,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
   }
 
   const handleDeleteRaid = (raidIdx: number) => {
-    if (confirm('Yakin ingin menghapus Raid ini?')) {
+    if (confirm('Are you sure you want to delete this Raid?')) {
       setRaids((prev) => prev.filter((_, i) => i !== raidIdx))
     }
   }
@@ -210,13 +210,13 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
       } else {
         setSaveStatus('error')
         if (handleAuthError(res)) return
-        alert('Gagal menyimpan: ' + res.message)
+        alert('Failed to save: ' + res.message)
       }
     })
   }
 
   const clearRaid = (raidIdx: number) => {
-    if (!confirm('Kosongkan semua anggota dan reset job blueprint di Raid ini?')) return
+    if (!confirm('Clear all members and reset the job blueprint in this Raid?')) return
     const newRaids = clone(raids)
     newRaids[raidIdx].parties.forEach((party) => {
       party.slots.forEach((slot) => {
@@ -341,8 +341,8 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
   const totalVerifiedMembers = localMembers.filter((m) => m.isVerified).length
 
   return (
-    <div className="max-w-7xl mx-auto flex gap-6 relative items-start pb-20">
-      {/* KIRI - Setup Raid */}
+    <div className="max-w-[1400px] mx-auto flex gap-6 relative items-start pb-20 w-full">
+      {/* LEFT - Raid Setup */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-6">
           <div id="tour-woe-header">
@@ -350,7 +350,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
               WoE Setup
             </h1>
             <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-              Atur formasi WoE per Raid. Total Verified Member:{' '}
+              Configure WoE formations per Raid. Total Verified Members:{' '}
               <span className="font-semibold text-emerald-500">{totalVerifiedMembers}</span>
             </p>
           </div>
@@ -373,7 +373,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
               loading={isPending}
               onClick={handleSave}
             >
-              {saveStatus === 'success' ? 'Berhasil Disimpan!' : 'Simpan Formasi'}
+              {saveStatus === 'success' ? 'Saved Successfully!' : 'Save Setup'}
             </Button>
           </div>
         </div>
@@ -398,13 +398,13 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                   </Button>
                   {raidIdx > 0 && (
                     <Button variant="danger" size="sm" onClick={() => handleDeleteRaid(raidIdx)}>
-                      Hapus
+                      Delete
                     </Button>
                   )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 auto-rows-fr">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
                 {raid.parties.map((party, partyIdx: number) => {
                   const totalScore = party.slots.reduce((sum: number, slot) => {
                     const char = getSlotCharacter(slot.assigned_character)
@@ -440,7 +440,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                             className="font-bold text-sm text-right tabular-nums"
                             style={{ color: 'var(--text-primary)' }}
                           >
-                            {Math.round(totalScore).toLocaleString('id-ID')}
+                            {Math.round(totalScore).toLocaleString('en-US')}
                           </div>
                         </div>
                       </div>
@@ -490,12 +490,12 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                                     style={{ color: 'var(--text-muted)' }}
                                   >
                                     {draggedMember
-                                      ? 'Drop karakter di sini...'
+                                      ? 'Drop character here...'
                                       : slot.required_job && slot.required_job !== 'any'
                                         ? JOB_LABELS[
                                             slot.required_job as keyof typeof JOB_LABELS
                                           ] || slot.required_job
-                                        : '+ Tambah Karakter'}
+                                        : '+ Add Character'}
                                   </span>
                                 </button>
                               )}
@@ -512,7 +512,7 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
         </div>
       </div>
 
-      {/* KANAN - Bench */}
+      {/* RIGHT - Bench */}
       <div
         id="tour-woe-benched"
         className="w-[300px] shrink-0 sticky top-4 max-h-[calc(100vh-2rem)] flex flex-col"
@@ -522,15 +522,16 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDropToBench}
         >
-          <div
-            className="p-4 border-b border-black/5 dark:border-white/10 shrink-0 flex items-center justify-between"
-          >
+          <div className="p-4 border-b border-black/5 dark:border-white/10 shrink-0 flex items-center justify-between">
             <div>
-              <h2 className="font-bold text-base tracking-tight" style={{ color: 'var(--text-primary)' }}>
+              <h2
+                className="font-bold text-base tracking-tight"
+                style={{ color: 'var(--text-primary)' }}
+              >
                 Benched
               </h2>
               <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                {benchedMembers.length} member belum masuk
+                {benchedMembers.length} unassigned member{benchedMembers.length === 1 ? '' : 's'}
               </p>
             </div>
           </div>
@@ -551,18 +552,18 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
                 className="text-center p-6 text-sm italic"
                 style={{ color: 'var(--text-muted)' }}
               >
-                Semua member sudah teralokasi!
+                All members have been assigned!
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* MODAL PILIH MEMBER */}
+      {/* SELECT MEMBER DIALOG */}
       <GlobalDialog
         isOpen={isAddMemberDialogOpen}
         onClose={() => setIsAddMemberDialogOpen(false)}
-        title="Pilih Member"
+        title="Select Member"
       >
         <div className="mt-4 max-h-[60vh] overflow-y-auto space-y-2 pr-2">
           {dialogAvailableMembers.map((m) => (
@@ -606,12 +607,12 @@ export function WoeSetupClient({ guild, members, initialSetup }: WoeSetupClientP
             </div>
           ))}
           {dialogAvailableMembers.length === 0 && (
-            <EmptyState message="Semua member sudah dialokasikan." />
+            <EmptyState message="All members have been allocated." />
           )}
         </div>
       </GlobalDialog>
 
-      {/* Modal Detail Karakter */}
+      {/* Character Detail Modal */}
       <CharacterDetailModal
         member={localMembers.find((m) => m.id === viewedMemberId) || null}
         isOpen={!!viewedMemberId}

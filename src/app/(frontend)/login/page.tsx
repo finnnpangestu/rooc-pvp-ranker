@@ -58,10 +58,10 @@ function LoginFormContent() {
     >
       <div className="w-full max-w-[420px] p-8 sm:p-10 rounded-3xl text-center apple-glass shadow-2xl border border-black/5 dark:border-white/10 transition-all">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
-          Login Guild Master
+          Guild Master Sign In
         </h1>
         <p className="text-sm mt-1.5 mb-6" style={{ color: 'var(--text-secondary)' }}>
-          Masuk untuk mengelola guild dan roster
+          Sign in to manage your guild and roster
         </p>
 
         {isSessionExpired && (
@@ -79,9 +79,9 @@ function LoginFormContent() {
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
             <div>
-              <div className="font-bold">Sesi Anda Telah Berakhir</div>
+              <div className="font-bold">Your Session Has Expired</div>
               <div className="text-xs opacity-90 mt-0.5 leading-relaxed">
-                Token otentikasi (JWT) telah kedaluwarsa. Silakan login kembali untuk melanjutkan.
+                Your authentication token has expired. Please sign in again to continue.
               </div>
             </div>
           </div>
@@ -142,24 +142,24 @@ function LoginFormContent() {
             className="w-full mt-4"
             loading={isLoading}
           >
-            Login
+            Sign In
           </Button>
         </form>
 
         <p className="mt-6 text-sm" style={{ color: 'var(--text-muted)' }}>
-          Belum punya akun?{' '}
+          Don&apos;t have an account?{' '}
           <Link
             href="/register"
             className="font-semibold text-blue-500 hover:text-blue-600 transition-colors"
           >
-            Daftar di sini
+            Register here
           </Link>
         </p>
       </div>
 
-      <GlobalDialog isOpen={isDialogOpen} onClose={handleCloseDialog} title="Login Berhasil!">
+      <GlobalDialog isOpen={isDialogOpen} onClose={handleCloseDialog} title="Sign In Successful!">
         <div style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-          Selamat datang kembali! Autentikasi berhasil.
+          Welcome back! Authentication successful.
           <br />
           <br />
           <Button
@@ -168,7 +168,7 @@ function LoginFormContent() {
             className="w-full"
             onClick={handleCloseDialog}
           >
-            Lanjut ke Dashboard
+            Continue to Dashboard
           </Button>
         </div>
       </GlobalDialog>

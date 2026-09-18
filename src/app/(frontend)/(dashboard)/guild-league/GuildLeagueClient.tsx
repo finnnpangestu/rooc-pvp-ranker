@@ -120,7 +120,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
       newSetup.sub_parties = []
       setLocalSetup(newSetup)
     } else {
-      alert('Gagal generate: ' + (res.message || res.error))
+      alert('Failed to generate: ' + (res.message || res.error))
     }
   }
 
@@ -136,7 +136,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
       newSetup.sub_parties = res.parties || []
       setLocalSetup(newSetup)
     } else {
-      alert('Gagal generate sub: ' + (res.message || res.error))
+      alert('Failed to generate sub parties: ' + (res.message || res.error))
     }
   }
 
@@ -146,10 +146,10 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
     const payload = { ...localSetup, guild_id: guild.id }
     const res = await savePartySetup(payload)
     if (res.success) {
-      alert('Setup berhasil disimpan!')
+      alert('Setup saved successfully!')
     } else {
       if (handleAuthError(res)) return
-      alert('Gagal menyimpan: ' + res.message)
+      alert('Failed to save: ' + res.message)
     }
     setIsSaveLoading(false)
   }
@@ -157,14 +157,14 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
   // HANDLE CLEAR - SAVE KE DATABASE
   const handleClear = (mode: 'all' | 'elite' | 'sub') => {
     if (!localSetup) return
-    if (!confirm(`Hapus formasi ${mode}?`)) return
+    if (!confirm(`Clear ${mode === 'all' ? 'all' : mode} formations?`)) return
 
     startClearTransition(async () => {
       if (initialSetup?.id) {
         const res = await clearParties(initialSetup.id, mode)
         if (!res.success) {
           if (handleAuthError(res)) return
-          alert('Gagal clear: ' + res.message)
+          alert('Failed to clear: ' + res.message)
           return
         }
       }
@@ -349,7 +349,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                   className="font-bold text-[14px] text-right"
                   style={{ color: 'var(--text-primary)' }}
                 >
-                  {Math.round(totalScore).toLocaleString()}
+                  {Math.round(totalScore).toLocaleString('en-US')}
                 </div>
               </div>
             </div>
@@ -408,7 +408,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                       >
                         <span className="text-[13px] italic" style={{ color: 'var(--text-muted)' }}>
                           {draggedMember
-                            ? 'Drop karakter di sini...'
+                            ? 'Drop character here...'
                             : JOB_LABELS[slot.required_job as keyof typeof JOB_LABELS] || 'Any'}
                         </span>
                       </button>
@@ -433,7 +433,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
               League Management
             </h1>
             <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-              Atur formasi Guild League (Round-Robin Auto Assign). Total Verified Member:{' '}
+              Configure Guild League lineups (Round-Robin Auto Assign). Total Verified Members:{' '}
               <span className="font-semibold text-emerald-500">
                 {localMembers.filter((m) => m.isVerified).length}
               </span>
@@ -477,7 +477,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
             </div>
 
             {!isEliteGenerated ? (
-              <EmptyState message="Elite Party belum dibentuk. Klik tombol di atas untuk memulai rancangan." />
+              <EmptyState message="Elite Parties have not been generated. Click the button above to build the lineup." />
             ) : (
               renderPartyCards(localSetup.elite_parties || [], '#fbbf24', 'elite')
             )}
@@ -511,12 +511,12 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
 
             {!isEliteGenerated && (
               <p className="text-[13px] -mt-4 mb-6" style={{ color: '#ef4444' }}>
-                * Anda harus melakukan Generate Elite Party terlebih dahulu.
+                * You must generate Elite Parties first.
               </p>
             )}
 
             {!isSubGenerated ? (
-              isEliteGenerated && <EmptyState message="Sub Party kosong atau belum di-generate." />
+              isEliteGenerated && <EmptyState message="Sub Parties are empty or have not been generated." />
             ) : (
               <div className="flex flex-col gap-4">
                 {Array.from({ length: Math.ceil((localSetup.sub_parties || []).length / 8) }).map(
@@ -582,7 +582,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
               disabled={!localSetup || isSaveLoading || (!isEliteGenerated && !isSubGenerated)}
               onClick={handleSave}
             >
-              {isSaveLoading ? 'Menyimpan...' : 'Simpan Setup'}
+              {isSaveLoading ? 'Saving...' : 'Save Setup'}
             </Button>
           </div>
         </div>
@@ -606,7 +606,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                 Benched
               </h2>
               <p className="text-xs mt-0.5 tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                {benchMembers.length} member belum masuk
+                {benchMembers.length} unassigned members
               </p>
             </div>
           </div>
@@ -630,7 +630,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                 className="text-center p-6 text-sm italic"
                 style={{ color: 'var(--text-muted)' }}
               >
-                Semua member sudah teralokasi!
+                All members have been assigned!
               </div>
             )}
           </div>
@@ -641,14 +641,14 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
       <GlobalDialog
         isOpen={isAddMemberDialogOpen}
         onClose={() => setIsAddMemberDialogOpen(false)}
-        title="Tambah Member ke Party"
+        title="Add Member to Party"
       >
         <div className="text-[14px] mb-5" style={{ color: 'var(--text-secondary)' }}>
-          Pilih member yang belum terassign.
+          Select an unassigned member to add to this slot.
         </div>
         {availableMembers.length === 0 ? (
           <p className="text-center py-5 text-[14px]" style={{ color: '#ef4444' }}>
-            Tidak ada member tersisa.
+            No available members remaining.
           </p>
         ) : (
           <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto pr-2">
@@ -670,7 +670,7 @@ export function GuildLeagueClient({ guild, members, initialSetup }: GuildLeagueC
                 />
                 <span className="truncate font-medium">{member.name}</span>
                 <span className="text-sm text-amber-500 dark:text-amber-400 font-bold tabular-nums ml-auto flex-shrink-0">
-                  {Math.round(Number(member.pvp_score) || 0).toLocaleString('id-ID')}
+                  {Math.round(Number(member.pvp_score) || 0).toLocaleString('en-US')}
                 </span>
               </button>
             ))}

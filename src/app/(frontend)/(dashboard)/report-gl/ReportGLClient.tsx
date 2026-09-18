@@ -122,8 +122,8 @@ export function ReportGLClient({
   )
 
   const handleStartReport = () => {
-    if (!reportName.trim()) return alert('Nama report wajib diisi')
-    if (!initialSetup) return alert('Party Setup belum dibentuk')
+    if (!reportName.trim()) return alert('Report name is required')
+    if (!initialSetup) return alert('Party Setup has not been created yet')
 
     const setupClone = clone(initialSetup)
     const initialMemberData: Record<string, { is_present: boolean; actual_score: number }> = {}
@@ -283,7 +283,7 @@ export function ReportGLClient({
         const targetCharId = swapTargetChar[sourceCharId]
         if (!targetCharId) {
           setIsDropdownLoading((prev) => ({ ...prev, [sourceCharId]: false }))
-          return alert('Pilih karakter yang ingin di-swap')
+          return alert('Please select a character to swap with')
         }
 
         const targetSlotIdx = tParties[targetParty.pIdx].slots.findIndex((s: PartySlot) => {
@@ -368,7 +368,7 @@ export function ReportGLClient({
     const res = await saveReportGL(guild.id, initialSetup.id, reportPayload, payloadSetup)
 
     if (res.success) {
-      alert('Report berhasil disimpan!')
+      alert('Report saved successfully!')
       router.refresh()
       setActiveReport(null)
       setReportName('')
@@ -376,7 +376,7 @@ export function ReportGLClient({
       setLocalSetup(null)
     } else {
       if (handleAuthError(res)) return
-      alert('Gagal: ' + res.message)
+      alert('Failed: ' + res.message)
     }
     setIsSaving(false)
   }
@@ -397,7 +397,7 @@ export function ReportGLClient({
               {activeReport.report_name}
             </h1>
             <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-              Evaluasi Performa & Formasi
+              Performance & Formation Evaluation
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -407,10 +407,10 @@ export function ReportGLClient({
               style={{ color: '#10b981', borderColor: '#10b981' }}
               className="border hover:bg-[#10b981]/10"
             >
-              ✓ Hadir Semua
+              ✓ Mark All Present
             </Button>
             <Button variant="amber" size="lg" loading={isSaving} onClick={handleSave}>
-              {isSaving ? 'Menyimpan...' : 'Simpan Report & Update Formasi'}
+              {isSaving ? 'Saving...' : 'Save Report & Update Formation'}
             </Button>
           </div>
         </div>
@@ -437,7 +437,7 @@ export function ReportGLClient({
                     color: 'var(--text-muted)',
                   }}
                 >
-                  {party.memberCount}/5 Member
+                  {party.memberCount}/5 Members
                 </span>
               </h2>
 
@@ -472,7 +472,7 @@ export function ReportGLClient({
                             </div>
                             <div className="text-[11px] text-amber-500 font-semibold tabular-nums mt-0.5">
                               PvP Score:{' '}
-                              {Math.round(Number(m.char.pvp_score) || 0).toLocaleString('id-ID')}
+                              {Math.round(Number(m.char.pvp_score) || 0).toLocaleString('en-US')}
                             </div>
                           </div>
                         </div>
@@ -482,7 +482,7 @@ export function ReportGLClient({
                             className="text-[10px] font-bold uppercase tracking-wider"
                             style={{ color: data.is_present ? '#10b981' : 'var(--text-muted)' }}
                           >
-                            Hadir
+                            Present
                           </span>
                           <div className="relative">
                             <input
@@ -513,7 +513,7 @@ export function ReportGLClient({
                             className="text-xs font-medium w-20"
                             style={{ color: 'var(--text-secondary)' }}
                           >
-                            Skor Real:
+                            Actual Score:
                           </span>
                           <input
                             type="number"
@@ -527,7 +527,7 @@ export function ReportGLClient({
                                 },
                               }))
                             }
-                            placeholder="Skor in-game"
+                            placeholder="In-game score"
                             className="flex-1 rounded-xl py-2 px-3 text-sm outline-none border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 tabular-nums transition-all"
                             style={{
                               color: 'var(--text-primary)',
@@ -540,7 +540,7 @@ export function ReportGLClient({
                             className="text-[13px] w-20 mt-2"
                             style={{ color: 'var(--text-secondary)' }}
                           >
-                            Pindah Ke
+                            Move To
                           </span>
                           <div className="flex-1 flex flex-col gap-2">
                             <CustomDropdown
@@ -552,10 +552,10 @@ export function ReportGLClient({
                                 }))
                                 setSwapTargetChar((prev) => ({ ...prev, [charId]: '' }))
                               }}
-                              placeholder="-- Tetap di posisinya --"
+                              placeholder="-- Keep current position --"
                               size="sm"
                               options={[
-                                { value: '', label: '-- Tetap di posisinya --' },
+                                { value: '', label: '-- Keep current position --' },
                                 ...availableParties.map((p) => ({
                                   value: p.id,
                                   label: `${p.name} (${p.memberCount}/5)`,
@@ -573,18 +573,21 @@ export function ReportGLClient({
                                     [charId]: val,
                                   }))
                                 }
-                                placeholder="-- Pilih Target Swap --"
+                                placeholder="-- Select Swap Target --"
                                 size="sm"
                                 triggerClassName="!border-amber-500/30 text-amber-600 dark:text-amber-400"
                                 options={[
-                                  { value: '', label: '-- Pilih Target Swap --' },
+                                  { value: '', label: '-- Select Swap Target --' },
                                   ...(targetParty?.slots
                                     .map((s: PartySlot) => {
                                       const char =
-                                        typeof s.assigned_character === 'object' && s.assigned_character
+                                        typeof s.assigned_character === 'object' &&
+                                        s.assigned_character
                                           ? s.assigned_character
                                           : typeof s.assigned_character === 'string'
-                                            ? localMembers.find((mem) => mem.id === s.assigned_character) || null
+                                            ? localMembers.find(
+                                                (mem) => mem.id === s.assigned_character,
+                                              ) || null
                                             : null
                                       if (!char) return null
                                       return {
@@ -593,7 +596,11 @@ export function ReportGLClient({
                                         icon: getJobIcon(char.job || ''),
                                       }
                                     })
-                                    .filter(Boolean) as { value: string; label: string; icon?: string }[]),
+                                    .filter(Boolean) as {
+                                    value: string
+                                    label: string
+                                    icon?: string
+                                  }[]),
                                 ]}
                               />
                             )}
@@ -608,7 +615,7 @@ export function ReportGLClient({
                                 }
                                 className="w-full text-xs mt-1"
                               >
-                                {isTargetFull ? 'Tukar Formasi' : 'Pindah Formasi'}
+                                {isTargetFull ? 'Swap Formation' : 'Move Formation'}
                               </Button>
                             )}
                           </div>
@@ -633,11 +640,9 @@ export function ReportGLClient({
                 className="text-[20px] font-bold mb-4 pb-2 border-b"
                 style={{ color: 'var(--text-muted)', borderColor: 'var(--border-color)' }}
               >
-                Bench (Tidak Hadir)
+                Bench (Absent)
               </h2>
-              <div
-                className="rounded-3xl p-5 border border-black/5 dark:border-white/10 apple-glass shadow-sm"
-              >
+              <div className="rounded-3xl p-5 border border-black/5 dark:border-white/10 apple-glass shadow-sm">
                 <div className="flex flex-wrap gap-2.5">
                   {absentMembers.map((m) => (
                     <div
@@ -652,7 +657,7 @@ export function ReportGLClient({
                         className="object-cover rounded-full"
                       />
                       <span style={{ color: 'var(--text-secondary)' }}>{m.char.name}</span>
-                      <span className="text-[11px] text-red-500 font-semibold">(Absen)</span>
+                      <span className="text-[11px] text-red-500 font-semibold">(Absent)</span>
                     </div>
                   ))}
                 </div>
@@ -667,24 +672,28 @@ export function ReportGLClient({
   return (
     <div className="max-w-[1200px] mx-auto p-5">
       <div id="tour-report-gl" className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold tracking-tight m-0" style={{ color: 'var(--text-primary)' }}>
-          Riwayat Report GL
+        <h1
+          className="text-2xl font-bold tracking-tight m-0"
+          style={{ color: 'var(--text-primary)' }}
+        >
+          Guild League Report History
         </h1>
         <Button variant="primary" size="md" onClick={() => setIsModalOpen(true)}>
-          + Buat Report Baru
+          + Create New Report
         </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
-        {/* Daftar Report - 2/3 lebar */}
+        {/* Reports List - 2/3 width */}
         <div id="tour-report-list" className="lg:col-span-2 flex flex-col">
-          <div
-            className="flex-1 rounded-3xl border border-black/5 dark:border-white/10 p-5 flex flex-col apple-glass shadow-sm"
-          >
+          <div className="flex-1 rounded-3xl border border-black/5 dark:border-white/10 p-5 flex flex-col apple-glass shadow-sm">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 content-start">
               {paginatedReports.length === 0 ? (
-                <p className="col-span-2 text-center py-10 text-sm" style={{ color: 'var(--text-muted)' }}>
-                  Belum ada riwayat report.
+                <p
+                  className="col-span-2 text-center py-10 text-sm"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  No report history yet.
                 </p>
               ) : (
                 paginatedReports.map((report) => (
@@ -721,7 +730,7 @@ export function ReportGLClient({
                           <line x1="3" y1="10" x2="21" y2="10" />
                         </svg>
                         {report.match_date
-                          ? new Date(report.match_date).toLocaleDateString('id-ID')
+                          ? new Date(report.match_date).toLocaleDateString('en-US')
                           : '-'}
                       </span>
                       <span
@@ -750,33 +759,18 @@ export function ReportGLClient({
 
         {/* Ranking GL - 1/3 lebar */}
         <div id="tour-report-ranking" className="lg:col-span-1 flex flex-col">
-          <div
-            className="flex-1 rounded-3xl border border-black/5 dark:border-white/10 p-5 flex flex-col apple-glass shadow-sm"
-          >
+          <div className="flex-1 rounded-3xl border border-black/5 dark:border-white/10 p-5 flex flex-col apple-glass shadow-sm">
             <h3
               className="text-base font-bold tracking-tight mb-3 flex items-center gap-2"
               style={{ color: 'var(--text-primary)' }}
             >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ color: '#fbbf24' }}
-              >
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-              Ranking GL
+              GL Ranking
             </h3>
 
             <div className="flex-1">
               {paginatedRanking.length === 0 ? (
                 <p className="text-center py-6 text-sm" style={{ color: 'var(--text-muted)' }}>
-                  Belum ada data ranking.
+                  No ranking data available.
                 </p>
               ) : (
                 <div className="space-y-2 h-[610px] overflow-y-auto pr-1">
@@ -830,7 +824,7 @@ export function ReportGLClient({
                           </span>
                         </div>
                         <span className="font-semibold text-xs text-amber-400">
-                          {Math.round(member.total).toLocaleString('id-ID')}
+                          {Math.round(member.total).toLocaleString('en-US')}
                         </span>
                       </div>
                     )
@@ -854,7 +848,7 @@ export function ReportGLClient({
       <GlobalDialog
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Buat Laporan Baru"
+        title="Create New Report"
         maxWidth={400}
       >
         <div className="flex flex-col gap-5 mt-2">
@@ -863,11 +857,11 @@ export function ReportGLClient({
               className="text-xs font-semibold uppercase tracking-wider mb-2 block"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Nama Report
+              Report Name
             </label>
             <input
               type="text"
-              placeholder="Contoh: Week 1 vs Valhalla"
+              placeholder="e.g. Week 1 vs Valhalla"
               value={reportName}
               onChange={(e) => setReportName(e.target.value)}
               className="w-full rounded-xl py-2.5 px-4 outline-none text-sm border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
@@ -882,7 +876,7 @@ export function ReportGLClient({
               className="text-xs font-semibold uppercase tracking-wider mb-2 block"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Skor Total Guild
+              Total Guild Score
             </label>
             <input
               type="number"
@@ -901,11 +895,9 @@ export function ReportGLClient({
               className="text-xs font-semibold uppercase tracking-wider mb-2 block"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Hasil Pertandingan
+              Match Result
             </label>
-            <div
-              className="flex p-1 rounded-2xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04]"
-            >
+            <div className="flex p-1 rounded-2xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04]">
               <button
                 onClick={() => setMatchStatus('win')}
                 className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all apple-press ${
@@ -914,7 +906,7 @@ export function ReportGLClient({
                     : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >
-                Menang
+                Win
               </button>
               <button
                 onClick={() => setMatchStatus('loss')}
@@ -924,13 +916,13 @@ export function ReportGLClient({
                     : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >
-                Kalah
+                Loss
               </button>
             </div>
           </div>
 
           <Button variant="primary" size="lg" className="w-full mt-2" onClick={handleStartReport}>
-            Mulai Isi Laporan
+            Start Report Evaluation
           </Button>
         </div>
       </GlobalDialog>
@@ -939,7 +931,7 @@ export function ReportGLClient({
       <GlobalDialog
         isOpen={!!viewReport}
         onClose={() => setViewReport(null)}
-        title={viewReport?.report_name || 'Detail Report'}
+        title={viewReport?.report_name || 'Report Details'}
         maxWidth={900}
       >
         {viewReport && (
@@ -966,7 +958,7 @@ export function ReportGLClient({
                   <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
                 {viewReport.match_date
-                  ? new Date(viewReport.match_date).toLocaleDateString('id-ID', {
+                  ? new Date(viewReport.match_date).toLocaleDateString('en-US', {
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric',
@@ -1114,9 +1106,7 @@ export function ReportGLClient({
                                 onError={(e) => (e.currentTarget.style.display = 'none')}
                               />
                               {!isPresent && (
-                                <div
-                                  className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-bold bg-rose-500 text-white shadow-sm"
-                                >
+                                <div className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-bold bg-rose-500 text-white shadow-sm">
                                   ✕
                                 </div>
                               )}
@@ -1132,7 +1122,7 @@ export function ReportGLClient({
                               className="text-sm font-bold mt-0.5"
                               style={{ color: score > 0 ? '#f59e0b' : 'var(--text-muted)' }}
                             >
-                              {score.toLocaleString()}
+                              {score.toLocaleString('en-US')}
                             </span>
                             {isPresent ? (
                               <span
@@ -1149,14 +1139,14 @@ export function ReportGLClient({
                                 >
                                   <polyline points="20 6 9 17 4 12" />
                                 </svg>
-                                Hadir
+                                Present
                               </span>
                             ) : (
                               <span
                                 className="text-[10px] font-semibold mt-0.5"
                                 style={{ color: 'var(--text-muted)' }}
                               >
-                                Absen
+                                Absent
                               </span>
                             )}
                           </div>

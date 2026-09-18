@@ -13,11 +13,11 @@ export async function loginUser(formData: FormData) {
 
   const isHuman = await verifyTurnstileToken(turnstileToken)
   if (!isHuman) {
-    return { success: false, message: 'Verifikasi keamanan bot gagal. Silakan centang verifikasi.' }
+    return { success: false, message: 'Bot security verification failed. Please complete the verification.' }
   }
 
   if (!email || !password) {
-    return { success: false, message: 'Email dan password wajib diisi' }
+    return { success: false, message: 'Email and password are required' }
   }
 
   try {
@@ -26,12 +26,12 @@ export async function loginUser(formData: FormData) {
     })
 
     if (!existingUser) {
-      return { success: false, message: 'Email atau password salah' }
+      return { success: false, message: 'Invalid email or password' }
     }
 
     const isValid = await verifyPassword(password, existingUser.password)
     if (!isValid) {
-      return { success: false, message: 'Email atau password salah' }
+      return { success: false, message: 'Invalid email or password' }
     }
 
     const sessionUser = {

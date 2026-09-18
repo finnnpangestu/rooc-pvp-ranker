@@ -218,8 +218,10 @@ function computeRawPillars(data: CharacterStatsInput): RawPillars {
 
   // 1. DEF Pillar (Survivability)
   // HP + DEF/MDEF + Reductions
+  // Rebalanced HP scaling: Mencegah inflasi skor berlebih pada karakter ber-HP tinggi (diminishing returns)
   const hpBonusMultiplier = 1 + num(data.max_hp_percentage) / 100
-  const totalHPValue = (num(data.max_hp) / 1000) * hpBonusMultiplier
+  const effectiveHP = Math.max(0, num(data.max_hp) * hpBonusMultiplier)
+  const totalHPValue = effectiveHP > 0 ? Math.pow(effectiveHP / 1000, 0.58) * 2.1 : 0
   const pdef = num(data.pdef) / 100
   const mdef = num(data.mdef) / 100
   const refineDef = (num(data.refine_pdef) + num(data.refine_mdef)) / GENERAL_FLAT_CONVERSION
@@ -254,7 +256,7 @@ function computeRawPillars(data: CharacterStatsInput): RawPillars {
     totalElementalRed
 
   const totalDmgReduction = rawDmgReduction / DMG_REDUCTION_SCALE
-  const rawDefPillar = totalHPValue * 0.45 + totalDef * 0.35 + totalDmgReduction * 0.55
+  const rawDefPillar = totalHPValue + totalDef * 0.35 + totalDmgReduction * 0.55
 
   // 2. ATK Pillar (Offense)
   // PATK/MATK + Refine + Penetration + DMG Bonus

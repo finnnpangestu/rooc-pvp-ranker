@@ -139,11 +139,11 @@ export function ReportWoeClient({
   const handleStartReport = (e: React.FormEvent) => {
     e.preventDefault()
     if (!initialSetup) {
-      alert('Setup WoE belum ada. Buat setup terlebih dahulu di halaman WoE Setup.')
+      alert('WoE Setup not found. Please create a setup first on the WoE Setup page.')
       return
     }
     if (matchRank === '') {
-      alert('Harap masukkan rank integer (misal 1, 2, 3)')
+      alert('Please enter an integer rank (e.g. 1, 2, 3)')
       return
     }
 
@@ -252,7 +252,7 @@ export function ReportWoeClient({
         const targetCharId = swapTargetChar[sourceCharId]
         if (!targetCharId) {
           setIsDropdownLoading((prev) => ({ ...prev, [sourceCharId]: false }))
-          return alert('Pilih karakter yang ingin di-swap')
+          return alert('Please select a character to swap with')
         }
 
         const targetSlotIdx = tParty.slots.findIndex((s: PartySlot) => {
@@ -334,7 +334,7 @@ export function ReportWoeClient({
     const res = await saveReportWoe(guild.id, initialSetup.id, reportPayload, payloadSetup || {})
 
     if (res.success) {
-      alert('Report WoE berhasil disimpan!')
+      alert('WoE report saved successfully!')
       router.refresh()
       setActiveReport(null)
       setReportName('')
@@ -342,7 +342,7 @@ export function ReportWoeClient({
       setLocalSetup(null)
     } else {
       if (handleAuthError(res)) return
-      alert('Gagal menyimpan: ' + res.message)
+      alert('Failed to save: ' + res.message)
     }
     setIsSaving(false)
   }
@@ -356,7 +356,7 @@ export function ReportWoeClient({
         >
           <div>
             <h1 className="text-2xl font-bold m-0" style={{ color: 'var(--text-primary)' }}>
-              Input Laporan: {activeReport.report_name}
+              Report Evaluation: {activeReport.report_name}
             </h1>
             <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
               Rank: {activeReport.match_rank}
@@ -369,7 +369,7 @@ export function ReportWoeClient({
               style={{ color: '#10b981', borderColor: '#10b981' }}
               className="border hover:bg-[#10b981]/10"
             >
-              ✓ Hadir Semua
+              ✓ Mark All Present
             </Button>
             <Button
               variant="ghost"
@@ -378,10 +378,10 @@ export function ReportWoeClient({
                 setLocalSetup(null)
               }}
             >
-              Batal
+              Cancel
             </Button>
             <Button variant="success" onClick={handleSave} loading={isSaving}>
-              Simpan Report & Update Formasi
+              {isSaving ? 'Saving...' : 'Save Report & Update Formation'}
             </Button>
           </div>
         </div>
@@ -400,7 +400,7 @@ export function ReportWoeClient({
                 <span
                   className="text-xs px-3 py-1 rounded-full border border-black/5 dark:border-white/10 bg-black/5 dark:bg-white/5 text-[var(--text-muted)] tabular-nums"
                 >
-                  {party.memberCount}/5 Member
+                  {party.memberCount}/5 Members
                 </span>
               </h2>
 
@@ -446,7 +446,7 @@ export function ReportWoeClient({
                           <span
                             className={`text-[11px] font-semibold uppercase tracking-wider ${data.is_present ? 'text-[#34c759]' : 'text-neutral-400 dark:text-neutral-500'}`}
                           >
-                            Hadir
+                            Present
                           </span>
                           <div className="relative">
                             <input
@@ -477,7 +477,7 @@ export function ReportWoeClient({
                             className="text-[13px] w-20 mt-2"
                             style={{ color: 'var(--text-secondary)' }}
                           >
-                            Pindah Ke
+                            Move To
                           </span>
                           <div className="flex-1 flex flex-col gap-2">
                             <CustomDropdown
@@ -489,10 +489,10 @@ export function ReportWoeClient({
                                 }))
                                 setSwapTargetChar((prev) => ({ ...prev, [charId]: '' }))
                               }}
-                              placeholder="-- Tetap di posisinya --"
+                              placeholder="-- Keep current position --"
                               size="sm"
                               options={[
-                                { value: '', label: '-- Tetap di posisinya --' },
+                                { value: '', label: '-- Keep current position --' },
                                 ...availableParties.map((p) => ({
                                   value: p.id,
                                   label: `${p.name} (${p.memberCount}/5)`,
@@ -510,11 +510,11 @@ export function ReportWoeClient({
                                     [charId]: val,
                                   }))
                                 }
-                                placeholder="-- Pilih Target Swap --"
+                                placeholder="-- Select Swap Target --"
                                 size="sm"
                                 triggerClassName="!border-amber-500/30 text-amber-600 dark:text-amber-400"
                                 options={[
-                                  { value: '', label: '-- Pilih Target Swap --' },
+                                  { value: '', label: '-- Select Swap Target --' },
                                   ...(targetParty?.slots
                                     .map((s: PartySlot) => {
                                       const char =
@@ -543,7 +543,7 @@ export function ReportWoeClient({
                                 onClick={() => handleSwapExecute(charId, m.rIdx, m.pIdx, m.sIdx)}
                                 className="w-full text-xs mt-1"
                               >
-                                {isTargetFull ? 'Tukar Formasi' : 'Pindah Formasi'}
+                                {isTargetFull ? 'Swap Formation' : 'Move Formation'}
                               </Button>
                             )}
                           </div>
@@ -565,10 +565,10 @@ export function ReportWoeClient({
       <div className="flex justify-between items-center mb-8" id="tour-woe-report-header">
         <div>
           <h1 className="text-3xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
-            Report WoE
+            WoE Reports
           </h1>
           <p style={{ color: 'var(--text-muted)' }}>
-            Buat laporan hasil pertempuran WoE guild Anda.
+            Record and manage your guild's War of Emperium battle reports.
           </p>
         </div>
         <Button
@@ -576,7 +576,7 @@ export function ReportWoeClient({
           onClick={() => setIsModalOpen(true)}
           className="!px-6 !py-3 !text-[15px]"
         >
-          + Buat Report Baru
+          + Create New Report
         </Button>
       </div>
 
@@ -585,13 +585,13 @@ export function ReportWoeClient({
         className="apple-glass rounded-3xl p-6 sm:p-8 mb-8 border border-black/5 dark:border-white/10 shadow-sm transition-colors"
       >
         <h2 className="text-xl font-bold mb-4 tracking-tight" style={{ color: 'var(--text-primary)' }}>
-          Riwayat Laporan WoE
+          WoE Report History
         </h2>
         {historyReports.length === 0 ? (
           <div
             className="p-8 text-center rounded-2xl border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] text-[var(--text-muted)]"
           >
-            Belum ada report WoE. Klik tombol di atas untuk membuat.
+            No WoE reports yet. Click the button above to create one.
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -608,7 +608,7 @@ export function ReportWoeClient({
                     </h3>
                     <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
                       {report.match_date
-                        ? new Date(report.match_date).toLocaleDateString('id-ID', {
+                        ? new Date(report.match_date).toLocaleDateString('en-US', {
                             day: 'numeric',
                             month: 'long',
                             year: 'numeric',
@@ -642,7 +642,7 @@ export function ReportWoeClient({
       <GlobalDialog
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Buat Laporan WoE Baru"
+        title="Create New WoE Report"
         maxWidth={400}
       >
         <form onSubmit={handleStartReport} className="flex flex-col gap-5 pt-2">
@@ -651,14 +651,14 @@ export function ReportWoeClient({
               className="text-[13px] font-semibold mb-2 block"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Nama / Judul Report <span className="text-red-500">*</span>
+              Report Name / Title <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               required
               value={reportName}
               onChange={(e) => setReportName(e.target.value)}
-              placeholder="Contoh: WoE 12 Agustus 2026"
+              placeholder="e.g. WoE August 12, 2026"
               className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all"
             />
           </div>
@@ -675,13 +675,13 @@ export function ReportWoeClient({
               required
               value={matchRank}
               onChange={(e) => setMatchRank(Number(e.target.value))}
-              placeholder="Contoh: 1"
+              placeholder="e.g. 1"
               className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all tabular-nums"
             />
           </div>
 
           <Button variant="primary" size="lg" type="submit" className="w-full mt-2">
-            Lanjut Input Data
+            Proceed to Evaluation
           </Button>
         </form>
       </GlobalDialog>
@@ -689,7 +689,7 @@ export function ReportWoeClient({
       <GlobalDialog
         isOpen={!!viewReport}
         onClose={() => setViewReport(null)}
-        title={`Detail: ${viewReport?.report_name}`}
+        title={`Details: ${viewReport?.report_name}`}
         maxWidth={900}
       >
         {viewReport && (
@@ -715,7 +715,7 @@ export function ReportWoeClient({
                   <line x1="8" y1="2" x2="8" y2="6" />
                   <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
-                {new Date(viewReport.match_date || new Date()).toLocaleDateString('id-ID', {
+                {new Date(viewReport.match_date || new Date()).toLocaleDateString('en-US', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric',
@@ -827,7 +827,7 @@ export function ReportWoeClient({
                               className="text-[10px] font-bold mt-1 uppercase"
                               style={{ color: isPresent ? '#10b981' : 'var(--text-muted)' }}
                             >
-                              {isPresent ? 'Hadir' : 'Absen'}
+                              {isPresent ? 'Present' : 'Absent'}
                             </span>
                           </div>
                         )

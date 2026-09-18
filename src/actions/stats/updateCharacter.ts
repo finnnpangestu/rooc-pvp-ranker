@@ -37,7 +37,7 @@ export async function updateCharacterStats(
       date: new Date().toISOString(),
       pvp_score: computedScore,
       job: String(payloadData.job || existingChar?.job || ''),
-      note: 'Pembaruan stats',
+      note: 'Stats update',
       hp: Number(payloadData.max_hp || 0),
       patk: Number(payloadData.patk || 0),
       matk: Number(payloadData.matk || 0),
@@ -71,14 +71,14 @@ export async function updateCharacterStats(
       .returning()
 
     if (!updatedDoc) {
-      return actionError('Karakter tidak ditemukan')
+      return actionError('Character not found')
     }
 
     if (updatedDoc.guild_id) {
       await updateGuildTotals(updatedDoc.guild_id)
     }
 
-    return actionSuccess({ doc: updatedDoc }, 'Berhasil memperbarui karakter')
+    return actionSuccess({ doc: updatedDoc }, 'Character updated successfully')
   } catch (error: unknown) {
     return actionError(formatErrorMessage(error))
   }

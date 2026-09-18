@@ -61,7 +61,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
   if (!guild) {
     return (
       <div className="flex justify-center items-center h-full">
-        <p style={{ color: 'var(--text-muted)' }}>Anda belum memiliki guild.</p>
+        <p style={{ color: 'var(--text-muted)' }}>You do not belong to any guild yet.</p>
       </div>
     )
   }
@@ -109,7 +109,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
         >
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-bold tracking-tight m-0" style={{ color: 'var(--text-primary)' }}>
-              Daftar Member Guild
+              Guild Member List
             </h2>
             <span
               className="text-xs px-2.5 py-0.5 rounded-full font-medium border border-black/5 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05]"
@@ -117,7 +117,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                 color: 'var(--text-secondary)',
               }}
             >
-              {filteredMembers.length} member
+              {filteredMembers.length} {filteredMembers.length === 1 ? 'member' : 'members'}
             </span>
 
             <button
@@ -128,7 +128,8 @@ export function MemberClient({ guild, members }: MemberClientProps) {
               }}
               className="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center gap-1.5 transition-all cursor-pointer apple-press"
             >
-              <span>Simulasi & Compare</span>
+              <Icon icon="fluent:arrow-swap-20-filled" className="w-3.5 h-3.5" />
+              <span>Compare Members</span>
             </button>
           </div>
 
@@ -144,7 +145,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari nama character..."
+                placeholder="Search character name..."
                 className="pl-9 pr-8 py-2 text-sm rounded-xl outline-none border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.05] focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all w-48 sm:w-56 focus:w-64"
                 style={{
                   color: 'var(--text-primary)',
@@ -155,7 +156,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                   type="button"
                   onClick={() => setSearchQuery('')}
                   className="absolute right-2.5 p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-gray-400 hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                  title="Hapus pencarian"
+                  title="Clear search"
                 >
                   <Icon icon="fluent:dismiss-16-filled" className="w-3.5 h-3.5" />
                 </button>
@@ -203,7 +204,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
             >
               <tr>
                 <th className="p-4 text-left font-medium" style={{ color: 'var(--text-muted)' }}>
-                  Karakter
+                  Character
                 </th>
                 <th className="p-4 text-left font-medium" style={{ color: 'var(--text-muted)' }}>
                   Job
@@ -212,16 +213,16 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                   PvP Score
                 </th>
                 <th className="p-4 text-center font-medium" style={{ color: 'var(--text-muted)' }}>
-                  Kehadiran GL
+                  GL Attendance
                 </th>
                 <th className="p-4 text-center font-medium" style={{ color: 'var(--text-muted)' }}>
-                  Kehadiran WoE
+                  WoE Attendance
                 </th>
                 <th className="p-4 text-center font-medium" style={{ color: 'var(--text-muted)' }}>
                   Status
                 </th>
                 <th className="p-4 text-right font-medium" style={{ color: 'var(--text-muted)' }}>
-                  Aksi
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -234,7 +235,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                     style={{ color: 'var(--text-muted)' }}
                   >
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <p>Tidak ada member yang ditemukan.</p>
+                      <p>No members found.</p>
                       {(searchQuery || selectedJob || selectedStatus !== 'all') && (
                         <button
                           type="button"
@@ -245,7 +246,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                           }}
                           className="text-xs text-indigo-400 hover:underline cursor-pointer"
                         >
-                          Reset Pencarian & Filter
+                          Reset Search & Filters
                         </button>
                       )}
                     </div>
@@ -276,7 +277,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                       {JOB_LABELS[char.job] || char.job}
                     </td>
                     <td className="p-4 text-center font-semibold text-amber-400">
-                      {Math.round(Number(char.pvp_score) || 0).toLocaleString('id-ID')}
+                      {Math.round(Number(char.pvp_score) || 0).toLocaleString('en-US')}
                     </td>
                     <td className="p-4 text-center">
                       <div className="flex items-center justify-center gap-1.5 text-xs font-semibold">
@@ -304,7 +305,7 @@ export function MemberClient({ guild, members }: MemberClientProps) {
                           size="sm"
                           onClick={() => setSelectedDetailMember(char)}
                         >
-                          Detail & Aksi
+                          Details & Actions
                         </Button>
                       </div>
                     </td>

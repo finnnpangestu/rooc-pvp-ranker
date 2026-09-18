@@ -65,15 +65,15 @@ export function CharacterDetailModal({
 
   const handleDelete = () => {
     if (!member) return
-    if (!confirm('Yakin ingin menghapus karakter ini permanen?')) return
+    if (!confirm('Are you sure you want to permanently delete this character?')) return
     startTransition(async () => {
       const res = await deleteCharacter(member.id)
       if (res.success) {
-        alert('Karakter berhasil dihapus!')
+        alert('Character deleted successfully!')
         onClose(true)
       } else {
         if (handleAuthError(res)) return
-        alert('Gagal menghapus: ' + String(res.error))
+        alert('Failed to delete: ' + String(res.error))
       }
     })
   }
@@ -99,10 +99,10 @@ export function CharacterDetailModal({
       const dateObj = new Date(item.date)
       const dateLabel = isNaN(dateObj.getTime())
         ? `#${origIdx}`
-        : dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
+        : dateObj.toLocaleDateString('en-US', { day: '2-digit', month: 'short' })
       const timeLabel = isNaN(dateObj.getTime())
         ? ''
-        : dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        : dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       return {
         name: dateLabel,
         tooltipTitle: `#${origIdx} • ${dateLabel}${timeLabel ? `, ${timeLabel}` : ''}`,
@@ -115,7 +115,12 @@ export function CharacterDetailModal({
   if (!member) return null
 
   return (
-    <GlobalDialog isOpen={isOpen} onClose={onClose} title={`Detail: ${member.name}`} maxWidth={800}>
+    <GlobalDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Details: ${member.name}`}
+      maxWidth={800}
+    >
       <div>
         <div
           className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-6 p-5 rounded-3xl border transition-colors bg-black/[0.02] dark:bg-white/[0.04] backdrop-blur-xl"
@@ -137,7 +142,10 @@ export function CharacterDetailModal({
                 onError={(e) => (e.currentTarget.style.display = 'none')}
               />
               <div>
-                <div className="font-bold text-lg tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                <div
+                  className="font-bold text-lg tracking-tight"
+                  style={{ color: 'var(--text-primary)' }}
+                >
                   {member.name}
                 </div>
                 <div className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
@@ -154,7 +162,7 @@ export function CharacterDetailModal({
                   >
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                   </svg>
-                  PvP Score: {Math.round(Number(member?.pvp_score || 0)).toLocaleString('id-ID')}
+                  PvP Score: {Math.round(Number(member?.pvp_score || 0)).toLocaleString('en-US')}
                 </div>
               </div>
             </div>
@@ -174,15 +182,13 @@ export function CharacterDetailModal({
                   className="text-[11px] font-semibold uppercase tracking-[0.03em]"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  Kehadiran GL
+                  GL Attendance
                 </span>
                 <div className="flex items-center gap-1 text-sm font-bold tabular-nums">
                   <span className="text-emerald-500 dark:text-emerald-400">
                     {member.gl_present_count || 0}
                   </span>
-                  <span className="text-xs font-normal opacity-40">
-                    /
-                  </span>
+                  <span className="text-xs font-normal opacity-40">/</span>
                   <span className="text-rose-500 dark:text-red-400">
                     {member.gl_absent_count || 0}
                   </span>
@@ -199,15 +205,13 @@ export function CharacterDetailModal({
                   className="text-[11px] font-semibold uppercase tracking-[0.03em]"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  Kehadiran WoE
+                  WoE Attendance
                 </span>
                 <div className="flex items-center gap-1 text-sm font-bold tabular-nums">
                   <span className="text-emerald-500 dark:text-emerald-400">
                     {member.woe_present_count || 0}
                   </span>
-                  <span className="text-xs font-normal opacity-40">
-                    /
-                  </span>
+                  <span className="text-xs font-normal opacity-40">/</span>
                   <span className="text-rose-500 dark:text-red-400">
                     {member.woe_absent_count || 0}
                   </span>
@@ -224,7 +228,7 @@ export function CharacterDetailModal({
                   className="text-[11px] font-semibold uppercase tracking-[0.03em]"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  Resource
+                  Resources
                 </span>
                 <span className="text-sm font-bold text-indigo-500 dark:text-indigo-400 tabular-nums">
                   {member.total_resources || 0}
@@ -272,7 +276,7 @@ export function CharacterDetailModal({
             isActive={activeDetailTab === 'history'}
             onClick={() => setActiveDetailTab('history')}
           >
-            Riwayat Skor
+            Score History
           </TabButton>
         </TabBar>
 
@@ -358,15 +362,21 @@ export function CharacterDetailModal({
                   borderColor: 'var(--border-color)',
                 }}
               >
-                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                  Skor Awal
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-wider"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  Initial Score
                 </span>
-                <strong className="text-base mt-0.5 tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                <strong
+                  className="text-base mt-0.5 tabular-nums"
+                  style={{ color: 'var(--text-primary)' }}
+                >
                   {Math.round(
                     member.stat_history && member.stat_history.length > 0
                       ? member.stat_history[0].pvp_score
                       : Number(member.pvp_score || 0),
-                  ).toLocaleString('id-ID')}
+                  ).toLocaleString('en-US')}
                 </strong>
               </div>
 
@@ -376,11 +386,14 @@ export function CharacterDetailModal({
                   borderColor: 'var(--border-color)',
                 }}
               >
-                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                  Skor Terkini
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-wider"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  Current Score
                 </span>
                 <strong className="text-base text-amber-500 dark:text-amber-400 mt-0.5 tabular-nums">
-                  {Math.round(Number(member.pvp_score || 0)).toLocaleString('id-ID')}
+                  {Math.round(Number(member.pvp_score || 0)).toLocaleString('en-US')}
                 </strong>
               </div>
 
@@ -390,8 +403,11 @@ export function CharacterDetailModal({
                   borderColor: 'var(--border-color)',
                 }}
               >
-                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                  Total Progres
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-wider"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  Total Progress
                 </span>
                 {(() => {
                   const hist = member.stat_history || []
@@ -404,11 +420,14 @@ export function CharacterDetailModal({
                   const isPos = delta >= 0
                   return (
                     <strong
-                      className={`text-base mt-0.5 tabular-nums ${isPos ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}
+                      className={`text-base mt-0.5 tabular-nums flex items-center gap-1 ${isPos ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}
                     >
-                      {isPos
-                        ? `+${Math.round(delta).toLocaleString('id-ID')}`
-                        : Math.round(delta).toLocaleString('id-ID')}
+                      {isPos && <Icon icon="fluent:arrow-up-12-filled" className="w-3.5 h-3.5 shrink-0" />}
+                      <span>
+                        {isPos
+                          ? `+${Math.round(delta).toLocaleString('en-US')}`
+                          : Math.round(delta).toLocaleString('en-US')}
+                      </span>
                     </strong>
                   )
                 })()}
@@ -420,56 +439,44 @@ export function CharacterDetailModal({
                   borderColor: 'var(--border-color)',
                 }}
               >
-                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                  Total Snapshot
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-wider"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  Total Snapshots
                 </span>
                 <strong className="text-base text-emerald-500 dark:text-emerald-400 mt-0.5 tabular-nums">
-                  {member.stat_history ? member.stat_history.length : 0} kali
+                  {member.stat_history ? member.stat_history.length : 0} time(s)
                 </strong>
               </div>
             </div>
 
-            {/* Recharts Line Chart - Hanya tampil jika perubahan minimal 2x (chartData.length >= 2), menampilkan maksimal 5 data terakhir */}
+            {/* Recharts Line Chart - Only displayed if >= 2 points, showing max 5 latest */}
             {chartData.length >= 2 && (
-              <div
-                className="p-5 rounded-3xl border flex flex-col gap-3 transition-colors bg-white/60 dark:bg-zinc-850/60 apple-glass shadow-sm"
-                style={{
-                  borderColor: 'var(--border-color)',
-                }}
-              >
+              <div className="p-5 rounded-2xl sm:rounded-3xl border border-black/10 dark:border-white/10 flex flex-col gap-3 transition-colors bg-black/[0.02] dark:bg-white/[0.03] shadow-sm">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
                       <Icon icon="fluent:data-trending-20-regular" className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3
-                        className="text-sm font-semibold m-0"
-                        style={{ color: 'var(--text-primary)' }}
-                      >
-                        Tren Perkembangan Skor (5 Terakhir)
+                      <h3 className="text-sm font-semibold m-0 text-zinc-900 dark:text-zinc-100">
+                        Score Growth Trend (Last 5)
                       </h3>
                     </div>
                   </div>
-                  <div
-                    className="text-[11px] px-3 py-1.5 rounded-lg border flex items-center gap-2"
-                    style={{
-                      background: 'var(--bg-secondary)',
-                      borderColor: 'var(--border-color)',
-                      color: 'var(--text-secondary)',
-                    }}
-                  >
+                  <div className="text-[11px] px-3 py-1.5 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.04] dark:bg-white/[0.06] text-zinc-600 dark:text-zinc-300 flex items-center gap-2 shadow-xs font-medium">
                     <span>
                       Min:{' '}
-                      <strong className="text-emerald-400">
-                        {Math.min(...chartData.map((d) => d.score)).toLocaleString('id-ID')}
+                      <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                        {Math.min(...chartData.map((d) => d.score)).toLocaleString('en-US')}
                       </strong>
                     </span>
-                    <span>•</span>
+                    <span className="opacity-40">•</span>
                     <span>
                       Max:{' '}
-                      <strong className="text-emerald-400">
-                        {Math.max(...chartData.map((d) => d.score)).toLocaleString('id-ID')}
+                      <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                        {Math.max(...chartData.map((d) => d.score)).toLocaleString('en-US')}
                       </strong>
                     </span>
                   </div>
@@ -504,10 +511,11 @@ export function CharacterDetailModal({
                       />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: 'var(--bg-secondary)',
+                          backgroundColor: 'var(--bg-card)',
                           borderColor: 'var(--border-color)',
                           color: 'var(--text-primary)',
-                          borderRadius: '8px',
+                          borderRadius: '12px',
+                          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
                         }}
                         itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
                         labelFormatter={(label, payload) =>
@@ -555,10 +563,10 @@ export function CharacterDetailModal({
                               className="text-sm font-semibold"
                               style={{ color: 'var(--text-primary)' }}
                             >
-                              {snap.note || 'Pembaruan stats'}
+                              {snap.note || 'Stats update'}
                             </span>
                             <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                              {new Date(snap.date).toLocaleDateString('id-ID', {
+                              {new Date(snap.date).toLocaleDateString('en-US', {
                                 day: '2-digit',
                                 month: 'short',
                                 year: 'numeric',
@@ -578,13 +586,13 @@ export function CharacterDetailModal({
                               </strong>
                             </span>
                             {snap.hp !== undefined && snap.hp > 0 && (
-                              <span>• HP: {snap.hp.toLocaleString('id-ID')}</span>
+                              <span>• HP: {snap.hp.toLocaleString('en-US')}</span>
                             )}
                             {snap.patk !== undefined && snap.patk > 0 && (
-                              <span>• PATK: {snap.patk.toLocaleString('id-ID')}</span>
+                              <span>• PATK: {snap.patk.toLocaleString('en-US')}</span>
                             )}
                             {snap.matk !== undefined && snap.matk > 0 && (
-                              <span>• MATK: {snap.matk.toLocaleString('id-ID')}</span>
+                              <span>• MATK: {snap.matk.toLocaleString('en-US')}</span>
                             )}
                           </div>
                         </div>
@@ -592,17 +600,20 @@ export function CharacterDetailModal({
 
                       <div className="flex sm:flex-col items-end justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0 border-white/5">
                         <div className="text-base font-bold text-amber-400">
-                          {Math.round(snap.pvp_score).toLocaleString('id-ID')} pts
+                          {Math.round(snap.pvp_score).toLocaleString('en-US')} pts
                         </div>
                         {prevSnap && stepDelta !== 0 && (
                           <span
-                            className={`text-[11px] font-bold ${
+                            className={`text-[11px] font-bold flex items-center gap-0.5 ${
                               stepDelta > 0 ? 'text-emerald-400' : 'text-rose-400'
                             }`}
                           >
-                            {stepDelta > 0
-                              ? `+${Math.round(stepDelta).toLocaleString('id-ID')}`
-                              : Math.round(stepDelta).toLocaleString('id-ID')}
+                            {stepDelta > 0 && <Icon icon="fluent:arrow-up-12-filled" className="w-3 h-3 shrink-0" />}
+                            <span>
+                              {stepDelta > 0
+                                ? `+${Math.round(stepDelta).toLocaleString('en-US')}`
+                                : Math.round(stepDelta).toLocaleString('en-US')}
+                            </span>
                           </span>
                         )}
                       </div>
@@ -619,11 +630,11 @@ export function CharacterDetailModal({
                     className="w-8 h-8 text-gray-500 mx-auto mb-2"
                   />
                   <p className="text-sm font-semibold text-gray-300 m-0">
-                    Belum ada riwayat perkembangan tercatat
+                    No score growth history recorded yet
                   </p>
                   <p className="text-xs text-gray-500 m-0 mt-1">
-                    Setiap kali stats karakter ini diperbarui, snapshot skor dan stat kuncinya akan
-                    otomatis terekam di sini.
+                    Whenever this character's stats are updated, a snapshot of their score and key
+                    stats will automatically be recorded here.
                   </p>
                 </div>
               )}
@@ -644,12 +655,12 @@ export function CharacterDetailModal({
               onClick={() => onOpenSimulator(member)}
               className="text-indigo-600 dark:text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/10"
             >
-              Simulasi Stat
+              Compare Member
             </Button>
           )}
 
           <Button variant="amber" size="md" onClick={() => setIsUpdateModalOpen(true)}>
-            Edit Karakter
+            Edit Character
           </Button>
 
           <Button
@@ -659,7 +670,7 @@ export function CharacterDetailModal({
             className={`flex-1 sm:flex-none ${member.isVerified ? 'text-amber-600 dark:text-amber-400 border-amber-500/30' : ''}`}
             onClick={handleToggleVerify}
           >
-            {member.isVerified ? 'Batalkan Verifikasi' : 'Approve & Verifikasi'}
+            {member.isVerified ? 'Revoke Verification' : 'Approve & Verify'}
           </Button>
 
           <Button
@@ -669,11 +680,11 @@ export function CharacterDetailModal({
             className="flex-1 sm:flex-none"
             onClick={handleDelete}
           >
-            Hapus Member
+            Delete Member
           </Button>
 
           <Button variant="ghost" size="md" onClick={() => onClose()}>
-            Tutup
+            Close
           </Button>
         </div>
       </div>

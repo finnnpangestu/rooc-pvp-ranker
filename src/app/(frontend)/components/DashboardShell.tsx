@@ -89,7 +89,7 @@ function DashboardShellContent({
     },
     {
       path: '/member',
-      label: 'Daftar Member',
+      label: 'Member List',
       paths: [
         'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2',
         'M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
@@ -106,7 +106,7 @@ function DashboardShellContent({
           !isSidebarOpen && !isMobile ? 'opacity-0 text-center' : 'opacity-100'
         }`}
       >
-        {isSidebarOpen || isMobile ? 'Menu Utama' : '•••'}
+        {isSidebarOpen || isMobile ? 'Main Menu' : '•••'}
       </div>
 
       {menuItems.map((item, idx) => {
@@ -354,7 +354,7 @@ function DashboardShellContent({
             !isSidebarOpen && !isMobile ? 'opacity-0 hidden' : 'opacity-100 block'
           }`}
         >
-          {isPending ? 'Logging out...' : 'Keluar'}
+          {isPending ? 'Logging out...' : 'Log Out'}
         </span>
       </button>
     </div>
@@ -474,7 +474,7 @@ function DashboardShellContent({
             </button>
 
             <h1 className="text-lg sm:text-xl font-bold tracking-tight text-zinc-900 dark:text-white truncate">
-              {hasGuild ? guild.name : 'Belum Ada Guild'}
+              {hasGuild ? guild.name : 'No Guild Yet'}
             </h1>
             {hasGuild && <Badge variant="info">Guild Master Panel</Badge>}
           </div>
@@ -501,7 +501,7 @@ function DashboardShellContent({
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
                 <path d="M12 17h.01" />
               </svg>
-              <span className="hidden sm:inline">Panduan Halaman</span>
+              <span className="hidden sm:inline">Page Tour</span>
             </Button>
 
             {hasGuild && (

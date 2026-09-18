@@ -244,7 +244,12 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
     if (selectedIds.length === 0 || !selectionMode) return
     const nextStatus = selectionMode === 'pending' ? 'approved' : 'claimed'
     const actionName = selectionMode === 'pending' ? 'Approve' : 'Claim'
-    if (!confirm(`Yakin ingin ${actionName} ${selectedIds.length} item?`)) return
+    if (
+      !confirm(
+        `Are you sure you want to ${actionName.toLowerCase()} ${selectedIds.length} item${selectedIds.length === 1 ? '' : 's'}?`,
+      )
+    )
+      return
 
     startBulkUpdateTransition(async () => {
       const res = await bulkUpdateDistributionStatus(selectedIds, nextStatus)
@@ -254,13 +259,13 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         router.refresh()
       } else {
         if (handleAuthError(res)) return
-        alert('Gagal: ' + res.message)
+        alert('Failed: ' + res.message)
       }
     })
   }
 
   const handleEditResource = () => {
-    if (!editResourceId || editAddQuantity <= 0) return alert('Jumlah tambahan harus diisi')
+    if (!editResourceId || editAddQuantity <= 0) return alert('Additional quantity is required')
 
     setActionResourceId(editResourceId)
     startEditTransition(async () => {
@@ -272,14 +277,15 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         router.refresh()
       } else {
         if (handleAuthError(res)) return
-        alert('Gagal: ' + res.message)
+        alert('Failed: ' + res.message)
       }
       setActionResourceId(null)
     })
   }
 
   const handleCreateResource = () => {
-    if (!resourceName.trim() || resourceQuantity <= 0) return alert('Nama dan jumlah harus diisi')
+    if (!resourceName.trim() || resourceQuantity <= 0)
+      return alert('Name and quantity are required')
 
     startCreateTransition(async () => {
       const res = await createResource(guild.id, {
@@ -293,7 +299,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         router.refresh()
       } else {
         if (handleAuthError(res)) return
-        alert('Gagal: ' + res.message)
+        alert('Failed: ' + res.message)
       }
     })
   }
@@ -315,19 +321,19 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         router.refresh()
       } else {
         if (handleAuthError(res)) return
-        alert('Gagal: ' + res.message)
+        alert('Failed: ' + res.message)
       }
       setActionResourceId(null)
     })
   }
 
   const handleDistribute = () => {
-    if (!distributeMemberId) return alert('Pilih member terlebih dahulu')
-    if (distributeItems.length === 0) return alert('Minimal pilih 1 resource')
+    if (!distributeMemberId) return alert('Please select a member first')
+    if (distributeItems.length === 0) return alert('Please select at least 1 resource')
 
     const hasInvalidItem = distributeItems.some((item) => !item.resource_id || item.quantity <= 0)
     if (hasInvalidItem)
-      return alert('Semua pilihan resource dan jumlah minimal 1 harus diisi dengan benar')
+      return alert('All resource selections and quantities must be filled properly (min. 1)')
 
     startDistributeTransition(async () => {
       const res = await distributeResource(guild.id, {
@@ -344,7 +350,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         router.refresh()
       } else {
         if (handleAuthError(res)) return
-        alert('Gagal: ' + res.message)
+        alert('Failed: ' + res.message)
       }
     })
   }
@@ -356,15 +362,15 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
       if (res.success) router.refresh()
       else {
         if (handleAuthError(res)) return
-        alert('Gagal: ' + res.message)
+        alert('Failed: ' + res.message)
       }
       setActionDistId(null)
     })
   }
 
   const handleEditDistributionDetails = () => {
-    if (editDistType === 'quantity' && editDistQuantity <= 0) return alert('Jumlah tidak valid')
-    if (editDistType === 'member' && !editDistMemberId) return alert('Member harus dipilih')
+    if (editDistType === 'quantity' && editDistQuantity <= 0) return alert('Invalid quantity')
+    if (editDistType === 'member' && !editDistMemberId) return alert('Please select a member')
 
     setActionDistId(editDistId)
     startEditDistTransition(async () => {
@@ -413,14 +419,14 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
             Resource Management
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Kelola resource guild dan distribusikan ke member
+            Manage guild resources and distribution to members
           </p>
         </div>
         <div className="flex gap-3">
           {renderLoadingButton(
             () => setIsCreateModalOpen(true),
             isCreating,
-            '+ Buat Resource',
+            '+ Create Resource',
             'primary',
             'md',
             '',
@@ -429,7 +435,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
           {renderLoadingButton(
             () => setIsDistributeModalOpen(true),
             false,
-            'Distribusi Resource',
+            'Distribute Resource',
             'amber',
             'md',
             '',
@@ -443,11 +449,9 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
       >
         {resources.length === 0 ? (
-          <div
-            className="col-span-4 apple-glass rounded-2xl p-8 text-center border border-black/5 dark:border-white/10 shadow-sm"
-          >
+          <div className="col-span-4 apple-glass rounded-2xl p-8 text-center border border-black/5 dark:border-white/10 shadow-sm">
             <p style={{ color: 'var(--text-muted)' }}>
-              Belum ada resource. Klik &quot;Buat Resource&quot; untuk menambahkan.
+              No resources yet. Click &quot;Create Resource&quot; to add one.
             </p>
           </div>
         ) : (
@@ -468,7 +472,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span style={{ color: 'var(--text-secondary)' }}>Sisa</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>Remaining</span>
                   <span
                     className={`font-bold text-lg ${resource.remaining_quantity === 0 ? 'text-red-400' : 'text-emerald-400'}`}
                   >
@@ -515,7 +519,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                       <path d="M12 20h9" />
                       <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                     </svg>
-                    Tambah Stok
+                    Add Stock
                   </>,
                   'primary',
                   'sm',
@@ -538,7 +542,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                       <polyline points="3 6 5 6 21 6" />
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                     </svg>
-                    Hapus
+                    Delete
                   </>,
                   'danger',
                   'sm',
@@ -561,23 +565,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               className="text-[20px] m-0 font-semibold flex items-center gap-2"
               style={{ color: 'var(--text-primary)' }}
             >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ color: '#818cf8' }}
-              >
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-              Jadwal Bid / Riwayat Distribusi
+              Bid Schedule / Distribution History
             </h3>
             <span
               className="text-[14px] font-normal flex items-center gap-1.5"
@@ -588,7 +576,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                   <span className="font-semibold text-indigo-400">
                     {filteredDistributions.length}
                   </span>{' '}
-                  dari {distributions.length} total
+                  of {distributions.length} total
                 </>
               ) : (
                 `(${distributions.length} total)`
@@ -613,7 +601,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                   setSelectedIds([])
                   setSelectionMode(null)
                 }}
-                placeholder="Cari nama character..."
+                placeholder="Search character name..."
                 className="pl-9 pr-8 py-2 text-sm rounded-xl outline-none border transition-all w-44 sm:w-56 focus:w-64 bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)]"
               />
               {characterSearch && (
@@ -626,7 +614,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                     setSelectionMode(null)
                   }}
                   className="absolute right-2.5 p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-gray-400 hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                  title="Hapus pencarian"
+                  title="Clear search"
                 >
                   <Icon icon="fluent:dismiss-16-filled" className="w-3.5 h-3.5" />
                 </button>
@@ -646,9 +634,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                       : 'var(--bg-secondary)',
                   color: selectedResourceFilters.length > 0 ? '#818cf8' : 'var(--text-primary)',
                   borderColor:
-                    selectedResourceFilters.length > 0
-                      ? 'rgba(129, 140, 248, 0.4)'
-                      : undefined,
+                    selectedResourceFilters.length > 0 ? 'rgba(129, 140, 248, 0.4)' : undefined,
                 }}
               >
                 <Icon
@@ -681,9 +667,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
 
               {/* Dropdown Menu */}
               {isFilterOpen && (
-                <div
-                  className="apple-glass-heavy absolute right-0 top-full mt-2 w-72 rounded-2xl p-3 border border-black/10 dark:border-white/15 shadow-2xl z-50 animate-fadeIn"
-                >
+                <div className="apple-glass-heavy bg-white/95 dark:bg-zinc-900/95 absolute right-0 top-full mt-2 w-72 rounded-2xl p-3 border border-black/10 dark:border-white/15 shadow-2xl z-50 animate-fadeIn">
                   <div
                     className="flex items-center justify-between pb-2.5 mb-2 border-b"
                     style={{ borderColor: 'var(--border-color)' }}
@@ -697,7 +681,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                         className="text-xs font-semibold uppercase tracking-wider"
                         style={{ color: 'var(--text-muted)' }}
                       >
-                        Filter Resource
+                        Filter Resources
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -715,7 +699,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                           onClick={handleSelectAllFilters}
                           className="text-xs font-medium text-indigo-400 hover:underline cursor-pointer"
                         >
-                          Pilih Semua
+                          Select All
                         </button>
                       )}
                     </div>
@@ -727,7 +711,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                         className="text-xs text-center py-4"
                         style={{ color: 'var(--text-muted)' }}
                       >
-                        Tidak ada resource tersedia
+                        No resources available
                       </p>
                     ) : (
                       availableFilterResources.map((res) => {
@@ -790,14 +774,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                                 {res.name}
                               </span>
                             </div>
-                            <span
-                              className="text-[10px] px-1.5 py-0.5 rounded-full font-mono ml-2 flex-shrink-0"
-                              style={{
-                                background: 'var(--bg-secondary)',
-                                color: 'var(--text-muted)',
-                                border: '1px solid var(--border-color)',
-                              }}
-                            >
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold ml-2 flex-shrink-0 bg-black/5 dark:bg-white/10 text-zinc-600 dark:text-zinc-400 border border-black/10 dark:border-white/10">
                               {count}
                             </span>
                           </div>
@@ -812,14 +789,14 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                       style={{ borderColor: 'var(--border-color)' }}
                     >
                       <span style={{ color: 'var(--text-muted)' }}>
-                        {selectedResourceFilters.length} dipilih
+                        {selectedResourceFilters.length} selected
                       </span>
                       <button
                         type="button"
                         onClick={handleClearFilters}
                         className="text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
                       >
-                        Hapus Filter
+                        Clear Filter
                       </button>
                     </div>
                   )}
@@ -850,8 +827,8 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
             />
             <p className="text-sm m-0" style={{ color: 'var(--text-muted)' }}>
               {selectedResourceFilters.length > 0 || characterSearch.trim()
-                ? 'Tidak ada riwayat distribusi yang cocok dengan filter atau pencarian.'
-                : 'Belum ada riwayat distribusi.'}
+                ? 'No distribution history matches the filter or search.'
+                : 'No distribution history yet.'}
             </p>
             {(selectedResourceFilters.length > 0 || characterSearch.trim()) && (
               <button
@@ -862,7 +839,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                 }}
                 className="mt-3 text-xs font-semibold text-indigo-400 hover:underline cursor-pointer"
               >
-                Reset Filter & Pencarian
+                Reset Filter & Search
               </button>
             )}
           </div>
@@ -920,7 +897,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                       </div>
                     </th>
                     <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
-                      Tanggal
+                      Date
                     </th>
                     <th className="p-3 text-left" style={{ color: 'var(--text-muted)' }}>
                       Resource
@@ -929,13 +906,13 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                       Member
                     </th>
                     <th className="p-3 text-right" style={{ color: 'var(--text-muted)' }}>
-                      Jumlah
+                      Quantity
                     </th>
                     <th className="p-3 text-center" style={{ color: 'var(--text-muted)' }}>
                       Status
                     </th>
                     <th className="p-3 text-center" style={{ color: 'var(--text-muted)' }}>
-                      Aksi
+                      Action
                     </th>
                   </tr>
                 </thead>
@@ -985,7 +962,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                         </td>
                         <td className="p-3" style={{ color: 'var(--text-secondary)' }}>
                           {dist.bid_date
-                            ? new Date(dist.bid_date).toLocaleDateString('id-ID')
+                            ? new Date(dist.bid_date).toLocaleDateString('en-US')
                             : '-'}
                         </td>
                         <td className="p-3" style={{ color: 'var(--text-primary)' }}>
@@ -1109,7 +1086,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                             )}
                             {dist.status === 'claimed' && (
                               <span className="text-xs text-emerald-400 font-semibold mt-1 block">
-                                ✓ Selesai
+                                ✓ Completed
                               </span>
                             )}
                           </div>
@@ -1131,13 +1108,13 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         )}
       </div>
 
-      {/* MODAL: Buat Resource */}
+      {/* MODAL: Create Resource */}
       <GlobalDialog
         isOpen={isCreateModalOpen}
         onClose={() => {
           if (!isCreating) setIsCreateModalOpen(false)
         }}
-        title="Buat Resource Baru"
+        title="Create New Resource"
         maxWidth={400}
       >
         <div className="flex flex-col gap-4 mt-2">
@@ -1146,11 +1123,11 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               className="text-[13px] font-semibold mb-2 block"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Nama Resource
+              Resource Name
             </label>
             <input
               type="text"
-              placeholder="Contoh: S, A, B, Mythic"
+              placeholder="e.g. S, A, B, Mythic"
               value={resourceName}
               onChange={(e) => setResourceName(e.target.value)}
               className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all"
@@ -1163,7 +1140,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               className="text-[13px] font-semibold mb-2 block"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Jumlah Total
+              Total Quantity
             </label>
             <input
               type="number"
@@ -1178,7 +1155,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
           {renderLoadingButton(
             handleCreateResource,
             isCreating,
-            'Buat Resource',
+            'Create Resource',
             'primary',
             'lg',
             'w-full mt-2',
@@ -1187,13 +1164,13 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         </div>
       </GlobalDialog>
 
-      {/* MODAL: Distribusi Resource */}
+      {/* MODAL: Distribute Resource */}
       <GlobalDialog
         isOpen={isDistributeModalOpen}
         onClose={() => {
           if (!isDistributing) setIsDistributeModalOpen(false)
         }}
-        title="Distribusi Resource"
+        title="Distribute Resource"
         maxWidth={500}
       >
         <div className="flex flex-col gap-4 mt-2">
@@ -1202,12 +1179,12 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               className="text-[13px] font-semibold mb-2 block"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Pilih Member
+              Select Member
             </label>
             <CustomDropdown
               value={distributeMemberId}
               onChange={(val) => setDistributeMemberId(val)}
-              placeholder="-- Pilih Member --"
+              placeholder="-- Select Member --"
               disabled={isDistributing}
               options={members.map((m) => ({
                 value: m.id,
@@ -1223,7 +1200,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               className="text-[13px] font-semibold block"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Resource yang Diberikan
+              Resources to Distribute
             </label>
 
             {distributeItems.map((item, index) => (
@@ -1236,14 +1213,14 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                     newItems[index].resource_id = val
                     setDistributeItems(newItems)
                   }}
-                  placeholder="-- Pilih Resource --"
+                  placeholder="-- Select Resource --"
                   disabled={isDistributing}
                   options={resources
                     .filter((r) => Number(r.remaining_quantity) > 0)
                     .map((r) => ({
                       value: r.id,
                       label: r.name,
-                      sublabel: `Sisa: ${r.remaining_quantity}`,
+                      sublabel: `Remaining: ${r.remaining_quantity}`,
                     }))}
                 />
 
@@ -1295,7 +1272,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                 setDistributeItems([...distributeItems, { resource_id: '', quantity: 1 }])
               }
             >
-              + Tambah Resource Lain
+              + Add Another Resource
             </Button>
           </div>
 
@@ -1304,11 +1281,11 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               className="text-[13px] font-semibold mb-2 block"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Catatan (Opsional)
+              Notes (Optional)
             </label>
             <input
               type="text"
-              placeholder="Contoh: Bonus Week 1"
+              placeholder="e.g. Week 1 Bonus"
               value={distributeNotes}
               onChange={(e) => setDistributeNotes(e.target.value)}
               className="w-full rounded-xl py-3 px-4 outline-none text-[14px] bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#0071e3] text-[var(--text-primary)] transition-all"
@@ -1319,7 +1296,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
           {renderLoadingButton(
             handleDistribute,
             isDistributing,
-            'Distribusikan',
+            'Distribute',
             'amber',
             'lg',
             'w-full mt-2',
@@ -1328,13 +1305,13 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         </div>
       </GlobalDialog>
 
-      {/* MODAL: Edit Stok */}
+      {/* MODAL: Edit Stock */}
       <GlobalDialog
         isOpen={isEditModalOpen}
         onClose={() => {
           if (!isEditing) setIsEditModalOpen(false)
         }}
-        title="Tambah Stok Resource"
+        title="Add Resource Stock"
         maxWidth={400}
       >
         <div className="flex flex-col gap-4 mt-2">
@@ -1346,7 +1323,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               Resource: {editResourceName}
             </label>
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              Tambahkan jumlah stok baru. Stok saat ini akan bertambah.
+              Add new stock quantity. The current stock will be increased.
             </p>
           </div>
 
@@ -1355,7 +1332,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               className="text-[13px] font-semibold mb-2 block"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Jumlah Tambahan
+              Additional Quantity
             </label>
             <input
               type="number"
@@ -1370,7 +1347,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
           {renderLoadingButton(
             handleEditResource,
             isEditing,
-            'Tambah Stok',
+            'Add Stock',
             'primary',
             'lg',
             'w-full mt-2',
@@ -1379,13 +1356,15 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         </div>
       </GlobalDialog>
 
-      {/* MODAL: Edit Distribusi (Member/Qty) */}
+      {/* MODAL: Edit Distribution (Member/Qty) */}
       <GlobalDialog
         isOpen={isEditDistModalOpen}
         onClose={() => {
           if (!isEditingDist) setIsEditDistModalOpen(false)
         }}
-        title={editDistType === 'member' ? 'Ubah Member Penerima' : 'Ubah Jumlah Distribusi'}
+        title={
+          editDistType === 'member' ? 'Change Recipient Member' : 'Change Distribution Quantity'
+        }
         maxWidth={400}
       >
         <div className="flex flex-col gap-4 mt-2">
@@ -1395,12 +1374,12 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                 className="text-[13px] font-semibold mb-2 block"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                Pilih Member Baru
+                Select New Member
               </label>
               <CustomDropdown
                 value={editDistMemberId}
                 onChange={(val) => setEditDistMemberId(val)}
-                placeholder="-- Pilih Member --"
+                placeholder="-- Select Member --"
                 disabled={isEditingDist}
                 options={members.map((m) => ({
                   value: m.id,
@@ -1416,7 +1395,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                 className="text-[13px] font-semibold mb-2 block"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                Ubah Jumlah (Approved)
+                Change Quantity (Approved)
               </label>
               <input
                 type="number"
@@ -1432,7 +1411,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
           {renderLoadingButton(
             handleEditDistributionDetails,
             isEditingDist,
-            'Simpan Perubahan',
+            'Save Changes',
             'amber',
             'lg',
             'w-full mt-2',
@@ -1441,7 +1420,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
         </div>
       </GlobalDialog>
 
-      {/* MODAL: Konfirmasi Hapus Resource */}
+      {/* MODAL: Confirm Delete Resource */}
       <GlobalDialog
         isOpen={isDeleteModalOpen}
         onClose={() => {
@@ -1450,7 +1429,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
             setResourceToDelete(null)
           }
         }}
-        title="Hapus Resource"
+        title="Delete Resource"
         maxWidth={460}
       >
         <div className="flex flex-col gap-4 mt-2">
@@ -1467,20 +1446,18 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
             </div>
             <div className="flex flex-col gap-1 text-sm">
               <span className="font-semibold text-red-400">
-                Peringatan: Riwayat Distribusi Akan Hilang
+                Warning: Distribution History Will Be Lost
               </span>
               <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                Jika resource ini dihapus, seluruh riwayat distribusi dan log terkait resource ini
-                akan ikut terhapus secara permanen dari database.
+                If this resource is deleted, all distribution history and logs associated with this
+                resource will also be permanently deleted from the database.
               </p>
             </div>
           </div>
 
           {/* Info Resource */}
           {resourceToDelete && (
-            <div
-              className="p-3.5 rounded-xl border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] flex flex-col gap-2.5"
-            >
+            <div className="p-3.5 rounded-xl border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] flex flex-col gap-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                   Resource
@@ -1491,7 +1468,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Total / Sisa Stok
+                  Total / Remaining Stock
                 </span>
                 <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
                   {resourceToDelete.total_quantity} / {resourceToDelete.remaining_quantity}
@@ -1502,7 +1479,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                 style={{ borderColor: 'var(--border-color)' }}
               >
                 <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Dampak Riwayat
+                  Affected History
                 </span>
                 <span
                   className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
@@ -1512,15 +1489,15 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                   }`}
                 >
                   {affectedDistributionsCount > 0
-                    ? `${affectedDistributionsCount} riwayat akan terhapus`
-                    : 'Tidak ada riwayat terkait'}
+                    ? `${affectedDistributionsCount} record${affectedDistributionsCount === 1 ? '' : 's'} will be deleted`
+                    : 'No related records'}
                 </span>
               </div>
             </div>
           )}
 
           <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
-            Apakah Anda yakin ingin menghapus resource{' '}
+            Are you sure you want to delete resource{' '}
             <strong className="font-bold text-red-400">{resourceToDelete?.name}</strong>?
           </p>
 
@@ -1537,7 +1514,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
                 setResourceToDelete(null)
               }}
             >
-              Batal
+              Cancel
             </Button>
             <Button
               variant="danger"
@@ -1548,7 +1525,7 @@ export function ResourceClient({ guild, resources, distributions, members }: Res
               className="!bg-red-500/15 hover:!bg-red-500/25 !text-red-400 !border-red-500/40"
             >
               <Icon icon="fluent:delete-24-regular" className="w-4 h-4" />
-              Ya, Hapus Resource
+              Yes, Delete Resource
             </Button>
           </div>
         </div>

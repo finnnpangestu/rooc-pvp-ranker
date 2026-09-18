@@ -22,7 +22,7 @@ export function JobFilterDropdown({
   isOpen,
   onToggle,
   onClose,
-  allLabel = 'Semua Job',
+  allLabel = 'All Jobs',
   className = '',
 }: JobFilterDropdownProps) {
   const containerRef = useRef<HTMLDivElement>(null)

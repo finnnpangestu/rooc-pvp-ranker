@@ -24,7 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata = {
-  title: 'ROO PvP Ranker & Guild Manager',
+  title: 'Ragnatool',
   description:
     'Sistem manajemen formasi dan pelacakan performa War of Emperium (WoE) serta Guild League.',
 }

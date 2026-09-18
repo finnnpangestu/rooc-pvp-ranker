@@ -23,7 +23,7 @@ export function CharacterCard({ character, onRemove }: CharacterCardProps) {
         {onRemove && (
           <button
             className="absolute inset-0 w-full h-full bg-red-500/90 hover:bg-red-600 text-white rounded-lg flex items-center justify-center opacity-0 scale-50 -rotate-12 group-hover:opacity-100 group-hover:scale-100 group-hover:rotate-0 transition-all duration-300 ease-out shadow-inner z-10 text-xl leading-none pb-0.5"
-            title="Hapus Member"
+            title="Remove Member"
             onClick={onRemove}
           >
             ×

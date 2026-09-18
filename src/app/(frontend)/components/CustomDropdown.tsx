@@ -130,7 +130,7 @@ export function CustomDropdown({
         >
           {options.length === 0 ? (
             <div className="py-3 px-3 text-xs text-center text-zinc-400 dark:text-zinc-500 italic">
-              Tidak ada pilihan
+              No options found
             </div>
           ) : (
             options.map((option) => {
