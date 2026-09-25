@@ -88,6 +88,52 @@ Helpful options:
   ssh -i <your-oracle-key> -L 5432:localhost:5432 opc@<your-vps-ip>
   ```
 
+### Running Drizzle Studio via SSH
+
+There are two recommended ways to use Drizzle Studio with a remote VPS:
+
+#### Option 1: Run Drizzle Studio Locally (Recommended)
+
+Keep the compute and web interface on your local machine while tunneling the database traffic securely:
+
+1. **Open the SSH tunnel** to PostgreSQL on your VPS:
+
+   ```bash
+   ssh -i <your-oracle-key> -N -L 5432:localhost:5432 ubuntu@<your-vps-ip>
+   ```
+
+2. **Ensure your local `.env`** has `DATABASE_URL` pointing to localhost:
+
+   ```env
+   DATABASE_URL="postgresql://postgres:<password>@localhost:5432/guild-management"
+   ```
+
+3. **Start Drizzle Studio** locally:
+
+   ```bash
+   npm run db:studio
+   ```
+
+4. Open `https://local.drizzle.studio` (or `http://localhost:4983`) in your local browser.
+
+#### Option 2: Run Drizzle Studio on Remote VPS (Port Forwarding Port 4983)
+
+If Drizzle Studio is running directly inside your remote VPS session:
+
+1. **Connect to the VPS** with port forwarding for Drizzle Studio (default port `4983`):
+
+   ```bash
+   ssh -i <your-oracle-key> -L 4983:localhost:4983 ubuntu@<your-vps-ip>
+   ```
+
+2. **Inside the VPS terminal**, start Drizzle Studio:
+
+   ```bash
+   npm run db:studio
+   ```
+
+3. **Open the interface** in your local browser at `https://local.drizzle.studio` or `http://localhost:4983`.
+
 ## Scripts
 
 | Command               | Purpose                                           |
@@ -98,6 +144,7 @@ Helpful options:
 | `npm run lint`        | Lint codebase with ESLint 9 Flat Config           |
 | `npm run db:push`     | Push Drizzle schema directly to PostgreSQL        |
 | `npm run db:generate` | Generate Drizzle SQL migration files              |
+| `npm run db:studio`   | Start Drizzle Studio database GUI web interface   |
 | `npm run test:int`    | Run Vitest integration tests against the database |
 | `npm run test:e2e`    | Run Playwright browser tests                      |
 | `npm run test`        | Run all tests                                     |
