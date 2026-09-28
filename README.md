@@ -114,16 +114,16 @@ Keep the compute and web interface on your local machine while tunneling the dat
    npm run db:studio
    ```
 
-4. Open `https://local.drizzle.studio` (or `http://localhost:4983`) in your local browser.
+4. Open `https://local.drizzle.studio` (or `http://localhost:5432`) in your local browser.
 
-#### Option 2: Run Drizzle Studio on Remote VPS (Port Forwarding Port 4983)
+#### Option 2: Run Drizzle Studio on Remote VPS (Port Forwarding Port 5432)
 
 If Drizzle Studio is running directly inside your remote VPS session:
 
-1. **Connect to the VPS** with port forwarding for Drizzle Studio (default port `4983`):
+1. **Connect to the VPS** with port forwarding for Drizzle Studio (default port `5432`):
 
    ```bash
-   ssh -i <your-oracle-key> -L 4983:localhost:4983 ubuntu@<your-vps-ip>
+   ssh -i <your-oracle-key> -L 5432:localhost:5432 ubuntu@<your-vps-ip>
    ```
 
 2. **Inside the VPS terminal**, start Drizzle Studio:
